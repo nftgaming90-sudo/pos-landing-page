@@ -27,7 +27,6 @@
             line-height: 1.6;
         }
 
-        /* Container utama agar rapi di tengah */
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -35,7 +34,6 @@
             text-align: center;
         }
 
-        /* Bagian Hero (Judul & Slogan) */
         .hero {
             padding: 60px 0;
         }
@@ -68,7 +66,6 @@
             margin: 0 auto 40px auto;
         }
 
-        /* Tombol Download yang Menarik */
         .cta-box {
             background: white;
             padding: 30px;
@@ -76,7 +73,7 @@
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
             display: inline-block;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
         }
 
         .btn-download {
@@ -90,6 +87,7 @@
             font-size: 1.1rem;
             transition: all 0.3s ease;
             box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);
+            margin-bottom: 20px;
         }
 
         .btn-download:hover {
@@ -98,13 +96,48 @@
             box-shadow: 0 6px 20px rgba(37, 99, 235, 0.23);
         }
 
+        /* Tombol Login ke Dashboard */
+        .btn-login-web {
+            display: inline-block;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 10px 20px;
+            border: 2px solid #dbeafe;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-login-web:hover {
+            background-color: #f1f5f9;
+            border-color: var(--primary);
+        }
+
+        .divider {
+            margin: 15px 0;
+            color: #cbd5e1;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+            margin: 0 10px;
+        }
+
         .file-info {
             margin-top: 15px;
             font-size: 0.8rem;
             color: #94a3b8;
         }
 
-        /* Fitur List */
         .features {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -125,17 +158,10 @@
             color: var(--primary);
         }
 
-        /* Media Query untuk HP */
         @media (max-width: 640px) {
-            h1 {
-                font-size: 2.2rem;
-            }
-            .container {
-                padding: 20px;
-            }
-            .hero {
-                padding: 40px 0;
-            }
+            h1 { font-size: 2.2rem; }
+            .container { padding: 20px; }
+            .hero { padding: 40px 0; }
         }
     </style>
 </head>
@@ -153,6 +179,13 @@
                 <a href="https://falswzbhwpwugjolretc.supabase.co/storage/v1/object/public/Public/PosKita.apk" class="btn-download">
                     Download PosKita APK
                 </a>
+
+                <div class="divider">ATAU</div>
+
+                <a href="login.html" class="btn-login-web">
+                    Buka Dashboard Web &rarr;
+                </a>
+
                 <p class="file-info">Aman digunakan • Update: 4 April 2026</p>
             </div>
         </div>

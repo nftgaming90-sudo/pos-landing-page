@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login PosKita</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-500 h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Login PosKita</h2>
+        
+        <div class="space-y-4">
+            <input id="email" type="email" placeholder="Email Toko" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400">
+            <input id="password" type="password" placeholder="Password" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400">
+            <button id="btn-login" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">MASUK</button>
+        </div>
+        
+        <p id="error-msg" class="text-red-500 text-sm mt-4 text-center hidden"></p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // TEMPELKAN CONFIG KAMU DI SINI
+        const firebaseConfig = { 
+            apiKey: "AIzaSyCLlFeBekEZzdtkeFvItwqMPa2jxrLleb4",
+  authDomain: "pos-keliling.firebaseapp.com",
+  projectId: "pos-keliling",
+  storageBucket: "pos-keliling.firebasestorage.app",
+  messagingSenderId: "379944511316",
+  appId: "1:379944511316:web:27f1fd19eb3f48c5d64ac1",
+  measurementId: "G-Y4VBGVX42N"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        document.getElementById('btn-login').onclick = async () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const errorElement = document.getElementById('error-msg');
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                // Jika sukses, pindah ke dashboard (mirip startActivity Intent)
+                window.location.href = "dashboard.html";
+            } catch (error) {
+                errorElement.innerText = "Gagal login: " + error.message;
+                errorElement.classList.remove('hidden');
+            }
+        };
+    </script>
+</body>
+</html>

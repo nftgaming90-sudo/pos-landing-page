@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard PosKita</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <nav class="bg-blue-600 p-4 text-white flex justify-between items-center shadow-lg">
+        <h1 class="text-xl font-bold">PosKita Dashboard</h1>
+        <div class="flex items-center gap-4">
+            <span id="user-email" class="text-sm md:inline">Memuat sesi...</span>
+            <button id="btn-logout" class="bg-red-500 hover:bg-red-600 px-4 py-1 rounded text-sm transition font-semibold">Logout</button>
+        </div>
+    </nav>
+
+    <main class="p-6 max-w-4xl mx-auto">
+        <div id="welcome-msg" class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Selamat Datang!</h2>
+            <p class="text-gray-600 text-sm">Kelola data POS kamu di sini.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-blue-500">
+                <h3 class="font-bold text-gray-700 mb-2">📦 Database SQLite</h3>
+                <p id="db-status" class="text-xs text-gray-500 mb-4 italic">Menunggu UID...</p>
+                <button id="btn-download" class="w-full bg-blue-100 text-blue-700 font-semibold py-2 rounded hover:bg-blue-200 transition">Cek File di Cloud</button>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-green-500 text-center">
+                <h3 class="font-bold text-gray-700 mb-2">🛒 Keranjang Baru</h3>
+                <p id="cart-count" class="text-3xl font-bold text-green-600">0</p>
+                <p class="text-xs text-gray-500">Item tertunda</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-purple-500">
+                <h3 class="font-bold text-gray-700 mb-2">📊 Cek Laporan</h3>
+                <p class="text-xs text-gray-500 mb-4">Lihat omzet harian.</p>
+                <button class="w-full bg-purple-100 text-purple-700 font-semibold py-2 rounded hover:bg-purple-200 transition">Buka Grafik</button>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-white p-6 rounded-xl shadow-md border-t-4 border-yellow-500">
+            <h3 class="font-bold text-gray-700 mb-4 flex justify-between items-center">
+                <span>📦 Daftar Barang (Live dari SQLite)</span>
+                <span id="row-count" class="text-xs font-normal bg-yellow-100 text-yellow-700 px-2 py-1 rounded">0 Produk</span>
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-gray-50 text-gray-600 font-semibold">
+                        <tr>
+                            <th class="p-3">Nama Barang</th>
+                            <th class="p-3">Stok</th>
+                            <th class="p-3">Harga Jual</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr>
+                            <td colspan="3" class="p-4 text-center text-gray-400 italic">Klik tombol "Cek File" lalu ambil data.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        // 1. IMPORT FIREBASE & SUPABASE
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // 2. CONFIGURATION (PASTIKAN DATA KAMU BENAR)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLlFeBekEZzdtkeFvItwqMPa2jxrLleb4",
+  authDomain: "pos-keliling.firebaseapp.com",
+  projectId: "pos-keliling",
+  storageBucket: "pos-keliling.firebasestorage.app",
+  messagingSenderId: "379944511316",
+  appId: "1:379944511316:web:27f1fd19eb3f48c5d64ac1",
+  measurementId: "G-Y4VBGVX42N"
+        };
+
+        const supabaseUrl = 'https://falswzbhwpwugjolretc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhbHN3emJod3B3dWdqb2xyZXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NzU0MTcsImV4cCI6MjA5MDQ1MTQxN30.BpKmybIT-eeggCbuEbj8SSwvbq7eA7XCIu6Pc88xG1s';
+
+        // Inisialisasi
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // 3. FUNGSI BACA FILE DI SUPABASE STORAGE
+        async function bacaDatabase(url) {
+    const tableBody = document.getElementById('table-body');
+    const rowCountElem = document.getElementById('row-count');
+    tableBody.innerHTML = '<tr><td colspan="3" class="p-4 text-center">Memproses database...</td></tr>';
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Gagal mengunduh file dari storage");
+        const buf = await response.arrayBuffer();
+
+        const SQL = await initSqlJs({
+            locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
+        });
+
+        const db = new SQL.Database(new Uint8Array(buf));
+
+        // SESUAIKAN NAMA TABEL & KOLOM (Ganti 'barang' jika di Android beda)
+        // 1. Ganti Query SELECT-nya
+// Ganti query untuk mengambil Modal juga
+// 1. HAPUS LIMIT agar menghitung semua produk untuk Aset
+const res = db.exec("SELECT nama, stok, harga_jual, modal FROM barang ORDER BY nama ASC");
+
+if (res.length > 0) {
+    const values = res[0].values;
+    tableBody.innerHTML = ""; 
+    
+    let totalModalAset = 0;
+    let totalStokKeseluruhan = 0;
+
+    values.forEach(row => {
+    // 1. Ambil data dari kolom sesuai urutan di Android (nama:1, harga:2, modal:3, stok:4)
+    // Karena SELECT nama, stok, harga_jual, modal:
+    // row[0] = nama, row[1] = stok, row[2] = harga, row[3] = modal
+    
+    const nama = row[0] || "Tanpa Nama";
+    const stok = parseFloat(row[1]) || 0;
+    const harga = parseFloat(row[2]) || 0;
+    const modal = parseFloat(row[3]) || 0;
+
+    // 2. CEK DI CONSOLE (F12) - Logika pengecekan angka ganjil
+    const subtotalAset = stok * modal;
+    if (subtotalAset % 500 !== 0) { 
+        console.warn(`⚠️ Angka Ganjil! Barang: ${nama} | Stok: ${stok} | Modal: ${modal} | Total: ${subtotalAset}`);
+    }
+
+    // 3. Akumulasi Total
+    totalModalAset += subtotalAset;
+    totalStokKeseluruhan += stok;
+
+    // 4. Masukkan ke Tabel HTML
+    const stokColor = stok < 3 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700';
+    
+    tableBody.innerHTML += `
+        <tr class="border-b hover:bg-gray-50 transition text-gray-800">
+            <td class="p-3 font-medium">
+                ${nama}
+                <div class="text-[10px] text-gray-400">Modal: Rp ${modal.toLocaleString('id-ID')}</div>
+            </td>
+            <td class="p-3">
+                <span class="${stokColor} px-2 py-1 rounded text-xs font-bold">
+                    ${stok} unit
+                </span>
+            </td>
+            <td class="p-3 text-green-600 font-bold text-right">
+                Rp ${harga.toLocaleString('id-ID')}
+            </td>
+        </tr>
+    `;
+});
+
+    // Gunakan Math.round untuk menghilangkan angka "perak" yang mengganggu
+    const asetBulat = Math.round(totalModalAset);
+
+    document.getElementById('row-count').innerText = 
+        `${values.length} Jenis Barang | Total Stok: ${totalStokKeseluruhan} | Aset: Rp ${asetBulat.toLocaleString('id-ID')}`;
+
+
+} else {
+    tableBody.innerHTML = '<tr><td colspan="3" class="p-4 text-center">Tabel "barang" ditemukan, tapi belum ada isinya.</td></tr>';
+}
+    } catch (err) {
+        console.error(err);
+        tableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500 font-semibold">Error: ${err.message}</td></tr>`;
+    }
+}
+        // 3. FUNGSI CEK FILE DI SUPABASE STORAGE
+async function cekFileDiSupabase(uid) {
+    const statusElem = document.getElementById('db-status');
+    const btnDownload = document.getElementById('btn-download');
+    
+    console.log("--- Memulai Pencarian File ---");
+    console.log("UID yang dicari:", uid);
+    statusElem.innerText = "Sedang mencari file di folder: " + uid;
+
+    try {
+        // Kita coba LIST file di folder [UID]
+        const { data, error } = await supabase
+            .storage
+            .from('backup') // Pastikan nama bucket di Supabase adalah 'backup'
+            .list(uid, { // Mencari langsung di folder UID
+                limit: 10,
+                sortBy: { column: 'created_at', order: 'desc' }
+            });
+
+        if (error) {
+            console.error("Error dari Supabase:", error.message);
+            statusElem.innerText = "Error Supabase: " + error.message;
+            return;
+        }
+
+        console.log("Hasil dari Supabase:", data);
+
+        if (data && data.length > 0) {
+            // Filter file yang ada akhiran .db
+            const dbFiles = data.filter(file => file.name.endsWith('.db'));
+
+            if (dbFiles.length > 0) {
+                const fileTerbaru = dbFiles[0];
+                console.log("File ditemukan:", fileTerbaru.name);
+                
+                statusElem.innerText = `Ditemukan: ${fileTerbaru.name}`;
+                statusElem.classList.remove('text-gray-500', 'text-red-500');
+                statusElem.classList.add('text-green-600', 'font-bold');
+                
+                // Simpan data ke tombol
+                btnDownload.dataset.filename = fileTerbaru.name;
+                btnDownload.dataset.uid = uid;
+                btnDownload.innerText = "Muat Database";
+            } else {
+                console.warn("Folder ada, tapi isinya bukan file .db");
+                statusElem.innerText = "Tidak ada file database (.db) di folder ini.";
+            }
+        } else {
+            console.warn("Supabase mengembalikan array kosong [].");
+            statusElem.innerText = "Folder UID belum dibuat atau masih kosong.";
+            statusElem.classList.add('text-red-500');
+        }
+    } catch (err) {
+        console.error("Crash di fungsi cekFile:", err);
+        statusElem.innerText = "Koneksi ke storage gagal.";
+    }
+}
+
+        // 4. AUTH LISTENER (THE CORE LOGIC)
+        let isInitialLoad = true; // Penanda loading awal
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        isInitialLoad = false;
+        console.log("Login Berhasil:", user.email);
+        document.getElementById('user-email').innerText = user.email;
+        cekFileDiSupabase(user.uid);
+    } else {
+        // Jika ini adalah loading pertama kali, jangan langsung tendang user
+        if (!isInitialLoad) {
+            console.log("Sesi kosong, pindah ke login...");
+            window.location.replace("login.html");
+        } else {
+            // Beri waktu 2 detik, kalau tetap null baru tendang
+            setTimeout(() => {
+                if (!auth.currentUser) {
+                    window.location.replace("login.html");
+                }
+            }, 2000);
+            isInitialLoad = false;
+        }
+    }
+});
+
+        // 5. EVENT HANDLERS
+document.getElementById('btn-logout').onclick = () => {
+    signOut(auth).then(() => {
+        window.location.replace("index.html");
+    });
+};
+
+// Handle Klik Tombol Baca (ASLI)
+document.getElementById('btn-download').onclick = async () => {
+    const btn = document.getElementById('btn-download');
+    const fileName = btn.dataset.filename;
+    const uid = btn.dataset.uid;
+
+    try {
+        btn.innerText = "Mengambil Data...";
+        const { data, error } = await supabase.storage.from('backup').createSignedUrl(`${uid}/${fileName}`, 60);
+        
+        if (error) throw error;
+
+        // SEKARANG KITA BACA, BUKAN CUMA DOWNLOAD
+        await bacaDatabase(data.signedUrl);
+
+        btn.innerText = "Data Berhasil Dimuat!";
+        setTimeout(() => { btn.innerText = "Refresh Data Database"; }, 3000);
+    } catch (err) {
+        alert("Gagal: " + err.message);
+    }
+};
+
+    </script>
+</body>
+</html>
