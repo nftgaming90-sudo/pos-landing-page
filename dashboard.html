@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1e40af">
     <title>PosKita - Pro Mobile</title>
@@ -11,33 +11,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&display=swap');
         
-        body { 
-    font-family: 'Inter', sans-serif; 
-    -webkit-tap-highlight-color: transparent;
-
-    /* FIX MOBILE */
-    min-width: 1024px; 
-    overflow-x: auto;
-}
-
-/* BIAR BISA SCROLL */
-main {
-    overflow: auto !important;
-    padding-bottom: 80px;
-}
-
-/* NAV BAWAH FIX */
-nav:last-of-type {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
-
-/* OPTIONAL BIAR HALUS */
-html {
-    scroll-behavior: smooth;
-}
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
 
         @media print {
             body * { visibility: hidden; }
@@ -46,7 +20,7 @@ html {
             .no-print { display: none; }
         }
 
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -70,51 +44,51 @@ html {
 
         @media (max-width: 768px) {
             #cart-section {
-                position: fixed; inset: 0; z-index: 50;
+                position: fixed; inset: 0; z-index: 60;
                 transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
             #cart-section.active { transform: translateX(0); }
         }
     </style>
 </head>
-<body class="bg-slate-50 h-screen flex flex-col text-slate-800 selection:bg-blue-200">
+<body class="bg-slate-50 h-screen flex flex-col overflow-hidden text-slate-800 selection:bg-blue-200">
 
-    <nav class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 p-3 text-white flex justify-between items-center shadow-md shrink-0 no-print border-b border-blue-950/50">
-        <div class="flex items-center gap-3">
-            <div class="bg-white/10 backdrop-blur-sm p-2 rounded-xl text-lg border border-white/20 shadow-inner">📦</div>
+    <nav class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 p-2.5 md:p-3 text-white flex justify-between items-center shadow-md shrink-0 no-print border-b border-blue-950/50">
+        <div class="flex items-center gap-2.5 md:gap-3">
+            <div class="bg-white/10 backdrop-blur-sm p-1.5 md:p-2 rounded-xl text-base md:text-lg border border-white/20 shadow-inner">📦</div>
             <div>
-                <h1 class="text-sm font-black leading-none tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-100">POSKITA</h1>
-                <p id="current-page-label" class="text-[9px] uppercase tracking-[0.25em] font-bold text-blue-200 mt-0.5">KASIR</p>
+                <h1 class="text-xs md:text-sm font-black leading-none tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-100">POSKITA</h1>
+                <p id="current-page-label" class="text-[8px] md:text-[9px] uppercase tracking-[0.25em] font-bold text-blue-200 mt-0.5">KASIR</p>
             </div>
         </div>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3 md:gap-4">
             <span id="user-email" class="text-[10px] font-medium text-blue-200 hidden sm:inline-block bg-blue-950/30 px-3 py-1.5 rounded-full border border-blue-800/50">Memuat...</span>
-            <button id="btn-logout" class="bg-rose-500/10 hover:bg-rose-500 border border-rose-500/50 px-4 py-1.5 rounded-lg text-[10px] font-black transition-all hover:shadow-[0_0_15px_rgba(244,63,94,0.4)] text-rose-100 hover:text-white tracking-wide">OUT</button>
+            <button id="btn-logout" class="bg-rose-500/10 hover:bg-rose-500 border border-rose-500/50 px-3 md:px-4 py-1.5 rounded-lg text-[9px] md:text-[10px] font-black transition-all hover:shadow-[0_0_15px_rgba(244,63,94,0.4)] text-rose-100 hover:text-white tracking-wide">OUT</button>
         </div>
     </nav>
 
-    <main class="flex-1 relative no-print">
+    <main class="flex-1 relative overflow-hidden no-print">
         
-        <section id="menu-kasir" class="page-content page-active flex-col md:flex-row p-2 md:p-4 gap-4">
+        <section id="menu-kasir" class="page-content page-active flex-col md:flex-row p-2 md:p-4 gap-3 md:gap-4">
             <div class="w-full md:w-2/3 flex flex-col gap-3 overflow-hidden">
                 <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 flex flex-col flex-1 overflow-hidden">
-                    <div class="p-3 border-b border-slate-100 bg-white/80 backdrop-blur-md flex gap-3 items-center z-10">
+                    <div class="p-2.5 md:p-3 border-b border-slate-100 bg-white/80 backdrop-blur-md flex gap-2 md:gap-3 items-center z-10">
                         <div class="relative flex-1 flex items-center">
-                            <span class="absolute left-3.5 opacity-40 text-sm">🔍</span>
+                            <span class="absolute left-3 md:left-3.5 opacity-40 text-sm">🔍</span>
                             <input type="text" id="search-barang" placeholder="Cari nama produk..." 
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-3 text-sm font-medium focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none text-slate-700 placeholder-slate-400">
-                            <button id="clear-search-barang" onclick="document.getElementById('search-barang').value=''; document.getElementById('search-barang').dispatchEvent(new Event('input'));" class="absolute right-3 text-slate-400 hover:text-rose-500 hidden w-6 h-6 flex items-center justify-center rounded-full bg-slate-200/50 hover:bg-rose-100 transition-colors text-lg font-light leading-none">&times;</button>
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 md:pl-10 pr-9 md:pr-10 py-2.5 md:py-3 text-[16px] md:text-sm font-medium focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none text-slate-700 placeholder-slate-400">
+                            <button id="clear-search-barang" onclick="document.getElementById('search-barang').value=''; document.getElementById('search-barang').dispatchEvent(new Event('input'));" class="absolute right-2 md:right-3 text-slate-400 hover:text-rose-500 hidden w-6 h-6 flex items-center justify-center rounded-full bg-slate-200/50 hover:bg-rose-100 transition-colors text-lg font-light leading-none">&times;</button>
                         </div>
-                        <button id="btn-download" onclick="startAutoSync()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm">Sync</button>
+                        <button id="btn-download" onclick="startAutoSync()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3 md:px-5 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm whitespace-nowrap">Sync</button>
                     </div>
 
-                    <div class="overflow-y-auto flex-1 bg-white">
-                        <table class="w-full text-left">
-                            <thead class="sticky top-0 bg-blue-50/90 backdrop-blur-md border-b border-blue-100 text-blue-800 text-[10px] uppercase font-black tracking-widest z-0">
+                    <div class="overflow-y-auto overflow-x-auto flex-1 bg-white relative">
+                        <table class="w-full text-left min-w-full">
+                            <thead class="sticky top-0 bg-blue-50/95 backdrop-blur-md border-b border-blue-100 text-blue-800 text-[10px] uppercase font-black tracking-widest z-10">
                                 <tr>
-                                    <th class="p-4 pl-5">Produk</th>
-                                    <th class="p-4 text-center">Stok</th>
-                                    <th class="p-4 pr-5 text-right">Harga</th>
+                                    <th class="p-3 md:p-4 pl-4 md:pl-5 whitespace-nowrap">Produk</th>
+                                    <th class="p-3 md:p-4 text-center whitespace-nowrap">Stok</th>
+                                    <th class="p-3 md:p-4 pr-4 md:pr-5 text-right whitespace-nowrap">Harga</th>
                                 </tr>
                             </thead>
                             <tbody id="table-body" class="divide-y divide-slate-100"></tbody>
@@ -123,56 +97,54 @@ html {
                 </div>
             </div>
 
-            <aside id="cart-section" class="w-full md:w-1/3 bg-slate-50 md:bg-slate-50/50 rounded-none md:rounded-2xl shadow-2xl md:shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] flex flex-col overflow-hidden border border-slate-200/70">
+            <aside id="cart-section" class="w-full md:w-1/3 bg-slate-50 md:bg-slate-50/50 rounded-none md:rounded-2xl shadow-2xl md:shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] flex flex-col overflow-hidden border border-slate-200/70 pb-safe md:pb-0">
                 <div class="p-4 bg-white border-b border-slate-200 flex justify-between items-center z-10">
                     <h2 class="font-bold text-slate-800 flex items-center gap-2 text-sm">🛒 <span class="tracking-wide">Keranjang Belanja</span></h2>
                     <button onclick="window.clearCart()" class="text-[10px] text-rose-500 font-black px-3 py-1.5 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-lg transition-all tracking-wider">RESET</button>
                 </div>
                 
-                <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-3 relative"></div>
+                <div id="cart-items" class="flex-1 overflow-y-auto p-3 md:p-4 space-y-2.5 md:space-y-3 relative"></div>
 
-                <div class="p-5 bg-white border-t border-slate-200 space-y-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10">
-                    <div class="flex justify-between items-end bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div class="p-4 md:p-5 bg-white border-t border-slate-200 space-y-3 md:space-y-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10">
+                    <div class="flex justify-between items-end bg-slate-50 p-3.5 md:p-4 rounded-2xl border border-slate-100">
                         <div>
                             <p class="text-slate-500 font-black uppercase text-[9px] mb-1 tracking-widest">Total Bayar</p>
-                            <p id="cart-total" class="text-3xl font-black text-blue-700 tracking-tighter">Rp 0</p>
+                            <p id="cart-total" class="text-2xl md:text-3xl font-black text-blue-700 tracking-tighter">Rp 0</p>
                         </div>
                     </div>
                     <button id="btn-proses-bayar" disabled 
-                        class="w-full py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-2xl font-black text-sm shadow-[0_8px_20px_-6px_rgba(16,185,129,0.4)] disabled:from-slate-200 disabled:to-slate-300 disabled:text-slate-400 disabled:shadow-none transition-all duration-300 transform active:scale-[0.98]">
+                        class="w-full py-3.5 md:py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-2xl font-black text-sm shadow-[0_8px_20px_-6px_rgba(16,185,129,0.4)] disabled:from-slate-200 disabled:to-slate-300 disabled:text-slate-400 disabled:shadow-none transition-all duration-300 transform active:scale-[0.98]">
                         PROSES TRANSAKSI
                     </button>
-                    <button onclick="window.toggleCart()" class="md:hidden w-full py-2.5 text-slate-500 hover:text-slate-800 font-bold text-xs transition-colors bg-slate-100 rounded-xl">Kembali ke List</button>
+                    <button onclick="window.toggleCart()" class="md:hidden w-full py-2.5 text-slate-500 hover:text-slate-800 font-bold text-xs transition-colors bg-slate-100 rounded-xl mt-2">Kembali ke List</button>
                 </div>
             </aside>
         </section>
 
-        <section id="menu-stok" class="page-content flex-col p-4">
+        <section id="menu-stok" class="page-content flex-col p-2.5 md:p-4">
             <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 flex-1 flex flex-col overflow-hidden">
-                <div class="p-4 md:p-5 border-b border-slate-100 space-y-4 bg-slate-50/50">
-                    
+                <div class="p-3 md:p-5 border-b border-slate-100 space-y-3 md:space-y-4 bg-slate-50/50">
                     <div class="flex justify-between items-center">
-                        <h2 class="font-black text-xs uppercase text-slate-500 tracking-widest">Manajemen Inventori</h2>
+                        <h2 class="font-black text-[10px] md:text-xs uppercase text-slate-500 tracking-widest">Manajemen Inventori</h2>
                         <div class="flex gap-2">
-                            <button onclick="window.openAddModal()" class="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl text-[10px] font-black shadow-[0_4px_15px_-3px_rgba(29,78,216,0.4)] transition-all">+ BARU</button>
+                            <button onclick="window.openAddModal()" class="bg-blue-700 hover:bg-blue-800 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-xl text-[9px] md:text-[10px] font-black shadow-[0_4px_15px_-3px_rgba(29,78,216,0.4)] transition-all whitespace-nowrap">+ BARU</button>
                         </div>
                     </div>
-
                     <div class="relative flex items-center">
                         <span class="absolute left-3.5 opacity-40 text-sm">🔍</span>
                         <input type="text" id="search-stok" placeholder="Cari barang di gudang..." 
-                            class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700">
+                            class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-[16px] md:text-sm outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700">
                         <button id="clear-search-stok" onclick="document.getElementById('search-stok').value=''; document.getElementById('search-stok').dispatchEvent(new Event('input'));" class="absolute right-3 text-slate-400 hover:text-rose-500 hidden w-6 h-6 flex items-center justify-center rounded-full bg-slate-100 hover:bg-rose-100 transition-colors text-lg font-light leading-none">&times;</button>
                     </div>
                 </div>
-                <div class="overflow-auto flex-1">
-                    <table class="w-full text-sm text-left">
-                        <thead class="sticky top-0 bg-blue-50/90 backdrop-blur-md text-[10px] font-black text-blue-800 uppercase tracking-widest border-b border-blue-100 z-10">
+                <div class="overflow-auto flex-1 relative">
+                    <table class="w-full text-sm text-left min-w-full">
+                        <thead class="sticky top-0 bg-blue-50/95 backdrop-blur-md text-[9px] md:text-[10px] font-black text-blue-800 uppercase tracking-widest border-b border-blue-100 z-10">
                             <tr>
-                                <th class="p-4 pl-5">Nama Produk</th>
-                                <th class="p-4 text-center">Stok</th>
-                                <th class="p-4 text-right">Modal</th>
-                                <th class="p-4 text-center pr-5">Aksi</th>
+                                <th class="p-3 md:p-4 pl-4 md:pl-5 whitespace-nowrap">Nama Produk</th>
+                                <th class="p-3 md:p-4 text-center whitespace-nowrap">Stok</th>
+                                <th class="p-3 md:p-4 text-right whitespace-nowrap hidden sm:table-cell">Modal</th>
+                                <th class="p-3 md:p-4 text-center pr-4 md:pr-5 whitespace-nowrap">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="stok-table-body" class="divide-y divide-slate-100"></tbody>
@@ -181,13 +153,12 @@ html {
             </div>
         </section>
 
-        <section id="menu-laporan" class="page-content flex-col p-4 overflow-y-auto">
-            
-            <div class="flex flex-col gap-3 mb-5 z-10">
+        <section id="menu-laporan" class="page-content flex-col p-3 md:p-4 overflow-y-auto">
+            <div class="flex flex-col gap-2.5 md:gap-3 mb-4 md:mb-5 z-10">
                 <div class="flex items-center justify-between">
-                    <h2 class="font-black text-xs uppercase text-slate-500 tracking-widest">Filter Rekapan</h2>
+                    <h2 class="font-black text-[10px] md:text-xs uppercase text-slate-500 tracking-widest">Filter Rekapan</h2>
                 </div>
-                <div class="flex gap-2 overflow-x-auto pb-1 hide-scrollbar items-center">
+                <div class="flex gap-2 overflow-x-auto pb-2 hide-scrollbar items-center">
                     <button id="btn-filter-hari-ini" onclick="window.setReportFilter('hari_ini')" class="filter-btn shrink-0 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-md">Hari Ini</button>
                     <button id="btn-filter-kemarin" onclick="window.setReportFilter('kemarin')" class="filter-btn shrink-0 bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-sm">Kemarin</button>
                     <button id="btn-filter-custom" onclick="window.setReportFilter('custom')" class="filter-btn shrink-0 bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5">
@@ -197,31 +168,31 @@ html {
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-5">
-                <div class="bg-gradient-to-br from-white to-slate-50 p-5 rounded-2xl border border-slate-200/70 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.05)] relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 text-4xl">💰</div>
-                    <p class="text-[10px] text-slate-500 uppercase font-black mb-1.5 tracking-widest relative z-10">Total Omzet</p>
-                    <p id="stat-omzet" class="text-2xl font-black text-blue-700 tracking-tight relative z-10">Rp 0</p>
+            <div class="grid grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-5">
+                <div class="bg-gradient-to-br from-white to-slate-50 p-4 md:p-5 rounded-2xl border border-slate-200/70 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.05)] relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-3 md:p-4 opacity-10 text-3xl md:text-4xl">💰</div>
+                    <p class="text-[9px] md:text-[10px] text-slate-500 uppercase font-black mb-1.5 tracking-widest relative z-10">Total Omzet</p>
+                    <p id="stat-omzet" class="text-xl md:text-2xl font-black text-blue-700 tracking-tight relative z-10">Rp 0</p>
                 </div>
-                <div class="bg-gradient-to-br from-emerald-50 to-white p-5 rounded-2xl border border-emerald-100 shadow-[0_4px_15px_-5px_rgba(16,185,129,0.1)] relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 text-4xl">📈</div>
-                    <p class="text-[10px] text-emerald-600 uppercase font-black mb-1.5 tracking-widest relative z-10">Laba Bersih</p>
-                    <p id="stat-laba" class="text-2xl font-black text-emerald-600 tracking-tight relative z-10">Rp 0</p>
+                <div class="bg-gradient-to-br from-emerald-50 to-white p-4 md:p-5 rounded-2xl border border-emerald-100 shadow-[0_4px_15px_-5px_rgba(16,185,129,0.1)] relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-3 md:p-4 opacity-10 text-3xl md:text-4xl">📈</div>
+                    <p class="text-[9px] md:text-[10px] text-emerald-600 uppercase font-black mb-1.5 tracking-widest relative z-10">Laba Bersih</p>
+                    <p id="stat-laba" class="text-xl md:text-2xl font-black text-emerald-600 tracking-tight relative z-10">Rp 0</p>
                 </div>
             </div>
             
             <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 overflow-hidden flex-1 flex flex-col">
-                <div class="p-4 bg-slate-800 text-white flex justify-between items-center">
-                    <span id="tabel-judul-rekap" class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-200">History Transaksi</span>
-                    <span id="tabel-count-rekap" class="text-xs bg-slate-700 px-2 py-0.5 rounded font-bold">0 Trx</span>
+                <div class="p-3 md:p-4 bg-slate-800 text-white flex justify-between items-center">
+                    <span id="tabel-judul-rekap" class="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-200">History Transaksi</span>
+                    <span id="tabel-count-rekap" class="text-[10px] md:text-xs bg-slate-700 px-2 py-0.5 rounded font-bold">0 Trx</span>
                 </div>
                 <div class="overflow-x-auto flex-1">
-                    <table class="w-full text-xs text-left">
-                        <thead class="bg-slate-50 text-[9px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-100">
+                    <table class="w-full text-xs text-left min-w-full">
+                        <thead class="bg-slate-50 text-[8px] md:text-[9px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-100">
                             <tr>
-                                <th class="p-3 pl-4">Waktu</th>
-                                <th class="p-3 text-right">Nilai Transaksi</th>
-                                <th class="p-3 pr-4 text-right">Profit</th>
+                                <th class="p-3 pl-4 whitespace-nowrap">Waktu</th>
+                                <th class="p-3 text-right whitespace-nowrap">Nilai Transaksi</th>
+                                <th class="p-3 pr-4 text-right whitespace-nowrap">Profit</th>
                             </tr>
                         </thead>
                         <tbody id="history-body" class="divide-y divide-slate-50"></tbody>
@@ -232,57 +203,57 @@ html {
     </main>
 
     <button id="floating-cart-btn" onclick="window.toggleCart()" 
-        class="md:hidden fixed bottom-20 right-5 z-40 bg-gradient-to-br from-blue-600 to-blue-800 text-white w-14 h-14 rounded-2xl shadow-[0_10px_25px_-5px_rgba(29,78,216,0.5)] flex items-center justify-center text-2xl border-[3px] border-white transition-transform active:scale-90">
+        class="md:hidden fixed bottom-20 right-4 z-40 bg-gradient-to-br from-blue-600 to-blue-800 text-white w-14 h-14 rounded-2xl shadow-[0_10px_25px_-5px_rgba(29,78,216,0.5)] flex items-center justify-center text-2xl border-[3px] border-white transition-transform active:scale-90">
         🛒 <span id="mobile-cart-count" class="absolute -top-2.5 -right-2.5 bg-rose-500 text-white text-[11px] w-7 h-7 flex items-center justify-center rounded-full font-black border-2 border-white shadow-sm">0</span>
     </button>
 
-    <nav class="bg-white/90 backdrop-blur-lg border-t border-slate-200 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.05)] flex justify-around p-1 shrink-0 no-print z-50 relative pb-safe">
-        <button onclick="window.switchPage('kasir', this)" class="nav-btn flex-1 flex flex-col items-center py-2.5 gap-1.5 text-slate-400 hover:text-blue-600 transition-colors nav-active">
-            <span class="text-xl mb-0.5">🏪</span>
+    <nav class="bg-white/95 backdrop-blur-lg border-t border-slate-200 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.05)] flex justify-around p-1 shrink-0 no-print z-50 relative pb-safe">
+        <button onclick="window.switchPage('kasir', this)" class="nav-btn flex-1 flex flex-col items-center py-2 md:py-2.5 gap-1 md:gap-1.5 text-slate-400 hover:text-blue-600 transition-colors nav-active">
+            <span class="text-xl md:text-xl mb-0.5">🏪</span>
             <span class="text-[9px] font-black uppercase tracking-wider">Kasir</span>
         </button>
-        <button onclick="window.switchPage('stok', this)" class="nav-btn flex-1 flex flex-col items-center py-2.5 gap-1.5 text-slate-400 hover:text-blue-600 transition-colors">
-            <span class="text-xl mb-0.5">📦</span>
+        <button onclick="window.switchPage('stok', this)" class="nav-btn flex-1 flex flex-col items-center py-2 md:py-2.5 gap-1 md:gap-1.5 text-slate-400 hover:text-blue-600 transition-colors">
+            <span class="text-xl md:text-xl mb-0.5">📦</span>
             <span class="text-[9px] font-black uppercase tracking-wider">Stok</span>
         </button>
-        <button onclick="window.switchPage('laporan', this)" class="nav-btn flex-1 flex flex-col items-center py-2.5 gap-1.5 text-slate-400 hover:text-blue-600 transition-colors">
-            <span class="text-xl mb-0.5">📊</span>
+        <button onclick="window.switchPage('laporan', this)" class="nav-btn flex-1 flex flex-col items-center py-2 md:py-2.5 gap-1 md:gap-1.5 text-slate-400 hover:text-blue-600 transition-colors">
+            <span class="text-xl md:text-xl mb-0.5">📊</span>
             <span class="text-[9px] font-black uppercase tracking-wider">Laporan</span>
         </button>
     </nav>
 
     <div id="modal-barang" class="fixed inset-0 z-[100] flex items-center justify-center hidden bg-slate-900/40 backdrop-blur-sm p-4 transition-opacity">
         <div class="bg-white rounded-[24px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-md overflow-hidden transform transition-transform">
-            <div class="p-5 bg-gradient-to-r from-blue-900 to-blue-800 text-white flex justify-between items-center border-b border-blue-950">
-                <h3 id="modal-title" class="font-black text-xs uppercase tracking-[0.15em] text-blue-50">Detail Barang</h3>
+            <div class="p-4 md:p-5 bg-gradient-to-r from-blue-900 to-blue-800 text-white flex justify-between items-center border-b border-blue-950">
+                <h3 id="modal-title" class="font-black text-[10px] md:text-xs uppercase tracking-[0.15em] text-blue-50">Detail Barang</h3>
                 <button onclick="window.closeModal()" class="text-2xl font-light hover:text-rose-300 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">&times;</button>
             </div>
-            <div class="p-6 space-y-5 bg-slate-50/50">
+            <div class="p-5 md:p-6 space-y-4 md:space-y-5 bg-slate-50/50">
                 <input type="hidden" id="barang-id">
                 
-                <div class="bg-white p-4 rounded-2xl border border-slate-200/70 shadow-sm space-y-4">
+                <div class="bg-white p-3.5 md:p-4 rounded-2xl border border-slate-200/70 shadow-sm space-y-3.5 md:space-y-4">
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Nama Produk</label>
-                        <input type="text" id="barang-nama" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all">
+                        <label class="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-wider">Nama Produk</label>
+                        <input type="text" id="barang-nama" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 md:px-4 py-2.5 md:py-3 font-bold text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-[16px] md:text-sm">
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-3 md:gap-4">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Stok</label>
-                            <input type="number" id="barang-stok" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-bold text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all">
+                            <label class="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-wider">Stok</label>
+                            <input type="number" id="barang-stok" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 md:px-4 py-2.5 font-bold text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-[16px] md:text-sm">
                         </div>
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Modal (Rp)</label>
-                            <input type="text" inputmode="numeric" id="barang-modal" oninput="this.value = window.formatAngka(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-bold text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all">
+                            <label class="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-wider">Modal (Rp)</label>
+                            <input type="text" inputmode="numeric" id="barang-modal" oninput="this.value = window.formatAngka(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 md:px-4 py-2.5 font-bold text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-[16px] md:text-sm">
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 shadow-sm space-y-1.5">
-                    <label class="text-[10px] font-black text-blue-600 uppercase tracking-wider">Harga Jual (Rp)</label>
-                    <input type="text" inputmode="numeric" id="barang-harga" oninput="this.value = window.formatAngka(this.value)" class="w-full bg-white border border-blue-200 rounded-xl px-4 py-3 font-black text-xl text-blue-800 outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/20 transition-all">
+                <div class="bg-blue-50 p-3.5 md:p-4 rounded-2xl border border-blue-100 shadow-sm space-y-1.5">
+                    <label class="text-[9px] md:text-[10px] font-black text-blue-600 uppercase tracking-wider">Harga Jual (Rp)</label>
+                    <input type="text" inputmode="numeric" id="barang-harga" oninput="this.value = window.formatAngka(this.value)" class="w-full bg-white border border-blue-200 rounded-xl px-3 md:px-4 py-2.5 md:py-3 font-black text-lg md:text-xl text-blue-800 outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/20 transition-all text-[16px] md:text-xl">
                 </div>
 
-                <button id="btn-simpan-barang" class="w-full bg-blue-700 hover:bg-blue-800 text-white py-4 rounded-2xl font-black uppercase text-xs shadow-[0_8px_20px_-6px_rgba(29,78,216,0.4)] transition-all transform active:scale-[0.98] tracking-widest mt-2">
+                <button id="btn-simpan-barang" class="w-full bg-blue-700 hover:bg-blue-800 text-white py-3.5 md:py-4 rounded-2xl font-black uppercase text-[10px] md:text-xs shadow-[0_8px_20px_-6px_rgba(29,78,216,0.4)] transition-all transform active:scale-[0.98] tracking-widest mt-2">
                     SIMPAN
                 </button>
             </div>
@@ -290,33 +261,33 @@ html {
     </div>
 
     <div id="modal-detail-trx" class="fixed inset-0 z-[110] flex items-end md:items-center justify-center hidden bg-slate-900/50 backdrop-blur-sm md:p-4 transition-opacity">
-        <div class="bg-white rounded-t-[24px] md:rounded-[24px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] w-full max-w-md overflow-hidden transform transition-transform mt-auto md:mt-0 flex flex-col max-h-[85vh]">
+        <div class="bg-white rounded-t-[24px] md:rounded-[24px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] w-full max-w-md overflow-hidden transform transition-transform mt-auto md:mt-0 flex flex-col max-h-[85vh] md:max-h-[80vh]">
             <div class="p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
                 <div>
-                    <h3 class="font-black text-xs uppercase tracking-[0.1em] text-slate-100">Detail Transaksi</h3>
-                    <p id="detail-waktu" class="text-[10px] text-slate-400 mt-0.5">Memuat waktu...</p>
+                    <h3 class="font-black text-[10px] md:text-xs uppercase tracking-[0.1em] text-slate-100">Detail Transaksi</h3>
+                    <p id="detail-waktu" class="text-[9px] md:text-[10px] text-slate-400 mt-0.5">Memuat waktu...</p>
                 </div>
                 <button onclick="document.getElementById('modal-detail-trx').classList.add('hidden')" class="text-2xl font-light hover:text-rose-300 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">&times;</button>
             </div>
             <div class="p-0 overflow-y-auto flex-1 bg-slate-50">
-                <table class="w-full text-xs text-left">
-                    <thead class="bg-slate-100 text-[9px] uppercase font-black text-slate-500 tracking-widest sticky top-0 border-b border-slate-200 shadow-sm z-10">
+                <table class="w-full text-xs text-left min-w-full">
+                    <thead class="bg-slate-100 text-[8px] md:text-[9px] uppercase font-black text-slate-500 tracking-widest sticky top-0 border-b border-slate-200 shadow-sm z-10">
                         <tr>
-                            <th class="p-3 pl-4">Item</th>
-                            <th class="p-3 text-center">Qty</th>
-                            <th class="p-3 pr-4 text-right">Subtotal</th>
+                            <th class="p-3 pl-4 whitespace-nowrap">Item</th>
+                            <th class="p-3 text-center whitespace-nowrap">Qty</th>
+                            <th class="p-3 pr-4 text-right whitespace-nowrap">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody id="detail-trx-body" class="divide-y divide-slate-100 bg-white">
                     </tbody>
                 </table>
             </div>
-            <div class="p-5 bg-white border-t border-slate-200 shrink-0 flex flex-col gap-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]">
+            <div class="p-4 md:p-5 bg-white border-t border-slate-200 shrink-0 flex flex-col gap-3 md:gap-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] pb-safe md:pb-5">
                 <div class="flex justify-between items-center w-full">
-                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Total Belanja</span>
-                    <span id="detail-total" class="font-black text-xl text-blue-700 tracking-tight">Rp 0</span>
+                    <span class="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">Total Belanja</span>
+                    <span id="detail-total" class="font-black text-lg md:text-xl text-blue-700 tracking-tight">Rp 0</span>
                 </div>
-                <button id="btn-hapus-trx" class="w-full py-3 bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-colors border border-rose-100 hidden">HAPUS & KEMBALIKAN STOK</button>
+                <button id="btn-hapus-trx" class="w-full py-3 bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-widest transition-colors border border-rose-100 hidden">HAPUS & KEMBALIKAN STOK</button>
             </div>
         </div>
     </div>
@@ -369,7 +340,6 @@ html {
         };
 
         window.updateSyncUI = () => {
-            // Hitung semua antrean termasuk antrean hapus
             const count = window.offlineQueue.barang.length + window.offlineQueue.transaksi.length + window.offlineQueue.hapus_barang.length + window.offlineQueue.hapus_transaksi.length;
             const btn = document.getElementById('btn-download');
             if (count > 0) {
@@ -395,7 +365,6 @@ html {
                 
                 window.cart = JSON.parse(localStorage.getItem(`poskita_cart_${user.uid}`)) || [];
                 
-                // Load queue, pastikan array hapus ada agar tidak error untuk user lama
                 let q = JSON.parse(localStorage.getItem(`poskita_offline_queue_${user.uid}`)) || { barang: [], transaksi: [] };
                 if(!q.hapus_barang) q.hapus_barang = [];
                 if(!q.hapus_transaksi) q.hapus_transaksi = [];
@@ -420,7 +389,6 @@ html {
             btn.innerText = "UPLOADING...";
 
             try {
-                // 1. Eksekusi Hapus Barang Dulu
                 if (window.offlineQueue.hapus_barang.length > 0) {
                     for (let id of [...window.offlineQueue.hapus_barang]) {
                         try {
@@ -430,11 +398,9 @@ html {
                     }
                 }
 
-                // 2. Eksekusi Hapus Transaksi
                 if (window.offlineQueue.hapus_transaksi.length > 0) {
                     for (let id of [...window.offlineQueue.hapus_transaksi]) {
                         try {
-                            // Hapus anak (detail) baru bapak (transaksi) agar tidak error foreign key
                             await supabase.from('transaksi_detail').delete().eq('transaksi_id', id).eq('user_id', window.currentUid);
                             await supabase.from('transaksi').delete().eq('id', id).eq('user_id', window.currentUid);
                             window.offlineQueue.hapus_transaksi = window.offlineQueue.hapus_transaksi.filter(i => i !== id);
@@ -442,13 +408,11 @@ html {
                     }
                 }
 
-                // 3. Eksekusi Tambah/Update Barang
                 if (window.offlineQueue.barang.length > 0) {
                     const { error } = await supabase.from('barang').upsert(window.offlineQueue.barang);
                     if (!error) window.offlineQueue.barang = []; 
                 }
 
-                // 4. Eksekusi Tambah Transaksi
                 let pendingTrx = [];
                 for (let payload of window.offlineQueue.transaksi) {
                     try {
@@ -533,9 +497,9 @@ html {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = dataArray.map(row => `
                 <tr onclick="window.tambahKeKeranjang('${row[4]}', '${row[0]}', ${row[2]}, ${row[1]}, ${row[3]})" class="tr-item border-b border-slate-50 last:border-0">
-                    <td class="p-4 pl-5 font-bold text-slate-700 text-sm capitalize">${row[0]}</td>
-                    <td class="p-4 text-center"><span class="px-3 py-1 rounded-full text-[10px] font-black shadow-sm border ${row[1] < 5 ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}">${row[1]}</span></td>
-                    <td class="p-4 pr-5 text-right font-black text-blue-700 text-sm">Rp ${row[2].toLocaleString('id-ID')}</td>
+                    <td class="p-3 md:p-4 pl-4 md:pl-5 font-bold text-slate-700 text-xs md:text-sm capitalize whitespace-nowrap">${row[0]}</td>
+                    <td class="p-3 md:p-4 text-center whitespace-nowrap"><span class="px-2.5 md:px-3 py-1 rounded-full text-[9px] md:text-[10px] font-black shadow-sm border ${row[1] < 5 ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}">${row[1]}</span></td>
+                    <td class="p-3 md:p-4 pr-4 md:pr-5 text-right font-black text-blue-700 text-xs md:text-sm whitespace-nowrap">Rp ${row[2].toLocaleString('id-ID')}</td>
                 </tr>`).join('');
         }
 
@@ -543,30 +507,27 @@ html {
             const tbody = document.getElementById('stok-table-body');
             tbody.innerHTML = dataArray.map(row => `
                 <tr class="tr-item border-b border-slate-50">
-                    <td class="p-4 pl-5">
-                        <p class="font-bold text-slate-800 text-sm capitalize">${row[0]}</p>
-                        <p class="text-[10px] text-blue-600 font-bold mt-0.5">Jual: Rp ${row[2].toLocaleString()}</p>
+                    <td class="p-3 md:p-4 pl-4 md:pl-5 whitespace-nowrap">
+                        <p class="font-bold text-slate-800 text-xs md:text-sm capitalize">${row[0]}</p>
+                        <p class="text-[9px] md:text-[10px] text-blue-600 font-bold mt-0.5">Jual: Rp ${row[2].toLocaleString()}</p>
                     </td>
-                    <td class="p-4 text-center font-black text-slate-600">${row[1]}</td>
-                    <td class="p-4 text-right text-slate-500 font-medium text-xs">Rp ${row[3].toLocaleString()}</td>
-                    <td class="p-4 pr-4">
-                        <div class="flex items-center justify-end gap-1.5">
-                            <button onclick="window.openEditModal('${row[4]}', '${row[0]}', ${row[1]}, ${row[2]}, ${row[3]})" class="bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 w-8 h-8 flex items-center justify-center rounded-xl transition-all shadow-sm text-sm">✏️</button>
-                            <button onclick="window.hapusBarang('${row[4]}', '${row[0]}')" class="bg-white border border-slate-200 hover:border-rose-300 hover:bg-rose-50 w-8 h-8 flex items-center justify-center rounded-xl transition-all shadow-sm text-sm opacity-50 hover:opacity-100">🗑️</button>
+                    <td class="p-3 md:p-4 text-center font-black text-slate-600 whitespace-nowrap">${row[1]}</td>
+                    <td class="p-3 md:p-4 text-right text-slate-500 font-medium text-[10px] md:text-xs whitespace-nowrap hidden sm:table-cell">Rp ${row[3].toLocaleString()}</td>
+                    <td class="p-3 md:p-4 pr-4 md:pr-5 whitespace-nowrap">
+                        <div class="flex items-center justify-end gap-1.5 md:gap-2">
+                            <button onclick="window.openEditModal('${row[4]}', '${row[0]}', ${row[1]}, ${row[2]}, ${row[3]})" class="bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 w-9 h-9 md:w-8 md:h-8 flex items-center justify-center rounded-xl transition-all shadow-sm text-sm">✏️</button>
+                            <button onclick="window.hapusBarang('${row[4]}', '${row[0]}')" class="bg-white border border-slate-200 hover:border-rose-300 hover:bg-rose-50 w-9 h-9 md:w-8 md:h-8 flex items-center justify-center rounded-xl transition-all shadow-sm text-sm opacity-60 hover:opacity-100">🗑️</button>
                         </div>
                     </td>
                 </tr>`).join('');
         }
 
-        // --- FUNGSI BARU: HAPUS BARANG ---
         window.hapusBarang = async (id, nama) => {
             if(!confirm(`YAKIN HAPUS BARANG:\n\n"${nama}" ?\n\nBarang yang dihapus tidak bisa dikembalikan.`)) return;
 
-            // 1. Eksekusi Hapus Lokal Secara Instan
             window.db.run("DELETE FROM barang WHERE id = ?", [id]);
             refreshDataUI();
 
-            // 2. Tembak ke Supabase atau antrekan
             if(navigator.onLine) {
                 try {
                     await supabase.from('barang').delete().eq('id', id).eq('user_id', window.currentUid);
@@ -652,16 +613,16 @@ html {
                         
                         return `
                         <tr class="tr-item hover:bg-slate-100" onclick="window.bukaDetailTransaksi('${trxId}')">
-                            <td class="p-3 pl-4">
-                                <p class="text-slate-800 font-bold text-xs">${d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}</p>
-                                <p class="text-[9px] text-slate-400 font-medium mt-0.5">${d.toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</p>
+                            <td class="p-3 pl-4 whitespace-nowrap">
+                                <p class="text-slate-800 font-bold text-[10px] md:text-xs">${d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}</p>
+                                <p class="text-[8px] md:text-[9px] text-slate-400 font-medium mt-0.5">${d.toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</p>
                             </td>
-                            <td class="p-3 text-right font-black text-blue-700 text-xs">Rp ${row[1].toLocaleString()}</td>
-                            <td class="p-3 pr-4 text-right text-emerald-600 font-black text-xs">Rp ${row[2].toLocaleString()}</td>
+                            <td class="p-3 text-right font-black text-blue-700 text-[10px] md:text-xs whitespace-nowrap">Rp ${row[1].toLocaleString()}</td>
+                            <td class="p-3 pr-4 text-right text-emerald-600 font-black text-[10px] md:text-xs whitespace-nowrap">Rp ${row[2].toLocaleString()}</td>
                         </tr>`;
                     }).join('');
                 } else {
-                    hBody.innerHTML = `<tr><td colspan="3" class="p-10 text-center text-slate-400 text-xs italic font-medium"><div class="text-3xl mb-2 grayscale opacity-40">📭</div>Belum ada transaksi di periode ini.</td></tr>`;
+                    hBody.innerHTML = `<tr><td colspan="3" class="p-8 md:p-10 text-center text-slate-400 text-[10px] md:text-xs italic font-medium"><div class="text-2xl md:text-3xl mb-2 grayscale opacity-40">📭</div>Belum ada transaksi di periode ini.</td></tr>`;
                 }
 
                 document.getElementById('stat-omzet').innerText = "Rp " + omzet.toLocaleString();
@@ -699,21 +660,20 @@ html {
                         const subtotal = qty * harga;
                         return `
                         <tr>
-                            <td class="p-3 pl-4">
-                                <p class="font-bold text-slate-700 text-xs uppercase tracking-tight">${nama}</p>
-                                <p class="text-[9px] text-slate-400 font-medium mt-0.5">@ Rp ${harga.toLocaleString('id-ID')}</p>
+                            <td class="p-3 pl-4 whitespace-nowrap">
+                                <p class="font-bold text-slate-700 text-[10px] md:text-xs uppercase tracking-tight">${nama}</p>
+                                <p class="text-[8px] md:text-[9px] text-slate-400 font-medium mt-0.5">@ Rp ${harga.toLocaleString('id-ID')}</p>
                             </td>
-                            <td class="p-3 text-center">
-                                <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[10px] font-black">${qty}x</span>
+                            <td class="p-3 text-center whitespace-nowrap">
+                                <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[9px] md:text-[10px] font-black">${qty}x</span>
                             </td>
-                            <td class="p-3 pr-4 text-right font-black text-slate-800 text-xs">Rp ${subtotal.toLocaleString('id-ID')}</td>
+                            <td class="p-3 pr-4 text-right font-black text-slate-800 text-[10px] md:text-xs whitespace-nowrap">Rp ${subtotal.toLocaleString('id-ID')}</td>
                         </tr>`;
                     }).join('');
                 } else {
                     tbody.innerHTML = '<tr><td colspan="3" class="p-5 text-center text-slate-400 text-xs italic font-medium">Detail barang tidak ditemukan.</td></tr>';
                 }
 
-                // Pasang Event Klik ke Tombol Hapus Transaksi
                 const btnHapusTrx = document.getElementById('btn-hapus-trx');
                 btnHapusTrx.onclick = () => window.hapusTransaksi(trxId);
                 btnHapusTrx.classList.remove('hidden');
@@ -725,39 +685,31 @@ html {
             }
         };
 
-        // --- FUNGSI BARU: HAPUS TRANSAKSI (VOID) ---
         window.hapusTransaksi = async (trxId) => {
             if(!confirm("HAPUS TRANSAKSI INI?\n\nStok barang akan otomatis dikembalikan ke gudang, dan rekapan omzet akan dikurangi. Tindakan ini tidak bisa dibatalkan.")) return;
 
             document.getElementById('modal-detail-trx').classList.add('hidden');
 
-            // 1. Ambil detail barang dari SQLite untuk kembalikan stok lokalnya
             const resDetail = window.db.exec("SELECT barang_id, qty FROM transaksi_detail WHERE transaksi_id = ?", [trxId]);
             let itemsToRestore = [];
             
             if(resDetail.length > 0) {
                 resDetail[0].values.forEach(row => {
                     itemsToRestore.push({ id: row[0], qty: row[1] });
-                    // Suntik kembali stoknya secara lokal
                     window.db.run("UPDATE barang SET stok = stok + ? WHERE id = ?", [row[1], row[0]]);
                 });
             }
 
-            // 2. Hapus Transaksinya dari SQLite Lokal
             window.db.run("DELETE FROM transaksi_detail WHERE transaksi_id = ?", [trxId]);
             window.db.run("DELETE FROM transaksi WHERE id = ?", [trxId]);
             
-            // Refresh layar Instan
             refreshDataUI();
 
-            // 3. Eksekusi ke Cloud
             if(navigator.onLine) {
                 try {
-                    // Hapus data transaksi di Cloud
                     await supabase.from('transaksi_detail').delete().eq('transaksi_id', trxId).eq('user_id', window.currentUid);
                     await supabase.from('transaksi').delete().eq('id', trxId).eq('user_id', window.currentUid);
                     
-                    // Update (kembalikan) stok cloud
                     for(let item of itemsToRestore) {
                         const {data} = await supabase.from('barang').select('stok').eq('id', item.id).eq('user_id', window.currentUid).single();
                         if(data) {
@@ -765,10 +717,8 @@ html {
                         }
                     }
                 } catch(e) {
-                    // Jika gagal saat online, lempar ke antrean
                     window.offlineQueue.hapus_transaksi.push(trxId);
                     
-                    // Masukkan barang yang stoknya dikembalikan ke antrean update
                     itemsToRestore.forEach(item => {
                         const resB = window.db.exec("SELECT nama, stok, harga_jual, modal FROM barang WHERE id=?", [item.id]);
                         if(resB.length>0) {
@@ -779,7 +729,6 @@ html {
                     window.saveQueue();
                 }
             } else {
-                // Jika sedang offline, masukkan semua ke antrean
                 window.offlineQueue.hapus_transaksi.push(trxId);
                 
                 itemsToRestore.forEach(item => {
@@ -811,7 +760,7 @@ html {
             if(badge) badge.innerText = count;
 
             if (window.cart.length === 0) {
-                container.innerHTML = `<div class="flex flex-col items-center justify-center h-full min-h-[160px] opacity-30"><span class="text-5xl mb-3 grayscale">🛒</span><p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Keranjang Kosong</p></div>`;
+                container.innerHTML = `<div class="flex flex-col items-center justify-center h-full min-h-[140px] md:min-h-[160px] opacity-30"><span class="text-4xl md:text-5xl mb-2.5 md:mb-3 grayscale">🛒</span><p class="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500">Keranjang Kosong</p></div>`;
                 totalEl.innerText = "Rp 0";
                 document.getElementById('btn-proses-bayar').disabled = true;
                 return;
@@ -820,15 +769,15 @@ html {
             container.innerHTML = window.cart.map((item, index) => {
                 total += (item.harga * item.qty);
                 return `
-                <div class="bg-white p-3.5 rounded-2xl flex justify-between items-center border border-slate-100 shadow-sm relative overflow-hidden group">
+                <div class="bg-white p-3 md:p-3.5 rounded-xl md:rounded-2xl flex justify-between items-center border border-slate-100 shadow-sm relative overflow-hidden group">
                     <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-2xl"></div>
                     <div class="pl-2">
-                        <p class="font-black text-slate-700 text-xs uppercase tracking-tight">${item.nama}</p>
-                        <p class="text-[10px] font-bold text-slate-500 mt-0.5"><span class="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-black mr-1">${item.qty}x</span> @ Rp ${item.harga.toLocaleString()}</p>
+                        <p class="font-black text-slate-700 text-[10px] md:text-xs uppercase tracking-tight">${item.nama}</p>
+                        <p class="text-[9px] md:text-[10px] font-bold text-slate-500 mt-0.5"><span class="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-black mr-1">${item.qty}x</span> @ Rp ${item.harga.toLocaleString()}</p>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <span class="font-black text-slate-800 text-sm">Rp ${(item.harga * item.qty).toLocaleString()}</span>
-                        <button onclick="window.cart.splice(${index},1);renderCart()" class="text-slate-300 hover:text-rose-500 text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-rose-50 transition-colors">✕</button>
+                    <div class="flex items-center gap-2 md:gap-3">
+                        <span class="font-black text-slate-800 text-xs md:text-sm">Rp ${(item.harga * item.qty).toLocaleString()}</span>
+                        <button onclick="window.cart.splice(${index},1);renderCart()" class="text-slate-300 hover:text-rose-500 text-lg md:text-lg w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-full hover:bg-rose-50 transition-colors">✕</button>
                     </div>
                 </div>`;
             }).join('');
@@ -966,7 +915,6 @@ html {
             }
         };
 
-        // --- UPDATE: MENAMBAHKAN LOGIKA UNTUK MENAMPILKAN/MENYEMBUNYIKAN TOMBOL RESET ---
         document.getElementById('search-barang').oninput = (e) => {
             const val = e.target.value.toLowerCase();
             document.getElementById('clear-search-barang').classList.toggle('hidden', val === '');
