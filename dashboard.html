@@ -7,20 +7,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
     <style>
-        /* Desain khusus struk saat di-print */
         @media print {
             body * { visibility: hidden; }
             #section-struk, #section-struk * { visibility: visible; }
             #section-struk { position: absolute; left: 0; top: 0; width: 58mm; padding: 5px; font-family: monospace; font-size: 10px; }
             .no-print { display: none; }
         }
-        /* Custom scrollbar supaya rapi */
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .modal { transition: opacity 0.25s ease; }
+        body.modal-active { overflow: hidden; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans h-screen flex flex-col overflow-hidden">
+<body class="bg-gray-100 font-sans h-screen flex flex-col overflow-hidden text-gray-800">
 
     <nav class="bg-blue-700 p-3 text-white flex justify-between items-center shadow-lg shrink-0 no-print">
         <h1 class="text-lg font-black flex items-center gap-2 tracking-tighter">
@@ -35,13 +35,17 @@
     <main class="flex flex-1 overflow-hidden p-3 gap-3 no-print">
         
         <section class="w-full md:w-2/3 flex flex-col gap-3 overflow-hidden">
-            
             <div class="bg-white rounded-xl shadow-sm flex flex-col flex-1 overflow-hidden border border-gray-200">
                 <div class="p-3 border-b bg-gray-50 flex flex-wrap gap-2 items-center justify-between">
                     <input type="text" id="search-barang" placeholder="Cari barang..." class="flex-1 min-w-[150px] border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
-                    <button id="btn-download" class="bg-blue-600 text-white text-[10px] px-4 py-2 rounded-lg font-bold hover:bg-blue-700 shadow-sm transition uppercase">
-                        Sinkron Cloud
-                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="window.openAddModal()" class="bg-green-600 text-white text-[10px] px-4 py-2 rounded-lg font-bold hover:bg-green-700 shadow-sm transition uppercase">
+                            + Tambah Barang
+                        </button>
+                        <button id="btn-download" class="bg-blue-600 text-white text-[10px] px-4 py-2 rounded-lg font-bold hover:bg-blue-700 shadow-sm transition uppercase">
+                            Sinkron Cloud
+                        </button>
+                    </div>
                 </div>
                 <div class="overflow-y-auto flex-1">
                     <table class="w-full text-left text-sm">
@@ -50,10 +54,11 @@
                                 <th class="p-3">Produk</th>
                                 <th class="p-3 text-center">Stok</th>
                                 <th class="p-3 text-right">Harga</th>
+                                <th class="p-3 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="table-body" class="divide-y divide-gray-50">
-                            <tr><td colspan="3" class="p-10 text-center text-gray-400 italic text-xs animate-pulse">Menghubungkan ke Cloud...</td></tr>
+                            <tr><td colspan="4" class="p-10 text-center text-gray-400 italic text-xs animate-pulse">Menghubungkan ke Cloud...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -86,23 +91,52 @@
                 <h2 class="font-bold text-blue-800 flex items-center gap-2">🛒 Keranjang</h2>
                 <button onclick="clearCart()" class="text-[9px] bg-white border border-red-200 text-red-500 px-2 py-1 rounded hover:bg-red-50 transition">KOSONGKAN</button>
             </div>
-
             <div id="cart-items" class="flex-1 overflow-y-auto p-3 space-y-2">
-                <div class="text-center mt-20 text-gray-300 text-sm italic">Belum ada barang dipilih</div>
+                <div class="text-center mt-20 text-gray-300 text-sm italic font-light">Keranjang kosong</div>
             </div>
-
             <div class="p-4 bg-gray-50 border-t">
                 <div class="flex justify-between items-center mb-4">
                     <span class="text-gray-400 font-bold uppercase text-[10px]">Total Tagihan</span>
                     <span id="cart-total" class="text-2xl font-black text-blue-700">Rp 0</span>
                 </div>
                 <button id="btn-proses-bayar" disabled class="w-full py-4 bg-green-500 text-white rounded-xl font-bold shadow-lg disabled:bg-gray-200 disabled:text-gray-400 transition-all active:scale-95 flex flex-col items-center">
-                    <span class="text-lg">PROSES BAYAR</span>
-                    <span class="text-[9px] font-normal opacity-80 uppercase tracking-tighter">Simpan & Sinkron Otomatis</span>
+                    <span class="text-lg uppercase">Proses Bayar</span>
+                    <span class="text-[9px] font-normal opacity-80 uppercase tracking-widest">Simpan & Sync Cloud</span>
                 </button>
             </div>
         </section>
     </main>
+
+    <div id="modal-barang" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 no-print p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="p-4 bg-blue-700 text-white flex justify-between items-center">
+                <h3 id="modal-title" class="font-bold uppercase text-sm tracking-widest">Data Barang</h3>
+                <button onclick="window.closeModal()" class="text-xl">&times;</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="barang-id">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Nama Produk</label>
+                    <input type="text" id="barang-nama" class="w-full border-b py-2 font-bold outline-none focus:border-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase">Stok</label>
+                        <input type="number" id="barang-stok" class="w-full border-b py-2 font-bold outline-none focus:border-blue-500 text-lg">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase">Harga Modal (Rp)</label>
+                        <input type="number" id="barang-modal" class="w-full border-b py-2 font-bold outline-none focus:border-blue-500 text-lg">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Harga Jual (Rp)</label>
+                    <input type="number" id="barang-harga" class="w-full border-b py-2 font-bold outline-none focus:border-blue-500 text-lg">
+                </div>
+                <button id="btn-simpan-barang" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg uppercase">Simpan ke Cloud</button>
+            </div>
+        </div>
+    </div>
 
     <div id="section-struk" class="hidden"></div>
 
@@ -111,14 +145,7 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCLlFeBekEZzdtkeFvItwqMPa2jxrLleb4",
-            authDomain: "pos-keliling.firebaseapp.com",
-            projectId: "pos-keliling",
-            storageBucket: "pos-keliling.firebasestorage.app",
-            messagingSenderId: "379944511316",
-            appId: "1:379944511316:web:27f1fd19eb3f48c5d64ac1"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyCLlFeBekEZzdtkeFvItwqMPa2jxrLleb4", authDomain: "pos-keliling.firebaseapp.com", projectId: "pos-keliling", storageBucket: "pos-keliling.firebasestorage.app", messagingSenderId: "379944511316", appId: "1:379944511316:web:27f1fd19eb3f48c5d64ac1" };
         const supabaseUrl = 'https://falswzbhwpwugjolretc.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhbHN3emJod3B3dWdqb2xyZXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NzU0MTcsImV4cCI6MjA5MDQ1MTQxN30.BpKmybIT-eeggCbuEbj8SSwvbq7eA7XCIu6Pc88xG1s';
 
@@ -126,238 +153,196 @@
         const auth = getAuth(app);
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        window.db = null;
-        window.masterData = [];
-        window.cart = [];
+        // GLOBALS
+        window.db = null; 
+        window.masterData = []; 
+        window.cart = []; 
         window.currentUid = null;
-        window.currentFileName = null;
+        window.currentFileName = "Belum ada file"; // Variabel log file
 
-        // AUTH & AUTO-LOAD LOGIC
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                window.currentUid = user.uid;
-                document.getElementById('user-email').innerText = user.email;
-                // OTOMATIS LOAD DATABASE SAAT BUKA DASHBOARD
-                await startAutoSync(user.uid);
-            } else {
-                window.location.replace("login.html");
+            if (user) { 
+                window.currentUid = user.uid; 
+                document.getElementById('user-email').innerText = user.email; 
+                await startAutoSync(user.uid); 
             }
+            else { window.location.replace("login.html"); }
         });
 
         async function startAutoSync(uid) {
             const btn = document.getElementById('btn-download');
-            btn.innerText = "SINKRON OTOMATIS...";
-            btn.classList.replace('bg-blue-600', 'bg-yellow-500');
-
+            btn.innerText = "SINKRON OTOMATIS..."; btn.classList.replace('bg-blue-600', 'bg-yellow-500');
             try {
-                // 1. List file terbaru
                 const { data } = await supabase.storage.from('backup').list(uid, { sortBy: { column: 'updated_at', order: 'desc' } });
                 if (data && data.length > 0) {
                     const dbFile = data.find(f => f.name.endsWith('.db'));
                     if (dbFile) {
-                        window.currentFileName = dbFile.name;
-                        
-                        // 2. Download Database
+                        window.currentFileName = dbFile.name; // Simpan nama file yang di-load
+                        console.log("Database Aktif:", window.currentFileName);
+
                         const { data: signData } = await supabase.storage.from('backup').createSignedUrl(`${uid}/${dbFile.name}`, 60);
                         const response = await fetch(signData.signedUrl);
                         const buf = await response.arrayBuffer();
-                        
-                        // 3. Init SQL.js
                         const SQL = await initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` });
                         window.db = new SQL.Database(new Uint8Array(buf));
-                        
-                        // 4. Load Data ke UI
                         refreshDataUI();
                         
-                        btn.innerText = "DB TERHUBUNG (AUTO)";
+                        btn.innerText = "DB: " + window.currentFileName; // Tampilkan nama file di tombol
                         btn.classList.replace('bg-yellow-500', 'bg-green-600');
                     }
-                } else {
-                    btn.innerText = "DB TIDAK ADA DI CLOUD";
-                    btn.classList.replace('bg-yellow-500', 'bg-red-500');
                 }
-            } catch (err) {
+            } catch (err) { 
                 console.error(err);
-                btn.innerText = "SINKRON GAGAL";
-                btn.classList.replace('bg-yellow-500', 'bg-red-600');
+                btn.innerText = "SINKRON GAGAL"; 
             }
         }
 
         function refreshDataUI() {
             const res = window.db.exec("SELECT nama, stok, harga_jual, modal, id FROM barang ORDER BY nama ASC");
-            if (res.length > 0) {
-                window.masterData = res[0].values;
-                renderTable(window.masterData);
-            }
+            if (res.length > 0) { window.masterData = res[0].values; renderTable(window.masterData); }
             renderHistory();
         }
 
-        // TANGGAL FORMAT UNTUK BACKUP BARU
-        function getNewTimestampName() {
-            const now = new Date();
-            const dateOpts = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Makassar' };
-            const [m, d, y] = now.toLocaleString('en-US', dateOpts).split('/');
-            const timeOpts = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Makassar' };
-            const timeStr = now.toLocaleString('en-US', timeOpts).replace(':', '-');
-            return `${y}-${m}-${d}_${timeStr}.db`;
+        function renderTable(dataArray) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = dataArray.map(row => {
+                const nama = row[0], stok = row[1], harga = row[2], modal = row[3], id = row[4];
+                return `<tr class="hover:bg-blue-50 transition border-b group">
+                    <td onclick="window.tambahKeKeranjang('${id}', '${nama}', ${harga}, ${stok}, ${modal})" class="p-3 cursor-pointer"><div class="font-bold text-gray-700 text-xs">${nama}</div></td>
+                    <td onclick="window.tambahKeKeranjang('${id}', '${nama}', ${harga}, ${stok}, ${modal})" class="p-3 text-center cursor-pointer"><span class="px-2 py-0.5 rounded text-[9px] font-black ${stok < 5 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">${stok}</span></td>
+                    <td onclick="window.tambahKeKeranjang('${id}', '${nama}', ${harga}, ${stok}, ${modal})" class="p-3 text-right font-black text-blue-600 text-xs cursor-pointer">Rp ${harga.toLocaleString('id-ID')}</td>
+                    <td class="p-3 text-center"><button onclick="window.openEditModal('${id}', '${nama}', ${stok}, ${harga}, ${modal})" class="text-gray-400 hover:text-blue-600 bg-gray-50 p-2 rounded-lg transition">✏️</button></td>
+                </tr>`;
+            }).join('');
+            document.getElementById('row-count').innerText = `${dataArray.length} Produk Terdaftar`;
         }
 
-        // KERANJANG LOGIC
+        window.openAddModal = () => {
+            document.getElementById('modal-title').innerText = "Tambah Barang Baru";
+            document.getElementById('barang-id').value = "";
+            document.getElementById('barang-nama').value = "";
+            document.getElementById('barang-nama').readOnly = false;
+            document.getElementById('barang-stok').value = 0;
+            document.getElementById('barang-modal').value = 0;
+            document.getElementById('barang-harga').value = 0;
+            document.getElementById('modal-barang').classList.remove('hidden');
+        };
+
+        window.openEditModal = (id, nama, stok, harga, modal) => {
+            document.getElementById('modal-title').innerText = "Edit Data Barang";
+            document.getElementById('barang-id').value = id;
+            document.getElementById('barang-nama').value = nama;
+            document.getElementById('barang-nama').readOnly = true;
+            document.getElementById('barang-stok').value = stok;
+            document.getElementById('barang-modal').value = modal;
+            document.getElementById('barang-harga').value = harga;
+            document.getElementById('modal-barang').classList.remove('hidden');
+        };
+
+        window.closeModal = () => document.getElementById('modal-barang').classList.add('hidden');
+
+        document.getElementById('btn-simpan-barang').onclick = async () => {
+            const id = document.getElementById('barang-id').value;
+            const nama = document.getElementById('barang-nama').value;
+            const stok = Number(document.getElementById('barang-stok').value) || 0;
+            const modal = Number(document.getElementById('barang-modal').value) || 0;
+            const harga = Number(document.getElementById('barang-harga').value) || 0;
+            
+            if (!nama) return alert("Isi nama barang!");
+
+            const btn = document.getElementById('btn-simpan-barang');
+            btn.innerText = "MENYIMPAN..."; btn.disabled = true;
+
+            try {
+                if (id) {
+                    window.db.run("UPDATE barang SET stok = ?, harga_jual = ?, modal = ? WHERE id = ?", 
+                        [stok, harga, modal, id.toString()]);
+                } else {
+                    // Pakai Date.now() sebagai ID unik (String)
+                    const newId = Date.now().toString(); 
+                    window.db.run("INSERT INTO barang (id, nama, stok, harga_jual, modal) VALUES (?, ?, ?, ?, ?)", 
+                        [newId, nama, stok, harga, modal]);
+                }
+
+                const binaryDb = window.db.export();
+                const fileName = getNewTimestampName();
+                await supabase.storage.from('backup').upload(`${window.currentUid}/${fileName}`, new Blob([binaryDb]));
+                
+                alert("Berhasil diperbarui!"); 
+                location.reload();
+            } catch (err) { 
+                console.error("Detail Error:", err);
+                alert("Gagal simpan: " + err.message); 
+                btn.disabled = false; 
+                btn.innerText = "SIMPAN KE CLOUD"; 
+            }
+        };
+
+        function getNewTimestampName() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-CA'); 
+            const timeStr = now.toLocaleTimeString('en-GB').replace(/:/g, '-');
+            return `${dateStr}_${timeStr}.db`;
+        }
+
         window.tambahKeKeranjang = (id, nama, harga, stok, modal) => {
             if (stok <= 0) return alert("Stok habis!");
             const exist = window.cart.find(i => i.id === id);
-            if (exist) {
-                if (exist.qty >= stok) return alert("Stok tidak mencukupi!");
-                exist.qty++;
-            } else {
-                window.cart.push({ id, nama, harga, modal, qty: 1, stokMax: stok });
-            }
+            if (exist) { if (exist.qty >= stok) return alert("Stok tidak cukup!"); exist.qty++; }
+            else { window.cart.push({ id, nama, harga, modal, qty: 1, stokMax: stok }); }
             renderCart();
         };
 
-        window.hapusItemCart = (idx) => {
-            window.cart.splice(idx, 1);
-            renderCart();
-        };
-
-        window.clearCart = () => {
-            if (confirm("Kosongkan keranjang?")) { window.cart = []; renderCart(); }
-        };
+        window.clearCart = () => { if (confirm("Kosongkan keranjang?")) { window.cart = []; renderCart(); } };
 
         function renderCart() {
             const container = document.getElementById('cart-items');
             const totalEl = document.getElementById('cart-total');
             const btn = document.getElementById('btn-proses-bayar');
-            if (window.cart.length === 0) {
-                container.innerHTML = '<div class="text-center mt-20 text-gray-300 text-sm italic font-light">Keranjang kosong</div>';
-                totalEl.innerText = "Rp 0";
-                btn.disabled = true;
-                return;
-            }
+            if (window.cart.length === 0) { container.innerHTML = '<div class="text-center mt-20 text-gray-300 text-sm italic font-light">Keranjang kosong</div>'; totalEl.innerText = "Rp 0"; btn.disabled = true; return; }
             let total = 0;
             container.innerHTML = window.cart.map((item, index) => {
                 total += (item.harga * item.qty);
-                return `
-                    <div class="flex justify-between items-center bg-blue-50 p-3 rounded-xl border border-blue-100 animate-in fade-in zoom-in duration-200">
-                        <div class="flex-1">
-                            <p class="font-bold text-xs text-gray-800 leading-tight">${item.nama}</p>
-                            <p class="text-[10px] text-blue-600 font-medium">${item.qty} x ${item.harga.toLocaleString('id-ID')}</p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="font-bold text-xs text-gray-700">Rp ${(item.harga * item.qty).toLocaleString('id-ID')}</span>
-                            <button onclick="hapusItemCart(${index})" class="text-red-400 hover:text-red-600">✕</button>
-                        </div>
-                    </div>`;
+                return `<div class="flex justify-between items-center bg-blue-50 p-3 rounded-xl border border-blue-100"><div class="flex-1"><p class="font-bold text-xs leading-tight">${item.nama}</p><p class="text-[10px] text-blue-600">${item.qty} x ${item.harga.toLocaleString('id-ID')}</p></div><div class="flex items-center gap-3"><span class="font-bold text-xs">Rp ${(item.harga * item.qty).toLocaleString('id-ID')}</span><button onclick="window.cart.splice(${index},1);renderCart()" class="text-red-400 hover:text-red-600">✕</button></div></div>`;
             }).join('');
-            totalEl.innerText = "Rp " + total.toLocaleString('id-ID');
-            btn.disabled = false;
-        }
-
-        // RENDER TABLES
-        function renderTable(dataArray) {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = dataArray.map(row => {
-                const nama = row[0], stok = row[1], harga = row[2], modal = row[3], id = row[4];
-                return `
-                    <tr onclick="window.tambahKeKeranjang('${id}', '${nama}', ${harga}, ${stok}, ${modal})" class="cursor-pointer hover:bg-blue-50 transition border-b group">
-                        <td class="p-3">
-                            <div class="font-bold text-gray-700 text-xs">${nama}</div>
-                        </td>
-                        <td class="p-3 text-center">
-                            <span class="px-2 py-0.5 rounded text-[9px] font-black ${stok < 5 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
-                                ${stok}
-                            </span>
-                        </td>
-                        <td class="p-3 text-right font-black text-blue-600 text-xs">Rp ${harga.toLocaleString('id-ID')}</td>
-                    </tr>`;
-            }).join('');
-            document.getElementById('row-count').innerText = `${dataArray.length} Produk Terdaftar`;
+            totalEl.innerText = "Rp " + total.toLocaleString('id-ID'); btn.disabled = false;
         }
 
         function renderHistory() {
             try {
                 const res = window.db.exec("SELECT tanggal, total, laba FROM transaksi ORDER BY CAST(tanggal AS UNSIGNED) DESC LIMIT 10");
                 const hBody = document.getElementById('history-body');
-                if (res.length > 0) {
-                    hBody.innerHTML = res[0].values.map(row => {
-                        const d = new Date(parseInt(row[0]));
-                        const tgl = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit'});
-                        const jam = d.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
-                        return `
-                        <tr class="border-b">
-                            <td class="p-2 text-gray-500">${tgl} ${jam}</td>
-                            <td class="p-2 text-right font-bold">Rp ${row[1].toLocaleString('id-ID')}</td>
-                            <td class="p-2 text-right text-green-600 font-medium font-mono">Rp ${row[2].toLocaleString('id-ID')}</td>
-                        </tr>`;
-                    }).join('');
-                }
-            } catch (e) { console.error("History Error:", e); }
+                if (res.length > 0) { hBody.innerHTML = res[0].values.map(row => {
+                    const d = new Date(parseInt(row[0]));
+                    return `<tr class="border-b"><td class="p-2 text-gray-500 text-[10px]">${d.toLocaleString('id-ID')}</td><td class="p-2 text-right font-bold">Rp ${row[1].toLocaleString('id-ID')}</td><td class="p-2 text-right text-green-600 font-mono">Rp ${row[2].toLocaleString('id-ID')}</td></tr>`;
+                }).join(''); }
+            } catch (e) {}
         }
 
-        // BUTTON REFRESH MANUAL
-        document.getElementById('btn-download').onclick = () => {
-            if (window.currentUid) startAutoSync(window.currentUid);
-        };
-
-        // TRANSAKSI LOGIC (BAYAR)
         document.getElementById('btn-proses-bayar').onclick = async () => {
-            if (!confirm("Proses Transaksi Sekarang?")) return;
-            const btn = document.getElementById('btn-proses-bayar');
-            btn.innerText = "MENYIMPAN KE CLOUD..."; btn.disabled = true;
-
+            if (!confirm("Proses Transaksi?")) return;
+            const btn = document.getElementById('btn-proses-bayar'); btn.innerText = "SINKRON..."; btn.disabled = true;
             try {
-                const timestampMillis = new Date().getTime(); 
-                let totalBelanja = 0, totalLaba = 0;
-                window.cart.forEach(item => {
-                    totalBelanja += (item.harga * item.qty);
-                    totalLaba += ((item.harga - item.modal) * item.qty);
+                const ts = new Date().getTime().toString(); let tB = 0, tL = 0;
+                window.cart.forEach(i => { tB += (i.harga * i.qty); tL += ((i.harga - i.modal) * i.qty); });
+                window.db.run(`INSERT INTO transaksi (tanggal, total, laba, metode_bayar, pelanggan_id) VALUES (?, ?, ?, ?, ?)`, [ts, tB, tL, "Tunai", null]);
+                const lastId = window.db.exec("SELECT last_insert_rowid()")[0].values[0][0];
+                window.cart.forEach(i => { 
+                    window.db.run("UPDATE barang SET stok = stok - ? WHERE id = ?", [i.qty, i.id]); 
+                    window.db.run(`INSERT INTO transaksi_detail (transaksi_id, barang_id, qty, harga, modal) VALUES (?, ?, ?, ?, ?)`, [lastId, i.id, i.qty, i.harga, i.modal]); 
                 });
-
-                // 1. UPDATE DB DI RAM
-                window.db.run(`INSERT INTO transaksi (tanggal, total, laba, metode_bayar, pelanggan_id) VALUES (?, ?, ?, ?, ?)`, 
-                    [timestampMillis.toString(), totalBelanja, totalLaba, "Tunai", null]);
-                const resRow = window.db.exec("SELECT last_insert_rowid()");
-                const lastId = resRow[0].values[0][0];
-
-                window.cart.forEach(item => {
-                    window.db.run("UPDATE barang SET stok = stok - ? WHERE id = ?", [item.qty, item.id]);
-                    window.db.run(`INSERT INTO transaksi_detail (transaksi_id, barang_id, qty, harga, modal) VALUES (?, ?, ?, ?, ?)`,
-                        [lastId, item.id, item.qty, item.harga, item.modal]);
-                });
-
-                // 2. EXPORT DB KE BINARY & UPLOAD
-                const binaryDb = window.db.export();
-                const newFileName = getNewTimestampName();
-                const { error } = await supabase.storage.from('backup').upload(`${window.currentUid}/${newFileName}`, new Blob([binaryDb]));
-                if (error) throw error;
-
-                // 3. CLEANUP FILE LAMA (SISA 5)
-                const { data: allFiles } = await supabase.storage.from('backup').list(window.currentUid, { sortBy: { column: 'updated_at', order: 'desc' } });
-                if (allFiles.length > 5) {
-                    const filesToDelete = allFiles.slice(5).map(f => `${window.currentUid}/${f.name}`);
-                    await supabase.storage.from('backup').remove(filesToDelete);
-                }
-
-                alert("TRANSAKSI BERHASIL!\nStok terpotong & sinkron ke Android.");
-                location.reload(); // Reload untuk refresh status UI
-            } catch (err) { 
-                alert("Gagal Simpan: " + err.message); 
-                btn.innerText = "COBA LAGI"; 
-                btn.disabled = false; 
-            }
+                const binaryDb = window.db.export(); await supabase.storage.from('backup').upload(`${window.currentUid}/${getNewTimestampName()}`, new Blob([binaryDb]));
+                alert("TRANSAKSI BERHASIL!"); location.reload();
+            } catch (err) { alert(err.message); btn.disabled = false; }
         };
 
-        // SEARCHING
         document.getElementById('search-barang').oninput = (e) => {
             const val = e.target.value.toLowerCase();
-            const filtered = window.masterData.filter(row => row[0].toLowerCase().includes(val));
-            renderTable(filtered);
+            renderTable(window.masterData.filter(row => row[0].toLowerCase().includes(val)));
         };
 
-        // LOGOUT
-        document.getElementById('btn-logout').onclick = () => { 
-            signOut(auth).then(() => window.location.replace("index.html")); 
-        };
+        document.getElementById('btn-logout').onclick = () => { signOut(auth).then(() => window.location.replace("index.html")); };
+        document.getElementById('btn-download').onclick = () => { if (window.currentUid) startAutoSync(window.currentUid); };
     </script>
 </body>
 </html>
