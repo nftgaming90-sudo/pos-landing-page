@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1e40af">
     <title>PosKita - Pro Mobile</title>
@@ -11,7 +11,33 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&display=swap');
         
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { 
+    font-family: 'Inter', sans-serif; 
+    -webkit-tap-highlight-color: transparent;
+
+    /* FIX MOBILE */
+    min-width: 1024px; 
+    overflow-x: auto;
+}
+
+/* BIAR BISA SCROLL */
+main {
+    overflow: auto !important;
+    padding-bottom: 80px;
+}
+
+/* NAV BAWAH FIX */
+nav:last-of-type {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+/* OPTIONAL BIAR HALUS */
+html {
+    scroll-behavior: smooth;
+}
 
         @media print {
             body * { visibility: hidden; }
@@ -51,7 +77,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 h-screen flex flex-col overflow-hidden text-slate-800 selection:bg-blue-200">
+<body class="bg-slate-50 h-screen flex flex-col text-slate-800 selection:bg-blue-200">
 
     <nav class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 p-3 text-white flex justify-between items-center shadow-md shrink-0 no-print border-b border-blue-950/50">
         <div class="flex items-center gap-3">
@@ -67,7 +93,7 @@
         </div>
     </nav>
 
-    <main class="flex-1 relative overflow-hidden no-print">
+    <main class="flex-1 relative no-print">
         
         <section id="menu-kasir" class="page-content page-active flex-col md:flex-row p-2 md:p-4 gap-4">
             <div class="w-full md:w-2/3 flex flex-col gap-3 overflow-hidden">
