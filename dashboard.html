@@ -2,9 +2,9 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#1d4ed8">
+    <meta name="theme-color" content="#1d4ed8">
     <title>PosKita - Dashboard Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
@@ -18,35 +18,44 @@
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .modal { transition: opacity 0.25s ease; }
-        body.modal-active { overflow: hidden; }
+        
+        /* Touch Optimization */
+        button, td, tr { touch-action: manipulation; cursor: pointer; }
+        
+        /* Mobile Cart Slide Effect */
+        @media (max-width: 768px) {
+            #cart-section {
+                position: fixed;
+                inset: 0;
+                z-index: 50;
+                transform: translateX(100%);
+                transition: transform 0.3s ease-in-out;
+            }
+            #cart-section.active { transform: translateX(0); }
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans h-screen flex flex-col overflow-hidden text-gray-800">
 
     <nav class="bg-blue-700 p-3 text-white flex justify-between items-center shadow-lg shrink-0 no-print">
         <h1 class="text-lg font-black flex items-center gap-2 tracking-tighter">
-            🚀 POSKITA <span class="text-[10px] font-normal bg-blue-500 px-2 py-0.5 rounded uppercase">Mobile Vendor Edition</span>
+            🚀 POSKITA <span class="hidden sm:inline text-[10px] font-normal bg-blue-500 px-2 py-0.5 rounded uppercase">Mobile Vendor</span>
         </h1>
         <div class="flex items-center gap-4 text-xs">
-            <span id="user-email" class="italic opacity-70">Memuat...</span>
+            <span id="user-email" class="italic opacity-70 truncate max-w-[100px]">Memuat...</span>
             <button id="btn-logout" class="bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg font-bold shadow-md transition">LOGOUT</button>
         </div>
     </nav>
 
-    <main class="flex flex-1 overflow-hidden p-3 gap-3 no-print">
+    <main class="flex flex-col md:flex-row flex-1 overflow-hidden p-2 md:p-3 gap-2 md:gap-3 no-print">
         
-        <section class="w-full md:w-2/3 flex flex-col gap-3 overflow-hidden">
+        <section class="w-full md:w-2/3 flex flex-col gap-2 md:gap-3 overflow-hidden">
             <div class="bg-white rounded-xl shadow-sm flex flex-col flex-1 overflow-hidden border border-gray-200">
-                <div class="p-3 border-b bg-gray-50 flex flex-wrap gap-2 items-center justify-between">
-                    <input type="text" id="search-barang" placeholder="Cari barang..." class="flex-1 min-w-[150px] border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
-                    <div class="flex gap-2">
-                        <button onclick="window.openAddModal()" class="bg-green-600 text-white text-[10px] px-4 py-2 rounded-lg font-bold hover:bg-green-700 shadow-sm transition uppercase">
-                            + Tambah Barang
-                        </button>
-                        <button id="btn-download" class="bg-blue-600 text-white text-[10px] px-4 py-2 rounded-lg font-bold hover:bg-blue-700 shadow-sm transition uppercase">
-                            Sinkron Cloud
-                        </button>
+                <div class="p-2 md:p-3 border-b bg-gray-50 flex flex-wrap gap-2 items-center justify-between">
+                    <input type="text" id="search-barang" placeholder="Cari barang..." class="flex-1 min-w-[120px] border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+                    <div class="flex gap-1 md:gap-2">
+                        <button onclick="window.openAddModal()" class="bg-green-600 text-white text-[9px] md:text-[10px] px-2 md:px-4 py-2 rounded-lg font-bold hover:bg-green-700 shadow-sm uppercase">+ Barang</button>
+                        <button id="btn-download" class="bg-blue-600 text-white text-[9px] md:text-[10px] px-2 md:px-4 py-2 rounded-lg font-bold hover:bg-blue-700 shadow-sm uppercase">Sync</button>
                     </div>
                 </div>
                 <div class="overflow-y-auto flex-1">
@@ -60,38 +69,39 @@
                             </tr>
                         </thead>
                         <tbody id="table-body" class="divide-y divide-gray-50">
-                            <tr><td colspan="4" class="p-10 text-center text-gray-400 italic text-xs animate-pulse">Menghubungkan ke Cloud...</td></tr>
+                            <tr><td colspan="4" class="p-10 text-center text-gray-400 italic text-xs animate-pulse">Menghubungkan...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm h-1/3 border border-gray-200 flex flex-col overflow-hidden">
+            <div class="hidden md:flex bg-white rounded-xl shadow-sm h-1/3 border border-gray-200 flex-col overflow-hidden">
                 <div class="p-2 border-b bg-gray-800 text-white text-[10px] font-bold uppercase tracking-widest flex justify-between">
                     <span>📜 10 Transaksi Terakhir</span>
-                    <span id="row-count" class="text-blue-300 italic">0 Produk Terdaftar</span>
+                    <span id="row-count" class="text-blue-300 italic">0 Produk</span>
                 </div>
                 <div class="overflow-y-auto flex-1">
                     <table class="w-full text-[11px] text-left">
                         <thead class="bg-gray-100 text-gray-500 font-bold border-b">
                             <tr>
                                 <th class="p-2">Waktu</th>
-                                <th class="p-2 text-right">Total Belanja</th>
+                                <th class="p-2 text-right">Total</th>
                                 <th class="p-2 text-right text-green-600">Laba</th>
                             </tr>
                         </thead>
-                        <tbody id="history-body" class="divide-y divide-gray-50">
-                            <tr><td colspan="3" class="p-4 text-center text-gray-300 italic">Belum ada riwayat transaksi.</td></tr>
-                        </tbody>
+                        <tbody id="history-body" class="divide-y divide-gray-50"></tbody>
                     </table>
                 </div>
             </div>
         </section>
 
-        <section class="w-full md:w-1/3 bg-white rounded-xl shadow-xl flex flex-col overflow-hidden border-2 border-blue-100">
+        <section id="cart-section" class="w-full md:w-1/3 bg-white rounded-none md:rounded-xl shadow-xl flex flex-col overflow-hidden border-2 border-blue-100">
             <div class="p-4 bg-blue-50 border-b flex justify-between items-center">
                 <h2 class="font-bold text-blue-800 flex items-center gap-2">🛒 Keranjang</h2>
-                <button onclick="clearCart()" class="text-[9px] bg-white border border-red-200 text-red-500 px-2 py-1 rounded hover:bg-red-50 transition">KOSONGKAN</button>
+                <div class="flex gap-2">
+                    <button onclick="clearCart()" class="text-[9px] bg-white border border-red-200 text-red-500 px-2 py-1 rounded">KOSONGKAN</button>
+                    <button onclick="toggleCart()" class="md:hidden text-blue-800 font-bold px-2">TUTUP</button>
+                </div>
             </div>
             <div id="cart-items" class="flex-1 overflow-y-auto p-3 space-y-2">
                 <div class="text-center mt-20 text-gray-300 text-sm italic font-light">Keranjang kosong</div>
@@ -109,8 +119,13 @@
         </section>
     </main>
 
-    <div id="modal-barang" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 no-print p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+    <button onclick="toggleCart()" class="md:hidden fixed bottom-6 right-6 z-40 bg-blue-700 text-white p-4 rounded-full shadow-2xl flex items-center justify-center animate-bounce border-4 border-white">
+        <span class="text-xl">🛒</span>
+        <span id="mobile-cart-count" class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold">0</span>
+    </button>
+
+    <div id="modal-barang" class="fixed inset-0 z-[60] flex items-center justify-center hidden bg-black bg-opacity-50 no-print p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="p-4 bg-blue-700 text-white flex justify-between items-center">
                 <h3 id="modal-title" class="font-bold uppercase text-sm tracking-widest">Data Barang</h3>
                 <button onclick="window.closeModal()" class="text-xl">&times;</button>
@@ -155,12 +170,16 @@
         const auth = getAuth(app);
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // GLOBALS
         window.db = null; 
         window.masterData = []; 
         window.cart = []; 
         window.currentUid = null;
-        window.currentFileName = "Belum ada file"; // Variabel log file
+
+        // Toggle Cart for Mobile
+        window.toggleCart = () => {
+            const cartSec = document.getElementById('cart-section');
+            cartSec.classList.toggle('active');
+        };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) { 
@@ -173,30 +192,22 @@
 
         async function startAutoSync(uid) {
             const btn = document.getElementById('btn-download');
-            btn.innerText = "SINKRON OTOMATIS..."; btn.classList.replace('bg-blue-600', 'bg-yellow-500');
+            btn.innerText = "SYNC..."; 
             try {
                 const { data } = await supabase.storage.from('backup').list(uid, { sortBy: { column: 'updated_at', order: 'desc' } });
                 if (data && data.length > 0) {
                     const dbFile = data.find(f => f.name.endsWith('.db'));
                     if (dbFile) {
-                        window.currentFileName = dbFile.name; // Simpan nama file yang di-load
-                        console.log("Database Aktif:", window.currentFileName);
-
                         const { data: signData } = await supabase.storage.from('backup').createSignedUrl(`${uid}/${dbFile.name}`, 60);
                         const response = await fetch(signData.signedUrl);
                         const buf = await response.arrayBuffer();
                         const SQL = await initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` });
                         window.db = new SQL.Database(new Uint8Array(buf));
                         refreshDataUI();
-                        
-                        btn.innerText = "DB: " + window.currentFileName; // Tampilkan nama file di tombol
-                        btn.classList.replace('bg-yellow-500', 'bg-green-600');
+                        btn.innerText = "SINKRON";
                     }
                 }
-            } catch (err) { 
-                console.error(err);
-                btn.innerText = "SINKRON GAGAL"; 
-            }
+            } catch (err) { btn.innerText = "GAGAL"; }
         }
 
         function refreshDataUI() {
@@ -209,18 +220,18 @@
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = dataArray.map(row => {
                 const nama = row[0], stok = row[1], harga = row[2], modal = row[3], id = row[4];
-                return `<tr class="hover:bg-blue-50 transition border-b group">
-                    <td onclick="window.tambahKeKeranjang('${id}', '${nama}', ${harga}, ${stok}, ${modal})" class="p-3 cursor-pointer"><div class="font-bold text-gray-700 text-xs">${nama}</div></td>
-                    <td onclick="window.tambahKeKeranjang('${id}', '${nama}', ${harga}, ${stok}, ${modal})" class="p-3 text-center cursor-pointer"><span class="px-2 py-0.5 rounded text-[9px] font-black ${stok < 5 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">${stok}</span></td>
-                    <td onclick="window.tambahKeKeranjang('${id}', '${nama}', ${harga}, ${stok}, ${modal})" class="p-3 text-right font-black text-blue-600 text-xs cursor-pointer">Rp ${harga.toLocaleString('id-ID')}</td>
-                    <td class="p-3 text-center"><button onclick="window.openEditModal('${id}', '${nama}', ${stok}, ${harga}, ${modal})" class="text-gray-400 hover:text-blue-600 bg-gray-50 p-2 rounded-lg transition">✏️</button></td>
+                return `<tr class="hover:bg-blue-50 transition border-b">
+                    <td onclick="window.tambahKeKeranjang('${id}', '${nama}', ${harga}, ${stok}, ${modal})" class="p-3"><div class="font-bold text-gray-700 text-xs">${nama}</div></td>
+                    <td onclick="window.tambahKeKeranjang('${id}', '${nama}', ${harga}, ${stok}, ${modal})" class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[9px] font-black ${stok < 5 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">${stok}</span></td>
+                    <td onclick="window.tambahKeKeranjang('${id}', '${nama}', ${harga}, ${stok}, ${modal})" class="p-3 text-right font-black text-blue-600 text-xs">Rp ${harga.toLocaleString('id-ID')}</td>
+                    <td class="p-3 text-center"><button onclick="window.openEditModal('${id}', '${nama}', ${stok}, ${harga}, ${modal})" class="text-gray-400 p-2 text-lg">✏️</button></td>
                 </tr>`;
             }).join('');
-            document.getElementById('row-count').innerText = `${dataArray.length} Produk Terdaftar`;
+            document.getElementById('row-count').innerText = `${dataArray.length} Produk`;
         }
 
         window.openAddModal = () => {
-            document.getElementById('modal-title').innerText = "Tambah Barang Baru";
+            document.getElementById('modal-title').innerText = "Tambah Barang";
             document.getElementById('barang-id').value = "";
             document.getElementById('barang-nama').value = "";
             document.getElementById('barang-nama').readOnly = false;
@@ -231,7 +242,7 @@
         };
 
         window.openEditModal = (id, nama, stok, harga, modal) => {
-            document.getElementById('modal-title').innerText = "Edit Data Barang";
+            document.getElementById('modal-title').innerText = "Edit Barang";
             document.getElementById('barang-id').value = id;
             document.getElementById('barang-nama').value = nama;
             document.getElementById('barang-nama').readOnly = true;
@@ -249,63 +260,52 @@
             const stok = Number(document.getElementById('barang-stok').value) || 0;
             const modal = Number(document.getElementById('barang-modal').value) || 0;
             const harga = Number(document.getElementById('barang-harga').value) || 0;
-            
             if (!nama) return alert("Isi nama barang!");
-
-            const btn = document.getElementById('btn-simpan-barang');
-            btn.innerText = "MENYIMPAN..."; btn.disabled = true;
-
             try {
-                if (id) {
-                    window.db.run("UPDATE barang SET stok = ?, harga_jual = ?, modal = ? WHERE id = ?", 
-                        [stok, harga, modal, id.toString()]);
-                } else {
-                    // Pakai Date.now() sebagai ID unik (String)
-                    const newId = Date.now().toString(); 
-                    window.db.run("INSERT INTO barang (id, nama, stok, harga_jual, modal) VALUES (?, ?, ?, ?, ?)", 
-                        [newId, nama, stok, harga, modal]);
-                }
-
+                if (id) { window.db.run("UPDATE barang SET stok = ?, harga_jual = ?, modal = ? WHERE id = ?", [stok, harga, modal, id.toString()]); } 
+                else { window.db.run("INSERT INTO barang (id, nama, stok, harga_jual, modal) VALUES (?, ?, ?, ?, ?)", [Date.now().toString(), nama, stok, harga, modal]); }
                 const binaryDb = window.db.export();
-                const fileName = getNewTimestampName();
-                await supabase.storage.from('backup').upload(`${window.currentUid}/${fileName}`, new Blob([binaryDb]));
-                
-                alert("Berhasil diperbarui!"); 
-                location.reload();
-            } catch (err) { 
-                console.error("Detail Error:", err);
-                alert("Gagal simpan: " + err.message); 
-                btn.disabled = false; 
-                btn.innerText = "SIMPAN KE CLOUD"; 
-            }
+                await supabase.storage.from('backup').upload(`${window.currentUid}/${getNewTimestampName()}`, new Blob([binaryDb]));
+                alert("Berhasil!"); location.reload();
+            } catch (err) { alert("Gagal: " + err.message); }
         };
 
         function getNewTimestampName() {
             const now = new Date();
-            const dateStr = now.toLocaleDateString('en-CA'); 
-            const timeStr = now.toLocaleTimeString('en-GB').replace(/:/g, '-');
-            return `${dateStr}_${timeStr}.db`;
+            return `${now.toLocaleDateString('en-CA')}_${now.toLocaleTimeString('en-GB').replace(/:/g, '-')}.db`;
         }
 
         window.tambahKeKeranjang = (id, nama, harga, stok, modal) => {
             if (stok <= 0) return alert("Stok habis!");
             const exist = window.cart.find(i => i.id === id);
-            if (exist) { if (exist.qty >= stok) return alert("Stok tidak cukup!"); exist.qty++; }
-            else { window.cart.push({ id, nama, harga, modal, qty: 1, stokMax: stok }); }
+            if (exist) { if (exist.qty >= stok) return alert("Stok habis!"); exist.qty++; }
+            else { window.cart.push({ id, nama, harga, modal, qty: 1 }); }
             renderCart();
         };
 
-        window.clearCart = () => { if (confirm("Kosongkan keranjang?")) { window.cart = []; renderCart(); } };
+        window.clearCart = () => { if (confirm("Kosongkan?")) { window.cart = []; renderCart(); } };
 
         function renderCart() {
             const container = document.getElementById('cart-items');
             const totalEl = document.getElementById('cart-total');
             const btn = document.getElementById('btn-proses-bayar');
-            if (window.cart.length === 0) { container.innerHTML = '<div class="text-center mt-20 text-gray-300 text-sm italic font-light">Keranjang kosong</div>'; totalEl.innerText = "Rp 0"; btn.disabled = true; return; }
+            const badge = document.getElementById('mobile-cart-count');
+            
+            const count = window.cart.reduce((sum, i) => sum + i.qty, 0);
+            badge.innerText = count;
+
+            if (window.cart.length === 0) { 
+                container.innerHTML = '<div class="text-center mt-20 text-gray-300 text-sm italic">Kosong</div>'; 
+                totalEl.innerText = "Rp 0"; btn.disabled = true; return; 
+            }
             let total = 0;
             container.innerHTML = window.cart.map((item, index) => {
                 total += (item.harga * item.qty);
-                return `<div class="flex justify-between items-center bg-blue-50 p-3 rounded-xl border border-blue-100"><div class="flex-1"><p class="font-bold text-xs leading-tight">${item.nama}</p><p class="text-[10px] text-blue-600">${item.qty} x ${item.harga.toLocaleString('id-ID')}</p></div><div class="flex items-center gap-3"><span class="font-bold text-xs">Rp ${(item.harga * item.qty).toLocaleString('id-ID')}</span><button onclick="window.cart.splice(${index},1);renderCart()" class="text-red-400 hover:text-red-600">✕</button></div></div>`;
+                return `<div class="flex justify-between items-center bg-blue-50 p-3 rounded-xl border border-blue-100">
+                    <div class="flex-1"><p class="font-bold text-xs">${item.nama}</p><p class="text-[10px] text-blue-600">${item.qty} x ${item.harga.toLocaleString('id-ID')}</p></div>
+                    <div class="flex items-center gap-3"><span class="font-bold text-xs">Rp ${(item.harga * item.qty).toLocaleString('id-ID')}</span>
+                    <button onclick="window.cart.splice(${index},1);renderCart()" class="text-red-400 px-2 text-xl">✕</button></div>
+                </div>`;
             }).join('');
             totalEl.innerText = "Rp " + total.toLocaleString('id-ID'); btn.disabled = false;
         }
@@ -316,25 +316,26 @@
                 const hBody = document.getElementById('history-body');
                 if (res.length > 0) { hBody.innerHTML = res[0].values.map(row => {
                     const d = new Date(parseInt(row[0]));
-                    return `<tr class="border-b"><td class="p-2 text-gray-500 text-[10px]">${d.toLocaleString('id-ID')}</td><td class="p-2 text-right font-bold">Rp ${row[1].toLocaleString('id-ID')}</td><td class="p-2 text-right text-green-600 font-mono">Rp ${row[2].toLocaleString('id-ID')}</td></tr>`;
+                    return `<tr class="border-b"><td class="p-2 text-gray-500 text-[10px]">${d.toLocaleTimeString('id-ID')}</td><td class="p-2 text-right font-bold">Rp ${row[1].toLocaleString('id-ID')}</td><td class="p-2 text-right text-green-600">Rp ${row[2].toLocaleString('id-ID')}</td></tr>`;
                 }).join(''); }
             } catch (e) {}
         }
 
         document.getElementById('btn-proses-bayar').onclick = async () => {
-            if (!confirm("Proses Transaksi?")) return;
-            const btn = document.getElementById('btn-proses-bayar'); btn.innerText = "SINKRON..."; btn.disabled = true;
+            if (!confirm("Proses?")) return;
+            const btn = document.getElementById('btn-proses-bayar'); btn.innerText = "SYNC..."; btn.disabled = true;
             try {
                 const ts = new Date().getTime().toString(); let tB = 0, tL = 0;
                 window.cart.forEach(i => { tB += (i.harga * i.qty); tL += ((i.harga - i.modal) * i.qty); });
-                window.db.run(`INSERT INTO transaksi (tanggal, total, laba, metode_bayar, pelanggan_id) VALUES (?, ?, ?, ?, ?)`, [ts, tB, tL, "Tunai", null]);
+                window.db.run(`INSERT INTO transaksi (tanggal, total, laba, metode_bayar) VALUES (?, ?, ?, ?)`, [ts, tB, tL, "Tunai"]);
                 const lastId = window.db.exec("SELECT last_insert_rowid()")[0].values[0][0];
                 window.cart.forEach(i => { 
                     window.db.run("UPDATE barang SET stok = stok - ? WHERE id = ?", [i.qty, i.id]); 
                     window.db.run(`INSERT INTO transaksi_detail (transaksi_id, barang_id, qty, harga, modal) VALUES (?, ?, ?, ?, ?)`, [lastId, i.id, i.qty, i.harga, i.modal]); 
                 });
-                const binaryDb = window.db.export(); await supabase.storage.from('backup').upload(`${window.currentUid}/${getNewTimestampName()}`, new Blob([binaryDb]));
-                alert("TRANSAKSI BERHASIL!"); location.reload();
+                const binaryDb = window.db.export(); 
+                await supabase.storage.from('backup').upload(`${window.currentUid}/${getNewTimestampName()}`, new Blob([binaryDb]));
+                alert("BERHASIL!"); location.reload();
             } catch (err) { alert(err.message); btn.disabled = false; }
         };
 
@@ -345,6 +346,8 @@
 
         document.getElementById('btn-logout').onclick = () => { signOut(auth).then(() => window.location.replace("index.html")); };
         document.getElementById('btn-download').onclick = () => { if (window.currentUid) startAutoSync(window.currentUid); };
+
+        window.onbeforeunload = function() { if (window.cart.length > 0) return "Ada transaksi!"; };
     </script>
 </body>
 </html>
