@@ -32,12 +32,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .page-active { display: flex !important; }
 
-        .nav-active { color: #1e40af !important; position: relative; font-weight: 800; }
-        .nav-active::after { 
-            content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 24px; height: 4px; background: #1e40af; border-radius: 4px 4px 0 0;
-        }
-
         .tr-item { transition: all 0.15s ease; cursor: pointer; }
         .tr-item:hover { background-color: #f0f9ff; }
         .tr-item:active { background-color: #e0f2fe; transform: scale(0.995); }
@@ -51,19 +45,30 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 h-screen flex flex-col overflow-hidden text-slate-800 selection:bg-blue-200">
+<body class="bg-slate-50 h-[100dvh] flex flex-col overflow-hidden text-slate-800 selection:bg-blue-200">
 
-    <nav class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 p-2.5 md:p-3 text-white flex justify-between items-center shadow-md shrink-0 no-print border-b border-blue-950/50">
-        <div class="flex items-center gap-2.5 md:gap-3">
-            <div class="bg-white/10 backdrop-blur-sm p-1.5 md:p-2 rounded-xl text-base md:text-lg border border-white/20 shadow-inner">📦</div>
-            <div>
-                <h1 class="text-xs md:text-sm font-black leading-none tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-100">POSKITA</h1>
-                <p id="current-page-label" class="text-[8px] md:text-[9px] uppercase tracking-[0.25em] font-bold text-blue-200 mt-0.5">KASIR</p>
+    <nav class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 flex flex-col shadow-md shrink-0 no-print relative z-50">
+        <div class="p-3 md:p-4 flex justify-between items-center">
+            <div class="flex items-center gap-2.5 md:gap-3">
+                <div class="bg-white/10 backdrop-blur-sm p-1.5 md:p-2 rounded-xl text-base md:text-lg border border-white/20 shadow-inner">📦</div>
+                <h1 class="text-sm md:text-base font-black leading-none tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-100">POSKITA</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="user-email" class="text-[10px] font-medium text-blue-200 hidden sm:inline-block bg-blue-950/30 px-3 py-1.5 rounded-full border border-blue-800/50">Memuat...</span>
+                <button id="btn-logout" class="bg-rose-500/10 hover:bg-rose-500 border border-rose-500/50 px-3 md:px-4 py-1.5 rounded-lg text-[9px] md:text-[10px] font-black transition-all hover:shadow-[0_0_15px_rgba(244,63,94,0.4)] text-rose-100 hover:text-white tracking-wide">OUT</button>
             </div>
         </div>
-        <div class="flex items-center gap-3 md:gap-4">
-            <span id="user-email" class="text-[10px] font-medium text-blue-200 hidden sm:inline-block bg-blue-950/30 px-3 py-1.5 rounded-full border border-blue-800/50">Memuat...</span>
-            <button id="btn-logout" class="bg-rose-500/10 hover:bg-rose-500 border border-rose-500/50 px-3 md:px-4 py-1.5 rounded-lg text-[9px] md:text-[10px] font-black transition-all hover:shadow-[0_0_15px_rgba(244,63,94,0.4)] text-rose-100 hover:text-white tracking-wide">OUT</button>
+        
+        <div class="flex px-2 bg-black/10 overflow-x-auto hide-scrollbar">
+            <button onclick="window.switchPage('kasir', this)" class="nav-btn flex-1 md:flex-none py-3 px-4 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-white border-b-[3px] border-white nav-active flex items-center justify-center gap-1.5">
+                <span class="text-sm">🏪</span> Kasir
+            </button>
+            <button onclick="window.switchPage('stok', this)" class="nav-btn flex-1 md:flex-none py-3 px-4 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex items-center justify-center gap-1.5">
+                <span class="text-sm">📦</span> Stok
+            </button>
+            <button onclick="window.switchPage('laporan', this)" class="nav-btn flex-1 md:flex-none py-3 px-4 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex items-center justify-center gap-1.5">
+                <span class="text-sm">📊</span> Laporan
+            </button>
         </div>
     </nav>
 
@@ -203,24 +208,9 @@
     </main>
 
     <button id="floating-cart-btn" onclick="window.toggleCart()" 
-        class="md:hidden fixed bottom-20 right-4 z-40 bg-gradient-to-br from-blue-600 to-blue-800 text-white w-14 h-14 rounded-2xl shadow-[0_10px_25px_-5px_rgba(29,78,216,0.5)] flex items-center justify-center text-2xl border-[3px] border-white transition-transform active:scale-90">
+        class="md:hidden fixed bottom-6 right-4 z-40 bg-gradient-to-br from-blue-600 to-blue-800 text-white w-14 h-14 rounded-2xl shadow-[0_10px_25px_-5px_rgba(29,78,216,0.5)] flex items-center justify-center text-2xl border-[3px] border-white transition-transform active:scale-90">
         🛒 <span id="mobile-cart-count" class="absolute -top-2.5 -right-2.5 bg-rose-500 text-white text-[11px] w-7 h-7 flex items-center justify-center rounded-full font-black border-2 border-white shadow-sm">0</span>
     </button>
-
-    <nav class="bg-white/95 backdrop-blur-lg border-t border-slate-200 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.05)] flex justify-around p-1 shrink-0 no-print z-50 relative pb-safe">
-        <button onclick="window.switchPage('kasir', this)" class="nav-btn flex-1 flex flex-col items-center py-2 md:py-2.5 gap-1 md:gap-1.5 text-slate-400 hover:text-blue-600 transition-colors nav-active">
-            <span class="text-xl md:text-xl mb-0.5">🏪</span>
-            <span class="text-[9px] font-black uppercase tracking-wider">Kasir</span>
-        </button>
-        <button onclick="window.switchPage('stok', this)" class="nav-btn flex-1 flex flex-col items-center py-2 md:py-2.5 gap-1 md:gap-1.5 text-slate-400 hover:text-blue-600 transition-colors">
-            <span class="text-xl md:text-xl mb-0.5">📦</span>
-            <span class="text-[9px] font-black uppercase tracking-wider">Stok</span>
-        </button>
-        <button onclick="window.switchPage('laporan', this)" class="nav-btn flex-1 flex flex-col items-center py-2 md:py-2.5 gap-1 md:gap-1.5 text-slate-400 hover:text-blue-600 transition-colors">
-            <span class="text-xl md:text-xl mb-0.5">📊</span>
-            <span class="text-[9px] font-black uppercase tracking-wider">Laporan</span>
-        </button>
-    </nav>
 
     <div id="modal-barang" class="fixed inset-0 z-[100] flex items-center justify-center hidden bg-slate-900/40 backdrop-blur-sm p-4 transition-opacity">
         <div class="bg-white rounded-[24px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-md overflow-hidden transform transition-transform">
@@ -317,19 +307,22 @@
         window.currentReportFilter = 'hari_ini';
         window.currentCustomDate = '';
 
-        // --- FUNGSI FORMAT ANGKA OTOMATIS (RIBUAN) ---
         window.formatAngka = (angka) => {
             if (!angka) return "";
             return angka.toString().replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         };
 
-        // --- NAVIGATION ---
+        // --- NAVIGATION JADI LEBIH SIMPEL ---
         window.switchPage = (pageId, btn) => {
             document.querySelectorAll('.page-content').forEach(p => p.classList.remove('page-active'));
             document.getElementById('menu-' + pageId).classList.add('page-active');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
-            btn.classList.add('nav-active');
-            document.getElementById('current-page-label').innerText = pageId;
+            
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('nav-active', 'text-white', 'border-white');
+                b.classList.add('text-blue-300', 'border-transparent');
+            });
+            btn.classList.remove('text-blue-300', 'border-transparent');
+            btn.classList.add('nav-active', 'text-white', 'border-white');
             
             const floatBtn = document.getElementById('floating-cart-btn');
             if(pageId !== 'kasir') floatBtn.classList.add('hidden');
