@@ -1,0 +1,16 @@
+{
+  "name": "PosKita Mobile Vendor",
+  "short_name": "PosKita",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1d4ed8",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/5607/5607311.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
