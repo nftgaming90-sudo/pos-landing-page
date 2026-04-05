@@ -13,7 +13,6 @@
         
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
 
-        /* PERBAIKAN TOTAL CSS PRINT THERMAL 58mm */
         @media screen {
             #section-struk { display: none !important; }
         }
@@ -24,7 +23,6 @@
                 overflow: visible !important;
                 background-color: white !important;
             }
-            /* Sembunyikan semua elemen di body KECUALI section-struk */
             body > *:not(#section-struk) {
                 display: none !important;
             }
@@ -33,7 +31,7 @@
                 position: absolute; 
                 left: 0; 
                 top: 0; 
-                width: 58mm; /* Ukuran Kertas Thermal Standar */
+                width: 58mm; 
                 padding: 2mm; 
                 margin: 0;
                 font-family: 'Courier New', Courier, monospace; 
@@ -83,19 +81,19 @@
             <div class="bg-blue-800/50 p-1 md:p-1.5 rounded-full flex items-center justify-center border border-blue-700/50">👤</div>
             <span id="user-email" class="font-bold text-blue-100 tracking-wide truncate max-w-[100px] md:max-w-[150px]">Memuat...</span>
             <div id="pro-badge" class="ml-1"></div> </div>
-        <div class="flex items-center gap-3 md:gap-4">
+        <div class="flex items-center gap-2 md:gap-4">
             <div class="hidden sm:flex items-center gap-1.5 text-blue-200">
                 <span>📅</span> <span id="current-date" class="font-medium tracking-wide">...</span>
             </div>
-            <div class="flex items-center gap-1.5 font-mono font-black text-emerald-400 bg-blue-900/50 px-2.5 py-1 rounded-lg border border-blue-800/50">
+            <div class="hidden sm:flex items-center gap-1.5 font-mono font-black text-emerald-400 bg-blue-900/50 px-2.5 py-1 rounded-lg border border-blue-800/50">
                 <span>🕒</span> <span id="current-time" class="tracking-widest">...</span>
             </div>
-            <button class="relative hover:scale-110 transition-transform text-blue-200 hover:text-white ml-1">
+            <button class="relative hover:scale-110 transition-transform text-blue-200 hover:text-white ml-1 shrink-0">
                 <span class="text-sm">🔔</span>
                 <span class="absolute -top-0.5 -right-0.5 bg-rose-500 border border-blue-950 w-2.5 h-2.5 rounded-full animate-pulse"></span>
             </button>
             <div class="w-px h-4 bg-blue-800 mx-1"></div>
-            <button id="btn-logout" class="text-rose-400 hover:text-rose-300 font-black tracking-widest transition-colors uppercase">Out</button>
+            <button id="btn-logout" class="text-rose-400 hover:text-rose-300 font-black tracking-widest transition-colors uppercase shrink-0">Out</button>
         </div>
     </div>
 
@@ -116,9 +114,9 @@
     <main class="flex-1 relative overflow-hidden no-print">
         
         <section id="menu-kasir" class="page-content page-active flex-col md:flex-row p-2 md:p-4 gap-3 md:gap-4">
-            <div class="w-full md:w-2/3 flex flex-col gap-3 overflow-hidden">
+            <div class="w-full md:w-2/3 flex-1 flex flex-col gap-3 overflow-hidden">
                 <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 flex flex-col flex-1 overflow-hidden">
-                    <div class="p-2.5 md:p-3 border-b border-slate-100 bg-white/80 backdrop-blur-md flex gap-2 md:gap-3 items-center z-10">
+                    <div class="p-2.5 md:p-3 border-b border-slate-100 bg-white/80 backdrop-blur-md flex gap-2 md:gap-3 items-center z-10 shrink-0">
                         <div class="relative flex-1 flex items-center">
                             <span class="absolute left-3 md:left-3.5 opacity-40 text-sm">🔍</span>
                             <input type="text" id="search-barang" placeholder="Cari nama produk..." 
@@ -128,7 +126,7 @@
                         <button id="btn-download" onclick="startAutoSync()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3 md:px-5 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm whitespace-nowrap">Sync</button>
                     </div>
 
-                    <div class="overflow-y-auto overflow-x-auto flex-1 bg-white relative">
+                    <div class="overflow-y-auto overflow-x-auto flex-1 bg-white relative pb-24 md:pb-0">
                         <table class="w-full text-left min-w-full">
                             <thead class="sticky top-0 bg-blue-50/95 backdrop-blur-md border-b border-blue-100 text-blue-800 text-[10px] uppercase font-black tracking-widest z-10">
                                 <tr>
@@ -144,14 +142,14 @@
             </div>
 
             <aside id="cart-section" class="w-full md:w-1/3 bg-slate-50 md:bg-slate-50/50 rounded-none md:rounded-2xl shadow-2xl md:shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] flex flex-col overflow-hidden border border-slate-200/70 pb-safe md:pb-0">
-                <div class="p-4 bg-white border-b border-slate-200 flex justify-between items-center z-10">
+                <div class="p-4 bg-white border-b border-slate-200 flex justify-between items-center z-10 shrink-0">
                     <h2 class="font-bold text-slate-800 flex items-center gap-2 text-sm">🛒 <span class="tracking-wide">Keranjang Belanja</span></h2>
                     <button onclick="window.clearCart()" class="text-[10px] text-rose-500 font-black px-3 py-1.5 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-lg transition-all tracking-wider">RESET</button>
                 </div>
                 
                 <div id="cart-items" class="flex-1 overflow-y-auto p-3 md:p-4 space-y-2.5 md:space-y-3 relative"></div>
 
-                <div class="p-4 md:p-5 bg-white border-t border-slate-200 space-y-3 md:space-y-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10">
+                <div class="p-4 md:p-5 bg-white border-t border-slate-200 space-y-3 md:space-y-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10 shrink-0">
                     <div class="flex justify-between items-end bg-slate-50 p-3.5 md:p-4 rounded-2xl border border-slate-100">
                         <div>
                             <p class="text-slate-500 font-black uppercase text-[9px] mb-1 tracking-widest">Total Bayar</p>
@@ -169,7 +167,7 @@
 
         <section id="menu-stok" class="page-content flex-col p-2.5 md:p-4">
             <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 flex-1 flex flex-col overflow-hidden">
-                <div class="p-3 md:p-5 border-b border-slate-100 space-y-3 md:space-y-4 bg-slate-50/50">
+                <div class="p-3 md:p-5 border-b border-slate-100 space-y-3 md:space-y-4 bg-slate-50/50 shrink-0">
                     <div class="flex justify-between items-center">
                         <div class="flex flex-col">
                             <h2 class="font-black text-[10px] md:text-xs uppercase text-slate-500 tracking-widest">Manajemen Inventori</h2>
@@ -186,7 +184,7 @@
                         <button id="clear-search-stok" onclick="document.getElementById('search-stok').value=''; document.getElementById('search-stok').dispatchEvent(new Event('input'));" class="absolute right-3 text-slate-400 hover:text-rose-500 hidden w-6 h-6 flex items-center justify-center rounded-full bg-slate-100 hover:bg-rose-100 transition-colors text-lg font-light leading-none">&times;</button>
                     </div>
                 </div>
-                <div class="overflow-auto flex-1 relative">
+                <div class="overflow-auto flex-1 relative pb-10 md:pb-0">
                     <table class="w-full text-sm text-left min-w-full">
                         <thead class="sticky top-0 bg-blue-50/95 backdrop-blur-md text-[9px] md:text-[10px] font-black text-blue-800 uppercase tracking-widest border-b border-blue-100 z-10">
                             <tr>
@@ -203,7 +201,7 @@
         </section>
 
         <section id="menu-laporan" class="page-content flex-col p-3 md:p-4 overflow-y-auto">
-            <div class="flex flex-col gap-2.5 md:gap-3 mb-4 md:mb-5 z-10">
+            <div class="flex flex-col gap-2.5 md:gap-3 mb-4 md:mb-5 z-10 shrink-0">
                 <div class="flex items-center justify-between">
                     <h2 class="font-black text-[10px] md:text-xs uppercase text-slate-500 tracking-widest">Filter Rekapan</h2>
                 </div>
@@ -218,7 +216,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-5">
+            <div class="grid grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-5 shrink-0">
                 <div class="bg-gradient-to-br from-white to-slate-50 p-4 md:p-5 rounded-2xl border border-slate-200/70 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.05)] relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-3 md:p-4 opacity-10 text-3xl md:text-4xl">💰</div>
                     <p class="text-[9px] md:text-[10px] text-slate-500 uppercase font-black mb-1.5 tracking-widest relative z-10">Total Omzet</p>
@@ -231,8 +229,8 @@
                 </div>
             </div>
             
-            <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 overflow-hidden flex-1 flex flex-col">
-                <div class="p-3 md:p-4 bg-slate-800 text-white flex justify-between items-center">
+            <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 overflow-hidden flex-1 flex flex-col min-h-[300px]">
+                <div class="p-3 md:p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
                     <span id="tabel-judul-rekap" class="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-200">History Transaksi</span>
                     
                     <div class="flex items-center gap-2">
@@ -244,7 +242,7 @@
                 </div>
                 <div class="overflow-x-auto flex-1">
                     <table class="w-full text-xs text-left min-w-full">
-                        <thead class="bg-slate-50 text-[8px] md:text-[9px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-100">
+                        <thead class="bg-slate-50 text-[8px] md:text-[9px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-100 sticky top-0 z-10">
                             <tr>
                                 <th class="p-3 pl-4 whitespace-nowrap">Waktu</th>
                                 <th class="p-3 text-right whitespace-nowrap">Nilai Transaksi</th>
@@ -862,7 +860,6 @@
                 btnHapusTrx.onclick = () => window.hapusTransaksi(trxId);
                 btnHapusTrx.classList.remove('hidden');
 
-                // BINDING FUNGSI PRINT STRUK
                 const btnPrintTrx = document.getElementById('btn-print-trx');
                 btnPrintTrx.onclick = () => window.printStruk(trxId);
 
@@ -873,11 +870,7 @@
             }
         };
 
-        // --- FUNGSI CETAK STRUK TRANSAKSI (THERMAL 58mm) ---
         window.printStruk = (trxId) => {
-            // Uncomment baris di bawah kalau cetak struk mau dibikin eksklusif PRO
-            // if (!window.isPro) return window.showUpgradeModal("Fitur cetak struk Bluetooth hanya tersedia untuk langganan PRO.");
-
             const resInfo = window.db.exec("SELECT tanggal, total, metode_bayar FROM transaksi WHERE id = ?", [trxId]);
             if (resInfo.length === 0) return;
             
@@ -926,11 +919,7 @@
             window.print();
         };
 
-        // --- FUNGSI CETAK REKAPAN LAPORAN (THERMAL 58mm) ---
         window.printRekap = () => {
-            // Uncomment baris di bawah kalau mau dikunci
-            // if (!window.isPro) return window.showUpgradeModal("Fitur cetak rekapan hanya tersedia untuk langganan PRO.");
-
             let startMs = 0;
             let endMs = Date.now() + 86400000; 
             const now = new Date();
