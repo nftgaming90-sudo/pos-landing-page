@@ -100,7 +100,10 @@
 
     <nav class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 flex shadow-md shrink-0 no-print relative z-40 items-end px-1 md:px-3">
         <div class="flex flex-1 overflow-x-auto hide-scrollbar gap-1 md:gap-2">
-            <button onclick="window.switchPage('kasir', this)" class="nav-btn py-3 px-3 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-white border-b-[3px] border-white nav-active flex items-center justify-center gap-1.5 flex-1 md:flex-none">
+            <button onclick="window.switchPage('home', this)" id="nav-home" class="nav-btn py-3 px-3 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-white border-b-[3px] border-white nav-active flex items-center justify-center gap-1.5 flex-1 md:flex-none">
+                🏠 Home
+            </button>
+            <button onclick="window.switchPage('kasir', this)" id="nav-kasir" class="nav-btn py-3 px-3 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex items-center justify-center gap-1.5 flex-1 md:flex-none">
                 🏪 Kasir
             </button>
             <button onclick="window.switchPage('stok', this)" class="nav-btn py-3 px-3 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex items-center justify-center gap-1.5 flex-1 md:flex-none">
@@ -112,12 +115,69 @@
         </div>
     </nav>
 
-    <main class="flex-1 relative overflow-hidden no-print">
+    <main class="flex-1 relative overflow-hidden no-print bg-slate-100/50">
         
-        <section id="menu-kasir" class="page-content page-active flex-col md:flex-row p-2 md:p-4 gap-3 md:gap-4">
+        <section id="menu-home" class="page-content page-active flex-col p-4 md:p-6 overflow-y-auto">
+            <div class="flex flex-col gap-4 max-w-4xl mx-auto w-full">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/70 p-5 md:p-6 flex flex-col items-center justify-center text-center">
+                    <h2 class="text-xl md:text-2xl font-black text-slate-800 mb-2 tracking-tight">Selamat Datang di PosKita!</h2>
+                    <p class="text-sm text-slate-500 mb-6">Kelola toko, inventori, dan laporan kasir Anda dengan mudah dan cepat.</p>
+                    
+                    <div id="card-status-kasir" class="w-full max-w-md bg-slate-50 rounded-xl border border-slate-200 p-4 flex flex-col gap-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Status Shift Kasir</span>
+                            <span id="badge-status-kasir" class="bg-rose-100 text-rose-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-rose-200">TUTUP</span>
+                        </div>
+                        <div class="border-t border-slate-200 border-dashed my-1"></div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">Modal Kasir:</span>
+                            <span id="home-modal-kasir" class="font-black text-slate-800">-</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">Waktu Buka:</span>
+                            <span id="home-waktu-buka" class="font-black text-slate-800">-</span>
+                        </div>
+                        <div class="flex gap-2 mt-2">
+                            <button onclick="document.getElementById('nav-kasir').click()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[10px] md:text-xs transition-colors uppercase tracking-widest shadow-sm">
+                                MASUK KASIR
+                            </button>
+                            <button onclick="window.bukaRiwayatShift()" class="flex-1 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-black text-[10px] md:text-xs transition-colors uppercase tracking-widest shadow-sm">
+                                RIWAYAT SHIFT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-2xl shadow-sm border border-blue-950 p-5 text-white relative overflow-hidden">
+                        <div class="absolute right-[-10px] top-[-10px] text-8xl opacity-10">💡</div>
+                        <h3 class="font-black text-sm uppercase tracking-widest mb-2 text-blue-200">Tips Hari Ini</h3>
+                        <p class="text-xs leading-relaxed text-blue-50 relative z-10">Pastikan untuk selalu melakukan SINKRON data (tombol kuning) sebelum logout agar data transaksi aman di Cloud Supabase.</p>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/70 p-5 flex flex-col justify-center">
+                        <h3 class="font-black text-sm uppercase tracking-widest mb-2 text-slate-500">Info Layanan SaaS</h3>
+                        <p class="text-xs text-slate-600">Pastikan Token Fonnte dan Nomor WA Owner sudah diatur melalui Admin Panel agar laporan tutup kasir otomatis terkirim.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="menu-kasir" class="page-content flex-col md:flex-row p-2 md:p-4 gap-3 md:gap-4">
             <div class="w-full md:w-2/3 flex-1 flex flex-col gap-3 overflow-hidden">
                 <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 flex flex-col flex-1 overflow-hidden">
-                    <div class="p-2.5 md:p-3 border-b border-slate-100 bg-white/80 backdrop-blur-md flex gap-2 md:gap-3 items-center z-10 shrink-0">
+                    
+                    <div class="bg-emerald-50 border-b border-emerald-100 px-3 py-2 flex justify-between items-center shrink-0">
+                        <div class="flex items-center gap-2">
+                            <span class="relative flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                            </span>
+                            <span class="text-[9px] md:text-[10px] font-black text-emerald-700 uppercase tracking-widest">KASIR AKTIF</span>
+                        </div>
+                        <button id="btn-header-tutup-kasir" onclick="window.konfirmasiTutupKasir()" class="bg-rose-100 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-200 px-3 py-1.5 rounded-lg text-[9px] font-black tracking-widest uppercase transition-colors disabled:opacity-50">Tutup Kasir</button>
+                    </div>
+
+                    <div class="p-2.5 md:p-3 border-b border-slate-100 bg-white flex gap-2 md:gap-3 items-center z-10 shrink-0">
                         <div class="relative flex-1 flex items-center">
                             <span class="absolute left-3 md:left-3.5 opacity-40 text-sm">🔍</span>
                             <input type="text" id="search-barang" placeholder="Cari nama produk..." 
@@ -258,9 +318,55 @@
     </main>
 
     <button id="floating-cart-btn" onclick="window.toggleCart()" 
-        class="md:hidden fixed bottom-6 right-4 z-40 bg-gradient-to-br from-blue-600 to-blue-800 text-white w-14 h-14 rounded-2xl shadow-[0_10px_25px_-5px_rgba(29,78,216,0.5)] flex items-center justify-center text-2xl border-[3px] border-white transition-transform active:scale-90">
+        class="md:hidden fixed bottom-6 right-4 z-40 hidden bg-gradient-to-br from-blue-600 to-blue-800 text-white w-14 h-14 rounded-2xl shadow-[0_10px_25px_-5px_rgba(29,78,216,0.5)] flex items-center justify-center text-2xl border-[3px] border-white transition-transform active:scale-90">
         🛒 <span id="mobile-cart-count" class="absolute -top-2.5 -right-2.5 bg-rose-500 text-white text-[11px] w-7 h-7 flex items-center justify-center rounded-full font-black border-2 border-white shadow-sm">0</span>
     </button>
+
+    <div id="modal-buka-kasir" class="fixed inset-0 z-[150] flex items-center justify-center hidden bg-slate-900/80 backdrop-blur-sm p-4 transition-opacity no-print">
+        <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-sm overflow-hidden transform transition-transform">
+            <div class="p-5 bg-gradient-to-br from-blue-600 to-blue-800 text-white text-center">
+                <div class="text-4xl mb-2">🏪</div>
+                <h3 class="font-black text-lg tracking-widest uppercase mb-1">Mulai Shift Kasir</h3>
+                <p class="text-xs text-blue-100 font-medium">Masukkan uang modal awal / uang receh kembalian di laci kasir.</p>
+            </div>
+            <div class="p-6 space-y-5">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Modal Awal / Kembalian (Rp)</label>
+                    <input type="text" inputmode="numeric" id="input-modal-kasir" value="10000" oninput="this.value = window.formatAngka(this.value)" onfocus="this.select()"
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-black text-xl text-blue-800 text-center outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all">
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="document.getElementById('modal-buka-kasir').classList.add('hidden')" class="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-black text-xs transition-colors uppercase tracking-widest">BATAL</button>
+                    <button onclick="window.submitBukaKasir()" class="flex-1 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs shadow-[0_8px_20px_-6px_rgba(29,78,216,0.4)] transition-all transform active:scale-95 uppercase tracking-widest">BUKA SEKARANG</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-riwayat-shift" class="fixed inset-0 z-[150] flex items-center justify-center hidden bg-slate-900/80 backdrop-blur-sm p-4 transition-opacity no-print">
+        <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-md overflow-hidden transform transition-transform flex flex-col max-h-[80vh]">
+            <div class="p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
+                <h3 class="font-black text-[10px] md:text-xs tracking-[0.1em] uppercase text-slate-100">Riwayat Shift Kasir</h3>
+                <button onclick="document.getElementById('modal-riwayat-shift').classList.add('hidden')" class="text-2xl font-light hover:text-rose-300 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">&times;</button>
+            </div>
+            <div class="overflow-y-auto flex-1 bg-white">
+                <table class="w-full text-left min-w-full">
+                    <thead class="bg-slate-50 text-[9px] uppercase font-black text-slate-400 tracking-widest sticky top-0 z-10 border-b border-slate-100">
+                        <tr>
+                            <th class="p-3 pl-4 whitespace-nowrap">Waktu Shift</th>
+                            <th class="p-3 text-right whitespace-nowrap">Modal</th>
+                            <th class="p-3 pr-4 text-right whitespace-nowrap">Omzet</th>
+                        </tr>
+                    </thead>
+                    <tbody id="riwayat-shift-body" class="divide-y divide-slate-50">
+                        </tbody>
+                </table>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-200 shrink-0">
+                <button onclick="document.getElementById('modal-riwayat-shift').classList.add('hidden')" class="w-full py-3 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 rounded-xl font-black text-xs transition-colors uppercase tracking-widest shadow-sm">TUTUP PENCARIAN</button>
+            </div>
+        </div>
+    </div>
 
     <div id="modal-upgrade" class="fixed inset-0 z-[120] flex items-center justify-center hidden bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity no-print">
         <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-sm overflow-hidden transform transition-transform border border-amber-200">
@@ -381,12 +487,20 @@
         window.db = null; 
         window.masterData = []; 
         window.currentUid = null;
+        window.userEmail = "";
+        
+        // VARIABEL DINAMIS SAAS
+        window.fonnteToken = "";
+        window.waOwner = "";
         
         window.isPro = false;
         const FREE_ITEM_LIMIT = 20; 
 
+        window.kasirAktif = false;
+        window.shiftAktifId = null; 
+
         window.cart = [];
-        window.offlineQueue = { barang: [], transaksi: [], hapus_barang: [], hapus_transaksi: [] };
+        window.offlineQueue = { barang: [], transaksi: [], hapus_barang: [], hapus_transaksi: [], shift: [] };
         
         window.currentReportFilter = 'hari_ini';
         window.currentCustomDate = '';
@@ -420,7 +534,7 @@
             try {
                 if (navigator.onLine) {
                     const { data, error } = await supabase.from('users').select('is_pro, expired_at').eq('id', uid).single();
-                    if (data) {
+                    if (data && !error) {
                         const now = new Date();
                         const expired = new Date(data.expired_at);
                         window.isPro = data.is_pro && (now < expired);
@@ -448,7 +562,43 @@
             }
         };
 
+        window.loadShiftState = () => {
+            if(!window.currentUid) return;
+            const shiftData = JSON.parse(localStorage.getItem(`poskita_shift_${window.currentUid}`));
+            
+            const badge = document.getElementById('badge-status-kasir');
+            const infoModal = document.getElementById('home-modal-kasir');
+            const infoBuka = document.getElementById('home-waktu-buka');
+
+            if (shiftData && shiftData.aktif) {
+                window.kasirAktif = true;
+                window.shiftAktifId = shiftData.id;
+                
+                badge.innerText = "BUKA";
+                badge.className = "bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-200";
+                
+                infoModal.innerText = "Rp " + shiftData.modal.toLocaleString('id-ID');
+                const d = new Date(shiftData.id);
+                infoBuka.innerText = d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+            } else {
+                window.kasirAktif = false;
+                window.shiftAktifId = null;
+                
+                badge.innerText = "TUTUP";
+                badge.className = "bg-rose-100 text-rose-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-rose-200";
+                
+                infoModal.innerText = "-";
+                infoBuka.innerText = "-";
+            }
+        };
+
         window.switchPage = (pageId, btn) => {
+            if (pageId === 'kasir' && !window.kasirAktif) {
+                document.getElementById('input-modal-kasir').value = "10.000"; 
+                document.getElementById('modal-buka-kasir').classList.remove('hidden');
+                return; 
+            }
+
             document.querySelectorAll('.page-content').forEach(p => p.classList.remove('page-active'));
             document.getElementById('menu-' + pageId).classList.add('page-active');
             
@@ -456,8 +606,12 @@
                 b.classList.remove('nav-active', 'text-white', 'border-white');
                 b.classList.add('text-blue-300', 'border-transparent');
             });
-            btn.classList.remove('text-blue-300', 'border-transparent');
-            btn.classList.add('nav-active', 'text-white', 'border-white');
+            
+            if(!btn) btn = document.getElementById('nav-' + pageId);
+            if(btn) {
+                btn.classList.remove('text-blue-300', 'border-transparent');
+                btn.classList.add('nav-active', 'text-white', 'border-white');
+            }
             
             const floatBtn = document.getElementById('floating-cart-btn');
             if(pageId !== 'kasir') floatBtn.classList.add('hidden');
@@ -467,8 +621,193 @@
             if(pageId === 'laporan') updateReports();
         };
 
+        window.bukaRiwayatShift = () => {
+            if(!window.db) return;
+            const res = window.db.exec("SELECT waktu_buka, waktu_tutup, modal_awal, omzet, laba FROM shift_kasir ORDER BY waktu_buka DESC");
+            const tbody = document.getElementById('riwayat-shift-body');
+            
+            if(res.length > 0) {
+                tbody.innerHTML = res[0].values.map(row => {
+                    const bukaStr = new Date(row[0]).toLocaleString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+                    const tutupStr = row[1] > 0 ? new Date(row[1]).toLocaleString('id-ID', {hour:'2-digit', minute:'2-digit'}) : '<span class="text-rose-500 font-bold animate-pulse">Sedang Aktif</span>';
+                    
+                    return `
+                    <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                        <td class="p-3 pl-4">
+                            <p class="font-bold text-[10px] md:text-xs text-slate-700">${bukaStr}</p>
+                            <p class="text-[9px] text-slate-400 font-medium">s/d ${tutupStr}</p>
+                        </td>
+                        <td class="p-3 text-right font-black text-slate-600 text-[10px] md:text-xs whitespace-nowrap">Rp ${row[2].toLocaleString('id-ID')}</td>
+                        <td class="p-3 pr-4 text-right font-black text-blue-600 text-[10px] md:text-xs whitespace-nowrap">Rp ${row[3].toLocaleString('id-ID')}</td>
+                    </tr>`;
+                }).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-slate-400 text-[10px] md:text-xs italic font-medium"><div class="text-2xl md:text-3xl mb-2 grayscale opacity-40">🏪</div>Belum ada riwayat kasir.</td></tr>`;
+            }
+            
+            document.getElementById('modal-riwayat-shift').classList.remove('hidden');
+        };
+
+        window.submitBukaKasir = async () => {
+            const valModal = document.getElementById('input-modal-kasir').value.replace(/\./g, '');
+            const numModal = parseInt(valModal) || 0;
+            const ts = Date.now();
+
+            window.db.run("INSERT INTO shift_kasir (id, waktu_buka, waktu_tutup, modal_awal, omzet, laba) VALUES (?,?,?,?,?,?)", [ts.toString(), ts, 0, numModal, 0, 0]);
+            
+            const shiftPayload = { 
+                id: ts.toString(), 
+                user_id: window.currentUid, 
+                waktu_buka: ts, 
+                waktu_tutup: 0, 
+                modal_awal: numModal, 
+                omzet: 0, 
+                laba: 0 
+            };
+
+            if (navigator.onLine) {
+                try {
+                    const { error } = await supabase.from('shift_kasir').upsert(shiftPayload);
+                    if (error) throw error; 
+                } catch(e) {
+                    window.offlineQueue.shift = window.offlineQueue.shift || [];
+                    window.offlineQueue.shift.push(shiftPayload);
+                    window.saveQueue();
+                }
+            } else {
+                window.offlineQueue.shift = window.offlineQueue.shift || [];
+                window.offlineQueue.shift.push(shiftPayload);
+                window.saveQueue();
+            }
+
+            localStorage.setItem(`poskita_shift_${window.currentUid}`, JSON.stringify({
+                aktif: true,
+                id: ts,
+                modal: numModal
+            }));
+
+            document.getElementById('modal-buka-kasir').classList.add('hidden');
+            window.loadShiftState();
+            window.switchPage('kasir'); 
+        };
+
+        window.konfirmasiTutupKasir = async () => {
+            if(!confirm("Anda yakin ingin TUTUP KASIR?\n\nSemua transaksi shift ini akan direkap dan dikirimkan ke owner via WA.")) return;
+            
+            const btnTutup = document.getElementById('btn-header-tutup-kasir');
+            
+            try {
+                if(btnTutup) {
+                    btnTutup.innerText = "MENGIRIM...";
+                    btnTutup.disabled = true;
+                }
+
+                const shiftId = window.shiftAktifId;
+                const waktuBuka = shiftId;
+                const waktuTutup = Date.now();
+                
+                const shiftData = JSON.parse(localStorage.getItem(`poskita_shift_${window.currentUid}`));
+                const modalAwal = shiftData ? shiftData.modal : 0;
+
+                const qTrx = `SELECT id, total, laba FROM transaksi WHERE CAST(tanggal AS UNSIGNED) >= ${waktuBuka} AND CAST(tanggal AS UNSIGNED) <= ${waktuTutup}`;
+                const resTrx = window.db.exec(qTrx);
+                
+                let totalOmzet = 0, totalLaba = 0, trxIds = [];
+                if(resTrx.length > 0) {
+                    resTrx[0].values.forEach(row => {
+                        trxIds.push(row[0]);
+                        totalOmzet += row[1];
+                        totalLaba += row[2];
+                    });
+                }
+
+                window.db.run("UPDATE shift_kasir SET waktu_tutup=?, omzet=?, laba=? WHERE id=?", [waktuTutup, totalOmzet, totalLaba, shiftId.toString()]);
+
+                const shiftPayload = { 
+                    id: shiftId.toString(), 
+                    user_id: window.currentUid, 
+                    waktu_buka: waktuBuka, 
+                    waktu_tutup: waktuTutup, 
+                    modal_awal: modalAwal, 
+                    omzet: totalOmzet, 
+                    laba: totalLaba 
+                };
+
+                if (navigator.onLine) {
+                    try {
+                        const { error } = await supabase.from('shift_kasir').upsert(shiftPayload);
+                        if (error) throw error;
+                    } catch(e) {
+                        window.offlineQueue.shift = window.offlineQueue.shift || [];
+                        window.offlineQueue.shift.push(shiftPayload);
+                        window.saveQueue();
+                    }
+                } else {
+                    window.offlineQueue.shift = window.offlineQueue.shift || [];
+                    window.offlineQueue.shift.push(shiftPayload);
+                    window.saveQueue();
+                }
+
+                const strBuka = new Date(waktuBuka).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' });
+                const strTutup = new Date(waktuTutup).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' });
+                
+                let pesanWA = `*LAPORAN TUTUP KASIR* 🏪\n`;
+                pesanWA += `Kasir: ${window.userEmail}\n`;
+                pesanWA += `Buka: ${strBuka}\n`;
+                pesanWA += `Tutup: ${strTutup}\n`;
+                pesanWA += `Modal Awal: Rp ${modalAwal.toLocaleString('id-ID')}\n\n`;
+
+                if(trxIds.length > 0) {
+                    pesanWA += `*Rincian Terjual:*\n`;
+                    const qDet = `SELECT b.nama, SUM(td.qty) as total_qty, td.harga FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id WHERE td.transaksi_id IN (${trxIds.join(',')}) GROUP BY td.barang_id, td.harga`;
+                    const resDet = window.db.exec(qDet);
+                    
+                    if(resDet.length > 0) {
+                        resDet[0].values.forEach(r => {
+                            const nama = r[0] || "Produk dihapus";
+                            const qty = r[1];
+                            const harga = r[2];
+                            pesanWA += `- ${nama} (${qty}x) @ Rp ${harga.toLocaleString('id-ID')} = Rp ${(qty*harga).toLocaleString('id-ID')}\n`;
+                        });
+                    }
+                } else {
+                    pesanWA += `*Tidak ada transaksi pada shift ini.*\n`;
+                }
+
+                pesanWA += `\n*Total Omzet:* Rp ${totalOmzet.toLocaleString('id-ID')}\n`;
+                pesanWA += `*Laba Bersih:* Rp ${totalLaba.toLocaleString('id-ID')}\n`;
+
+                // LOGIKA PENGIRIMAN WA DINAMIS SAAS
+                if(window.fonnteToken && window.waOwner) {
+                    await fetch("https://api.fonnte.com/send", {
+                        method: "POST",
+                        headers: { "Authorization": window.fonnteToken },
+                        body: new URLSearchParams({ target: window.waOwner, message: pesanWA })
+                    });
+                } else {
+                    console.log("SIMULASI WA TERKIRIM (Pengaturan WA belum diisi):\n\n" + pesanWA);
+                    alert("⚠️ Laporan Kasir ditutup.\n(Pesan WA tidak terkirim karena Token Fonnte / Nomor WA Owner belum diatur oleh admin).");
+                }
+
+                localStorage.setItem(`poskita_shift_${window.currentUid}`, JSON.stringify({ aktif: false }));
+                window.loadShiftState();
+                window.switchPage('home');
+                if(window.fonnteToken && window.waOwner) alert("Kasir berhasil ditutup dan laporan telah dikirim!");
+
+            } catch(e) {
+                console.error("Gagal kirim proses tutup kasir:", e);
+                alert("Proses terkendala jaringan, mohon periksa internet Anda dan coba tekan tombol tutup kembali.");
+            } finally {
+                if(btnTutup) {
+                    btnTutup.innerText = "Tutup Kasir";
+                    btnTutup.disabled = false;
+                }
+            }
+        };
+
         window.updateSyncUI = () => {
-            const count = window.offlineQueue.barang.length + window.offlineQueue.transaksi.length + window.offlineQueue.hapus_barang.length + window.offlineQueue.hapus_transaksi.length;
+            const shiftCount = (window.offlineQueue.shift || []).length;
+            const count = window.offlineQueue.barang.length + window.offlineQueue.transaksi.length + window.offlineQueue.hapus_barang.length + window.offlineQueue.hapus_transaksi.length + shiftCount;
             const btn = document.getElementById('btn-download');
             if (count > 0) {
                 btn.innerText = `SYNC (${count} PENDING)`;
@@ -489,15 +828,18 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) { 
                 window.currentUid = user.uid; 
+                window.userEmail = user.email;
                 document.getElementById('user-email').innerText = user.email; 
                 
                 await window.checkProStatus(user.uid);
+                window.loadShiftState();
 
                 window.cart = JSON.parse(localStorage.getItem(`poskita_cart_${user.uid}`)) || [];
                 
                 let q = JSON.parse(localStorage.getItem(`poskita_offline_queue_${user.uid}`)) || { barang: [], transaksi: [] };
                 if(!q.hapus_barang) q.hapus_barang = [];
                 if(!q.hapus_transaksi) q.hapus_transaksi = [];
+                if(!q.shift) q.shift = []; 
                 window.offlineQueue = q;
                 
                 await window.startAutoSync(); 
@@ -509,7 +851,8 @@
 
         window.addEventListener('online', () => {
             if(window.currentUid) window.checkProStatus(window.currentUid);
-            if (window.offlineQueue.barang.length > 0 || window.offlineQueue.transaksi.length > 0 || window.offlineQueue.hapus_barang.length > 0 || window.offlineQueue.hapus_transaksi.length > 0) {
+            const shiftCount = (window.offlineQueue.shift || []).length;
+            if (window.offlineQueue.barang.length > 0 || window.offlineQueue.transaksi.length > 0 || window.offlineQueue.hapus_barang.length > 0 || window.offlineQueue.hapus_transaksi.length > 0 || shiftCount > 0) {
                 window.processOfflineQueue();
             }
         });
@@ -544,6 +887,11 @@
                     if (!error) window.offlineQueue.barang = []; 
                 }
 
+                if (window.offlineQueue.shift && window.offlineQueue.shift.length > 0) {
+                    const { error } = await supabase.from('shift_kasir').upsert(window.offlineQueue.shift);
+                    if (!error) window.offlineQueue.shift = [];
+                }
+
                 let pendingTrx = [];
                 for (let payload of window.offlineQueue.transaksi) {
                     try {
@@ -564,6 +912,36 @@
             const btn = document.getElementById('btn-download');
             btn.innerText = "LOADING...";
             
+            // LOGIKA FETCH PENGATURAN SAAS DARI SUPABASE
+            if (navigator.onLine && window.currentUid) {
+                try {
+                    const { data: settingData, error: errSetting } = await supabase.from('pengaturan').select('*').eq('user_id', window.currentUid).single();
+                    if (settingData) {
+                        window.fonnteToken = settingData.fonnte_token || "";
+                        window.waOwner = settingData.wa_owner || "";
+                        localStorage.setItem(`poskita_setting_${window.currentUid}`, JSON.stringify({ fonnteToken: window.fonnteToken, waOwner: window.waOwner }));
+                    } else if (errSetting && errSetting.code === 'PGRST116') {
+                        // JIKA BELUM ADA ROW (User Baru), KITA AUTO INSERT (BUAT WADAH KOSONG)
+                        const defaultToko = "Toko " + (window.userEmail ? window.userEmail.split('@')[0] : "Baru");
+                        await supabase.from('pengaturan').insert({
+                            user_id: window.currentUid,
+                            fonnte_token: "",
+                            wa_owner: "",
+                            nama_toko: defaultToko
+                        });
+                        console.log("Auto-create row pengaturan untuk user baru:", window.currentUid);
+                    }
+                } catch (e) {
+                    console.log("Pengaturan gagal dimuat atau gagal dibuat.", e);
+                }
+            } else if (window.currentUid) {
+                const localSet = JSON.parse(localStorage.getItem(`poskita_setting_${window.currentUid}`));
+                if(localSet) {
+                    window.fonnteToken = localSet.fonnteToken || "";
+                    window.waOwner = localSet.waOwner || "";
+                }
+            }
+            
             if(navigator.onLine) await window.processOfflineQueue();
 
             try {
@@ -573,6 +951,7 @@
                     CREATE TABLE IF NOT EXISTS barang (id TEXT PRIMARY KEY, nama TEXT, stok INTEGER, harga_jual NUMERIC, modal NUMERIC);
                     CREATE TABLE IF NOT EXISTS transaksi (id BIGINT PRIMARY KEY, tanggal TEXT, total NUMERIC, laba NUMERIC, metode_bayar TEXT);
                     CREATE TABLE IF NOT EXISTS transaksi_detail (id BIGINT PRIMARY KEY, transaksi_id BIGINT, barang_id TEXT, qty INTEGER, harga NUMERIC, modal NUMERIC);
+                    CREATE TABLE IF NOT EXISTS shift_kasir (id TEXT PRIMARY KEY, waktu_buka BIGINT, waktu_tutup BIGINT, modal_awal NUMERIC, omzet NUMERIC, laba NUMERIC);
                 `);
 
                 if (navigator.onLine) {
@@ -593,6 +972,12 @@
                             }
                         }
                     }
+
+                    const { data: shiftData } = await supabase.from('shift_kasir').select('*').eq('user_id', window.currentUid).order('waktu_buka', { ascending: false }).limit(50);
+                    if (shiftData) {
+                        shiftData.forEach(s => window.db.run("INSERT OR REPLACE INTO shift_kasir (id, waktu_buka, waktu_tutup, modal_awal, omzet, laba) VALUES (?,?,?,?,?,?)", [s.id, s.waktu_buka, s.waktu_tutup, s.modal_awal, s.omzet, s.laba]));
+                    }
+
                 } else {
                     const cachedBarang = JSON.parse(localStorage.getItem(`poskita_master_cache_${window.currentUid}`)) || [];
                     cachedBarang.forEach(c => window.db.run("INSERT INTO barang (nama, stok, harga_jual, modal, id) VALUES (?,?,?,?,?)", [c[0], c[1], c[2], c[3], c[4]]));
@@ -991,6 +1376,7 @@
             window.print();
         };
 
+
         window.hapusTransaksi = async (trxId) => {
             if(!confirm("HAPUS TRANSAKSI INI?\n\nStok barang akan otomatis dikembalikan ke gudang, dan rekapan omzet akan dikurangi. Tindakan ini tidak bisa dibatalkan.")) return;
 
@@ -1218,6 +1604,12 @@
         };
 
         document.getElementById('btn-proses-bayar').onclick = async () => {
+            if (!window.kasirAktif) {
+                alert("Harap BUKA KASIR terlebih dahulu sebelum melakukan transaksi.");
+                window.switchPage('kasir');
+                return;
+            }
+
             if(!confirm("Proses transaksi ini?")) return;
             
             const ts = Date.now();
@@ -1255,9 +1647,15 @@
         };
 
         document.getElementById('btn-logout').onclick = () => {
-            const pendingCount = window.offlineQueue.barang.length + window.offlineQueue.transaksi.length + window.offlineQueue.hapus_barang.length + window.offlineQueue.hapus_transaksi.length;
+            const shiftCount = (window.offlineQueue.shift || []).length;
+            const pendingCount = window.offlineQueue.barang.length + window.offlineQueue.transaksi.length + window.offlineQueue.hapus_barang.length + window.offlineQueue.hapus_transaksi.length + shiftCount;
+            
             if (pendingCount > 0) {
-                alert("⚠️ TIDAK BISA LOGOUT!\n\nMasih ada data struk/barang yang belum tersinkron ke Cloud (Tombol Sync masih Kuning). Harap tunggu internet stabil dan data terkirim dulu agar laporan tidak hilang.");
+                alert("⚠️ TIDAK BISA LOGOUT!\n\nMasih ada data struk/barang/shift yang belum tersinkron ke Cloud (Tombol Sync masih Kuning). Harap tunggu internet stabil dan data terkirim dulu agar laporan tidak hilang.");
+                return;
+            }
+            if (window.kasirAktif) {
+                alert("⚠️ KASIR MASIH BUKA!\n\nHarap 'Tutup Kasir' terlebih dahulu di menu Kasir agar laporan rekap bisa terkirim ke owner.");
                 return;
             }
 
