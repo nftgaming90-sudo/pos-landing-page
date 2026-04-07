@@ -1073,50 +1073,65 @@ window.renderPelangganSelect = () => {
         };
 
         window.switchPage = (pageId, btn) => {
-            if (pageId === 'kasir' && !window.kasirAktif) {
-                document.getElementById('input-modal-kasir').value = "10.000"; 
-                document.getElementById('modal-buka-kasir').classList.remove('hidden');
-                return; 
-            }
+    // 1. Cek status kasir
+    if (pageId === 'kasir' && !window.kasirAktif) {
+        document.getElementById('input-modal-kasir').value = "10.000"; 
+        document.getElementById('modal-buka-kasir').classList.remove('hidden');
+        return; 
+    }
 
-            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('page-active'));
-            document.getElementById('menu-' + pageId).classList.add('page-active');
-            
-            document.querySelectorAll('.nav-btn').forEach(b => {
-                b.classList.remove('nav-active', 'text-white', 'border-white');
-                b.classList.add('text-blue-300', 'border-transparent');
-            });
-            
-            if(!btn) btn = document.getElementById('nav-' + pageId);
-            if(btn) {
-                btn.classList.remove('text-blue-300', 'border-transparent');
-                btn.classList.add('nav-active', 'text-white', 'border-white');
-            }
-            
-            const floatBtn = document.getElementById('floating-cart-btn');
-            if(pageId !== 'kasir') floatBtn.classList.add('hidden');
-            else floatBtn.classList.remove('hidden');
+    // 2. Sembunyikan semua halaman, tampilkan yang dipilih
+    document.querySelectorAll('.page-content').forEach(p => p.classList.remove('page-active'));
+    document.getElementById('menu-' + pageId).classList.add('page-active');
+    
+    // 3. Reset warna semua tombol navigasi
+    document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.remove('nav-active', 'text-white', 'border-white');
+        b.classList.add('text-blue-300', 'border-transparent');
+    });
+    
+    // 4. Aktifkan warna tombol navigasi yang diklik
+    if(!btn) btn = document.getElementById('nav-' + pageId);
+    if(btn) {
+        btn.classList.remove('text-blue-300', 'border-transparent');
+        btn.classList.add('nav-active', 'text-white', 'border-white');
+    }
+    
+    // 5. LOGIKA SMART FOCUS (Mencegah keyboard HP muncul otomatis)
+    const isMobile = window.innerWidth < 768;
 
-            if(pageId === 'stok') window.renderStokTable(window.masterData);
-            if(pageId === 'laporan') {
-    window.setReportFilter(window.currentReportFilter); // Trigger badge & filter
-}
-            if(pageId === 'pelanggan') window.renderHutang();
+    if (!isMobile) { 
+        if (pageId === 'kasir') {
+            setTimeout(() => {
+                const searchBarang = document.getElementById('search-barang');
+                if(searchBarang) searchBarang.focus();
+            }, 300);
+        } else if (pageId === 'stok') {
+            setTimeout(() => {
+                const searchStok = document.getElementById('search-stok');
+                if(searchStok) searchStok.focus();
+            }, 300);
+        }
+    }
+    
+    // 6. LOGIKA FLOATING BAR KERANJANG
+    const floatBtn = document.getElementById('floating-cart-btn');
+    if (floatBtn) {
+        // Hanya tampilkan di menu kasir DAN jika ada isi keranjang
+        if (pageId === 'kasir' && window.cart && window.cart.length > 0) {
+            floatBtn.classList.remove('hidden');
+        } else {
+            floatBtn.classList.add('hidden');
+        }
+    }
 
-            // Auto-focus ke input pencarian
-            if (pageId === 'kasir') {
-                setTimeout(() => {
-                    const searchBarang = document.getElementById('search-barang');
-                    if(searchBarang) searchBarang.focus();
-                }, 300);
-            } else if (pageId === 'stok') {
-                setTimeout(() => {
-                    const searchStok = document.getElementById('search-stok');
-                    if(searchStok) searchStok.focus();
-                }, 300);
-            }
-        };
-
+    // 7. RENDER DATA SESUAI MENU YANG DIBUKA
+    if(pageId === 'stok') window.renderStokTable(window.masterData);
+    if(pageId === 'laporan') {
+        window.setReportFilter(window.currentReportFilter);
+    }
+    if(pageId === 'pelanggan') window.renderHutang();
+};
         window.bukaRiwayatShift = () => {
             if(!window.db) return;
             const res = window.db.exec("SELECT waktu_buka, waktu_tutup, modal_awal, omzet, laba FROM shift_kasir ORDER BY waktu_buka DESC");
