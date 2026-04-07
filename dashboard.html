@@ -9,78 +9,85 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&display=swap');
+    
+    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+    /* --- PRINT LOGIC --- */
+    @media screen { #section-struk { display: none !important; } }
+    @media print {
+        html, body { height: auto !important; overflow: visible !important; background-color: white !important; }
+        body > *:not(#section-struk) { display: none !important; }
+        #section-struk { 
+            display: block !important; position: absolute; left: 0; top: 0; width: 58mm; 
+            padding: 2mm; margin: 0; font-family: 'Courier New', Courier, monospace; 
+            font-size: 11px; color: #000;
+        }
+        @page { margin: 0; size: 58mm auto; }
+    }
+
+    /* --- FORM & UI ELEMENTS --- */
+    select#select-pelanggan {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1em;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    input[type="number"]::-webkit-inner-spin-button, 
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+
+    /* --- PAGE ANIMATION --- */
+    .page-content { display: none; height: 100%; overflow: hidden; animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .page-active { display: flex !important; }
+
+    .tr-item { transition: all 0.15s ease; }
+    .tr-item:hover { background-color: #f8fafc; }
+
+    /* --- MOBILE RESPONSIVE OPTIMIZATION --- */
+    @media (max-width: 768px) {
+        /* Menu Keranjang melayang penuh di HP */
+        #cart-section {
+            position: fixed; inset: 0; z-index: 60;
+            transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #cart-section.active { transform: translateX(0); }
+
+        /* Jarak bawah agar konten tidak tertutup navigasi bawah */
+        main { 
+            padding-bottom: 75px !important; 
+        }
+
+        /* Styling tombol navigasi bawah agar lebih "App-like" */
+        .nav-btn {
+            border-bottom: none !important; /* Hilangkan garis bawah di HP */
+            color: #94a3b8 !important; /* Warna abu-abu saat tidak aktif */
+        }
         
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-
-        @media screen {
-            #section-struk { display: none !important; }
+        .nav-active {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
         }
 
-        @media print {
-            html, body {
-                height: auto !important;
-                overflow: visible !important;
-                background-color: white !important;
-            }
-            body > *:not(#section-struk) {
-                display: none !important;
-            }
-            #section-struk { 
-                display: block !important;
-                position: absolute; 
-                left: 0; 
-                top: 0; 
-                width: 58mm; 
-                padding: 2mm; 
-                margin: 0;
-                font-family: 'Courier New', Courier, monospace; 
-                font-size: 11px; 
-                color: #000;
-            }
-            @page { 
-                margin: 0; 
-                size: 58mm auto; 
-            }
+        /* Floating Button Cart diatur agar tidak tabrakan dengan Nav */
+        #floating-cart-btn {
+            bottom: 85px !important; 
         }
+    }
 
-        /* Tambahkan di dalam <style> */
-        select#select-pelanggan {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.5rem center;
-            background-size: 1em;
-        }
-
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        input[type="number"]::-webkit-inner-spin-button, 
-        input[type="number"]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; margin: 0; 
-        }
-        input[type="number"] { -moz-appearance: textfield; }
-
-        .page-content { display: none; height: 100%; overflow: hidden; animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .page-active { display: flex !important; }
-
-        .tr-item { transition: all 0.15s ease; }
-        .tr-item:hover { background-color: #f8fafc; }
-
-        @media (max-width: 768px) {
-            #cart-section {
-                position: fixed; inset: 0; z-index: 60;
-                transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-            #cart-section.active { transform: translateX(0); }
-        }
-    </style>
+    /* Support iPhone / Android dengan gesture bar (Safe Area) */
+    .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+</style>
 </head>
 <body class="bg-slate-50 h-[100dvh] flex flex-col overflow-hidden text-slate-800 selection:bg-blue-200">
 
@@ -106,25 +113,36 @@
         </div>
     </div>
 
-    <nav class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 flex shadow-md shrink-0 no-print relative z-40 items-end px-1 md:px-3">
-        <div class="flex flex-1 overflow-x-auto hide-scrollbar gap-1 md:gap-2">
-            <button onclick="window.switchPage('home', this)" id="nav-home" class="nav-btn py-3 px-3 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-white border-b-[3px] border-white nav-active flex items-center justify-center gap-1.5 flex-1 md:flex-none">
-                🏠 Home
-            </button>
-            <button onclick="window.switchPage('kasir', this)" id="nav-kasir" class="nav-btn py-3 px-3 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex items-center justify-center gap-1.5 flex-1 md:flex-none">
-                🏪 Kasir
-            </button>
-            <button onclick="window.switchPage('stok', this)" class="nav-btn py-3 px-3 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex items-center justify-center gap-1.5 flex-1 md:flex-none">
-                📦 Stok
-            </button>
-            <button onclick="window.switchPage('pelanggan', this)" class="nav-btn py-3 px-3 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex items-center justify-center gap-1.5 flex-1 md:flex-none">
-                👥 Hutang
-            </button>
-            <button onclick="window.switchPage('laporan', this)" class="nav-btn py-3 px-3 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex items-center justify-center gap-1.5 flex-1 md:flex-none">
-                📊 Laporan
-            </button>
-        </div>
-    </nav>
+    <nav class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 shadow-lg md:shadow-md shrink-0 no-print fixed bottom-0 left-0 right-0 md:relative md:top-0 z-50 flex items-center px-1 md:px-3 h-[65px] md:h-auto border-t border-blue-700 md:border-none pb-safe">
+    <div class="flex flex-1 justify-around md:justify-start overflow-x-auto hide-scrollbar gap-1 md:gap-2 h-full">
+        
+        <button onclick="window.switchPage('home', this)" id="nav-home" class="nav-btn py-1 md:py-3 px-2 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-white border-b-[3px] md:border-b-[3px] border-white nav-active flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 flex-1 md:flex-none">
+            <span class="text-lg md:text-base">🏠</span>
+            <span>Home</span>
+        </button>
+
+        <button onclick="window.switchPage('kasir', this)" id="nav-kasir" class="nav-btn py-1 md:py-3 px-2 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 flex-1 md:flex-none">
+            <span class="text-lg md:text-base">🏪</span>
+            <span>Kasir</span>
+        </button>
+
+        <button onclick="window.switchPage('stok', this)" class="nav-btn py-1 md:py-3 px-2 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 flex-1 md:flex-none">
+            <span class="text-lg md:text-base">📦</span>
+            <span>Stok</span>
+        </button>
+
+        <button onclick="window.switchPage('pelanggan', this)" class="nav-btn py-1 md:py-3 px-2 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 flex-1 md:flex-none">
+            <span class="text-lg md:text-base">👥</span>
+            <span>Hutang</span>
+        </button>
+
+        <button onclick="window.switchPage('laporan', this)" class="nav-btn py-1 md:py-3 px-2 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 flex-1 md:flex-none">
+            <span class="text-lg md:text-base">📊</span>
+            <span>Laporan</span>
+        </button>
+
+    </div>
+</nav>
 
     <main class="flex-1 relative overflow-hidden no-print bg-slate-100/50">
         
