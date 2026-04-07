@@ -212,14 +212,38 @@
         </footer>
     </div>
 
-<script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('PosKita PWA Ready!', reg))
-                    .catch(err => console.log('PWA Gagal:', err));
-            });
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    // Gunakan config yang sama dengan dashboard Mas
+    const firebaseConfig = { 
+        apiKey: "AIzaSyCLlFeBekEZzdtkeFvItwqMPa2jxrLleb4", 
+        authDomain: "pos-keliling.firebaseapp.com", 
+        projectId: "pos-keliling", 
+        storageBucket: "pos-keliling.firebasestorage.app", 
+        messagingSenderId: "379944511316", 
+        appId: "1:379944511316:web:27f1fd19eb3f48c5d64ac1" 
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // LOGIKA REDIRECT: Jika sudah login, langsung ke dashboard
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            window.location.replace("dashboard.html"); 
         }
-    </script>
+    });
+
+    // Registrasi Service Worker PWA
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('PosKita PWA Ready!'))
+                .catch(err => console.log('PWA Gagal:', err));
+        });
+    }
+</script>
 </body>
 </html>
