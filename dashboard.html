@@ -44,6 +44,14 @@
             }
         }
 
+        /* Tambahkan di dalam <style> */
+        select#select-pelanggan {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1em;
+        }
+
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -109,6 +117,9 @@
             <button onclick="window.switchPage('stok', this)" class="nav-btn py-3 px-3 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex items-center justify-center gap-1.5 flex-1 md:flex-none">
                 📦 Stok
             </button>
+            <button onclick="window.switchPage('pelanggan', this)" class="nav-btn py-3 px-3 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex items-center justify-center gap-1.5 flex-1 md:flex-none">
+                👥 Hutang
+            </button>
             <button onclick="window.switchPage('laporan', this)" class="nav-btn py-3 px-3 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white flex items-center justify-center gap-1.5 flex-1 md:flex-none">
                 📊 Laporan
             </button>
@@ -162,6 +173,25 @@
             </div>
         </section>
 
+        <section id="menu-pelanggan" class="page-content flex-col p-3 md:p-5 overflow-y-auto bg-slate-100/50">
+    <div class="flex flex-col gap-4 w-full max-w-4xl mx-auto">
+        <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200 shrink-0">
+            <div>
+                <h2 class="font-black text-slate-700 uppercase tracking-widest text-xs md:text-sm">Buku Hutang Aktif</h2>
+                <p id="total-semua-hutang" class="text-[10px] md:text-xs font-bold text-slate-500 mt-0.5">Total: Rp 0</p>
+            </div>
+            <select id="sort-hutang" onchange="window.renderHutang(this.value)" class="bg-slate-50 border border-slate-200 text-slate-700 text-[10px] md:text-xs rounded-xl focus:ring-blue-500 focus:border-blue-500 block px-3 py-2 outline-none font-bold shadow-sm">
+                <option value="baru">Update Terbaru</option>
+                <option value="terbanyak">Nominal Terbanyak</option>
+                <option value="terlama">Hutang Terlama</option>
+            </select>
+        </div>
+        
+        <div id="list-hutang" class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pb-20 items-start">
+            </div>
+    </div>
+</section>
+
         <section id="menu-kasir" class="page-content flex-col md:flex-row p-2 md:p-4 gap-3 md:gap-4">
             <div class="w-full md:w-2/3 flex-1 flex flex-col gap-3 overflow-hidden">
                 <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 flex flex-col flex-1 overflow-hidden">
@@ -181,8 +211,7 @@
                         <div class="relative flex-1 flex items-center">
                             <span class="absolute left-3 md:left-3.5 opacity-40 text-sm">🔍</span>
                             <input type="text" id="search-barang" placeholder="Cari nama produk..." 
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 md:pl-10 pr-9 md:pr-10 py-2.5 md:py-3 text-[16px] md:text-sm font-medium focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none text-slate-700 placeholder-slate-400">
-                            <button id="clear-search-barang" onclick="document.getElementById('search-barang').value=''; document.getElementById('search-barang').dispatchEvent(new Event('input'));" class="absolute right-2 md:right-3 text-slate-400 hover:text-rose-500 hidden w-6 h-6 flex items-center justify-center rounded-full bg-slate-200/50 hover:bg-rose-100 transition-colors text-lg font-light leading-none">&times;</button>
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 md:pl-10 pr-4 py-2.5 md:py-3 text-[16px] md:text-sm font-medium focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none text-slate-700 placeholder-slate-400">
                         </div>
                         <button id="btn-download" onclick="startAutoSync()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3 md:px-5 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm whitespace-nowrap">Sync</button>
                     </div>
@@ -203,27 +232,36 @@
             </div>
 
             <aside id="cart-section" class="w-full md:w-1/3 bg-slate-50 md:bg-slate-50/50 rounded-none md:rounded-2xl shadow-2xl md:shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] flex flex-col overflow-hidden border border-slate-200/70 pb-safe md:pb-0">
-                <div class="p-4 bg-white border-b border-slate-200 flex justify-between items-center z-10 shrink-0">
-                    <h2 class="font-bold text-slate-800 flex items-center gap-2 text-sm">🛒 <span class="tracking-wide">Keranjang Belanja</span></h2>
-                    <button onclick="window.clearCart()" class="text-[10px] text-rose-500 font-black px-3 py-1.5 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-lg transition-all tracking-wider">RESET</button>
-                </div>
-                
-                <div id="cart-items" class="flex-1 overflow-y-auto p-3 md:p-4 space-y-2.5 md:space-y-3 relative"></div>
+    <div class="p-3 bg-white border-b border-slate-200 flex flex-col gap-2 z-10 shrink-0">
+        <div class="flex justify-between items-center">
+            <h2 class="font-bold text-slate-800 flex items-center gap-2 text-xs uppercase tracking-widest">🛒 Keranjang</h2>
+            <button onclick="window.clearCart()" class="text-[9px] text-rose-500 font-black px-2 py-1 hover:bg-rose-50 rounded-md transition-all">RESET</button>
+        </div>
+        <div class="flex gap-2 items-center">
+    <div class="relative flex-1 group">
+        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs opacity-40">👤</span>
+        <select id="select-pelanggan" class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-[11px] font-bold outline-none focus:border-blue-500 appearance-none">
+            <option value="">-- Pelanggan Umum --</option>
+        </select>
+    </div>
+    <button onclick="document.getElementById('modal-tambah-pelanggan').classList.remove('hidden')" class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-sm hover:bg-blue-600 hover:text-white transition-all">+</button>
+</div>
+    </div>
+    
+    <div id="cart-items" class="flex-1 overflow-y-auto p-3 space-y-2 relative"></div>
 
-                <div class="p-4 md:p-5 bg-white border-t border-slate-200 space-y-3 md:space-y-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10 shrink-0">
-                    <div class="flex justify-between items-end bg-slate-50 p-3.5 md:p-4 rounded-2xl border border-slate-100">
-                        <div>
-                            <p class="text-slate-500 font-black uppercase text-[9px] mb-1 tracking-widest">Total Bayar</p>
-                            <p id="cart-total" class="text-2xl md:text-3xl font-black text-blue-700 tracking-tighter">Rp 0</p>
-                        </div>
-                    </div>
-                    <button id="btn-proses-bayar" disabled 
-                        class="w-full py-3.5 md:py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-2xl font-black text-sm shadow-[0_8px_20px_-6px_rgba(16,185,129,0.4)] disabled:from-slate-200 disabled:to-slate-300 disabled:text-slate-400 disabled:shadow-none transition-all duration-300 transform active:scale-[0.98]">
-                        PROSES TRANSAKSI
-                    </button>
-                    <button onclick="window.toggleCart()" class="md:hidden w-full py-2.5 text-slate-500 hover:text-slate-800 font-bold text-xs transition-colors bg-slate-100 rounded-xl mt-2">Kembali ke List</button>
-                </div>
-            </aside>
+    <div class="p-4 bg-white border-t border-slate-200 space-y-3 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10 shrink-0">
+        <div class="flex justify-between items-center">
+            <p class="text-slate-400 font-black uppercase text-[9px] tracking-widest">Total Belanja</p>
+            <p id="cart-total" class="text-2xl font-black text-blue-700 tracking-tighter">Rp 0</p>
+        </div>
+        <button id="btn-proses-bayar" disabled onclick="window.showPaymentModal()"
+            class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-sm shadow-lg disabled:bg-slate-200 disabled:text-slate-400 transition-all transform active:scale-95 uppercase tracking-widest">
+            BAYAR SEKARANG
+        </button>
+        <button onclick="window.toggleCart()" class="md:hidden w-full py-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest">Kembali</button>
+    </div>
+</aside>
         </section>
 
         <section id="menu-stok" class="page-content flex-col p-2.5 md:p-4">
@@ -241,8 +279,7 @@
                     <div class="relative flex items-center">
                         <span class="absolute left-3.5 opacity-40 text-sm">🔍</span>
                         <input type="text" id="search-stok" placeholder="Cari barang di gudang..." 
-                            class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-[16px] md:text-sm outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700">
-                        <button id="clear-search-stok" onclick="document.getElementById('search-stok').value=''; document.getElementById('search-stok').dispatchEvent(new Event('input'));" class="absolute right-3 text-slate-400 hover:text-rose-500 hidden w-6 h-6 flex items-center justify-center rounded-full bg-slate-100 hover:bg-rose-100 transition-colors text-lg font-light leading-none">&times;</button>
+                            class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-[16px] md:text-sm outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700">
                     </div>
                 </div>
                 <div class="overflow-auto flex-1 relative pb-10 md:pb-0">
@@ -266,15 +303,30 @@
                 <div class="flex items-center justify-between">
                     <h2 class="font-black text-[10px] md:text-xs uppercase text-slate-500 tracking-widest">Filter Rekapan</h2>
                 </div>
-                <div class="flex gap-2 overflow-x-auto pb-2 hide-scrollbar items-center">
-                    <button id="btn-filter-hari-ini" onclick="window.setReportFilter('hari_ini')" class="filter-btn shrink-0 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-md">Hari Ini</button>
-                    <button id="btn-filter-kemarin" onclick="window.setReportFilter('kemarin')" class="filter-btn shrink-0 bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-sm">Kemarin</button>
-                    <button id="btn-filter-custom" onclick="window.setReportFilter('custom')" class="filter-btn shrink-0 bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5 relative overflow-hidden group">
-                        📅 Pilih Tanggal
-                        <span id="lock-icon" class="absolute top-0 right-0 bg-rose-500 text-white text-[7px] px-1.5 py-0.5 rounded-bl-lg font-black hidden">PRO</span>
-                    </button>
-                    <input type="date" id="input-date-custom" class="hidden shrink-0 bg-white border-2 border-blue-400 text-blue-700 px-3 py-2 rounded-xl text-[10px] font-black uppercase outline-none focus:ring-4 focus:ring-blue-500/20 transition-all shadow-sm" onchange="window.setReportFilter('custom', this.value)">
-                </div>
+                <div class="flex gap-2 overflow-x-auto pb-2 pt-2 hide-scrollbar items-center"> 
+    <button id="btn-filter-hari-ini" onclick="window.setReportFilter('hari_ini')" class="filter-btn shrink-0 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-md">Hari Ini</button>
+    
+    <button id="btn-filter-kemarin" onclick="window.setReportFilter('kemarin')" class="filter-btn shrink-0 bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-sm">Kemarin</button>
+    
+    <div class="relative inline-block" style="min-width: 160px;">
+    <button type="button" id="btn-filter-custom" onclick="bukaKalenderPro()" 
+        class="filter-btn w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 transition-all relative overflow-visible shadow-sm">
+        
+        <span id="label-filter-custom" class="truncate">📅 Pilih Tanggal</span>
+        
+        <span id="badge-pro-custom" 
+            class="absolute -top-2 -right-1 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md border-2 border-white z-[60] hidden">
+            PRO
+        </span>
+    </button>
+    
+    <input 
+        type="date" 
+        id="input-date-custom" 
+        style="position: absolute; bottom: 0; left: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none;"
+        onchange="window.setReportFilter('custom', this.value)"
+    >
+</div>
             </div>
 
             <div class="grid grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-5 shrink-0">
@@ -288,6 +340,11 @@
                     <p class="text-[9px] md:text-[10px] text-emerald-600 uppercase font-black mb-1.5 tracking-widest relative z-10">Laba Bersih</p>
                     <p id="stat-laba" class="text-xl md:text-2xl font-black text-emerald-600 tracking-tight relative z-10">Rp 0</p>
                 </div>
+                <div class="relative flex items-center mb-4 shrink-0 z-10">
+    <span class="absolute left-3.5 opacity-40 text-sm">🔍</span>
+    <input type="text" id="search-nota" placeholder="Cari 6 angka nomor nota..." oninput="window.updateReports()" 
+        class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-[16px] md:text-sm outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700 shadow-sm">
+</div>
             </div>
             
             <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 overflow-hidden flex-1 flex flex-col min-h-[300px]">
@@ -305,9 +362,9 @@
                     <table class="w-full text-xs text-left min-w-full">
                         <thead class="bg-slate-50 text-[8px] md:text-[9px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-100 sticky top-0 z-10">
                             <tr>
-                                <th class="p-3 pl-4 whitespace-nowrap">Waktu</th>
-                                <th class="p-3 text-right whitespace-nowrap">Nilai Transaksi</th>
-                                <th class="p-3 pr-4 text-right whitespace-nowrap">Profit</th>
+                                <th class="p-3 pl-4 whitespace-nowrap">Nota & Waktu</th>
+        <th class="p-3 text-center whitespace-nowrap">Item</th>
+        <th class="p-3 pr-4 text-right whitespace-nowrap">Total & Profit</th>
                             </tr>
                         </thead>
                         <tbody id="history-body" class="divide-y divide-slate-50"></tbody>
@@ -342,6 +399,77 @@
             </div>
         </div>
     </div>
+
+    <div id="modal-cicilan" class="fixed inset-0 z-[200] flex items-center justify-center hidden bg-slate-900/80 backdrop-blur-sm p-4 no-print">
+    <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-xs overflow-hidden transform transition-transform">
+        <div class="p-5 bg-gradient-to-br from-amber-400 to-amber-500 text-white text-center">
+            <h3 class="font-black text-xs uppercase tracking-widest">Bayar / Cicil Hutang</h3>
+            <p id="nama-pelanggan-cicil" class="text-xs font-medium mt-1 truncate">-</p>
+        </div>
+        <div class="p-5 space-y-4">
+            <div class="flex justify-between items-center text-xs font-bold text-slate-500 bg-rose-50 px-3 py-2 rounded-lg border border-rose-100">
+                <span>Sisa Hutang:</span>
+                <span id="sisa-hutang-display" class="text-rose-600 font-black tracking-tight">Rp 0</span>
+            </div>
+            <input type="hidden" id="cicil-pelanggan-id">
+            <input type="hidden" id="cicil-hutang-id">
+            <input type="hidden" id="cicil-sisa-max">
+            <div class="space-y-1.5 pt-1">
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nominal Bayar (Rp)</label>
+                <input type="text" inputmode="numeric" id="input-bayar-cicilan" oninput="this.value = window.formatAngka(this.value)" class="w-full bg-white border border-amber-200 rounded-xl px-4 py-3 font-black text-xl text-amber-600 text-center outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 transition-all shadow-sm" placeholder="0">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="document.getElementById('modal-cicilan').classList.add('hidden')" class="flex-1 py-3.5 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest transition-colors">Batal</button>
+                <button onclick="window.prosesCicilan()" class="flex-1 py-3.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md active:scale-95 transition-all">Proses</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div id="modal-tambah-pelanggan" class="fixed inset-0 z-[250] flex items-center justify-center hidden bg-slate-900/80 backdrop-blur-sm p-4 no-print">
+    <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-xs overflow-hidden">
+        <div class="p-5 bg-blue-600 text-white text-center">
+            <h3 class="font-black text-sm uppercase tracking-widest">Pelanggan Baru</h3>
+        </div>
+        <div class="p-5 space-y-4">
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase">Nama Lengkap</label>
+                <input type="text" id="input-nama-pelanggan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-blue-500">
+            </div>
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase">No. WhatsApp (Optional)</label>
+                <input type="text" id="input-hp-pelanggan" placeholder="0812..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-blue-500">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="document.getElementById('modal-tambah-pelanggan').classList.add('hidden')" class="flex-1 py-3 text-slate-400 font-bold text-[10px] uppercase">Batal</button>
+                <button onclick="window.simpanPelangganBaru()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div id="modal-pembayaran" class="fixed inset-0 z-[200] flex items-center justify-center hidden bg-slate-900/80 backdrop-blur-sm p-4 no-print">
+    <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-xs overflow-hidden">
+        <div class="p-5 text-center border-b border-slate-100">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Tagihan</p>
+            <h2 id="pay-total-display" class="text-3xl font-black text-blue-700">Rp 0</h2>
+        </div>
+        <div class="p-5 space-y-3">
+            <div class="space-y-1.5 pb-2">
+                <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest text-center block">Uang Diterima / DP (Rp)</label>
+                <input type="text" inputmode="numeric" id="input-uang-bayar" placeholder="Kosongkan jika ngutang full" oninput="this.value = window.formatAngka(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-black text-xl text-slate-800 text-center outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner">
+            </div>
+
+            <button onclick="window.eksekusiBayar('Tunai')" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-md flex items-center justify-center gap-3 transition-all active:scale-95">
+                <span class="text-lg">💵</span> Tunai / Lunas
+            </button>
+            <button id="btn-pay-hutang" onclick="window.eksekusiBayar('Hutang')" class="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-md flex items-center justify-center gap-3 transition-all active:scale-95">
+                <span class="text-lg">📒</span> Kasbon / Hutang
+            </button>
+            <button onclick="document.getElementById('modal-pembayaran').classList.add('hidden')" class="w-full py-3 text-slate-400 font-bold text-[10px] uppercase tracking-widest">Batal</button>
+        </div>
+    </div>
+</div>
 
     <div id="modal-riwayat-shift" class="fixed inset-0 z-[150] flex items-center justify-center hidden bg-slate-900/80 backdrop-blur-sm p-4 transition-opacity no-print">
         <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-md overflow-hidden transform transition-transform flex flex-col max-h-[80vh]">
@@ -500,7 +628,9 @@
         window.shiftAktifId = null; 
 
         window.cart = [];
-        window.offlineQueue = { barang: [], transaksi: [], hapus_barang: [], hapus_transaksi: [], shift: [] };
+        
+        // --- QUEUE UPDATE UNTUK MENDUKUNG TABEL HUTANG/PELANGGAN DARI ANDROID ---
+        window.offlineQueue = { barang: [], transaksi: [], pelanggan: [], hutang: [], cicilan: [], hapus_barang: [], hapus_transaksi: [], shift: [] };
         
         window.currentReportFilter = 'hari_ini';
         window.currentCustomDate = '';
@@ -530,14 +660,331 @@
             document.getElementById('modal-upgrade').classList.remove('hidden');
         };
 
+        window.simpanPelangganBaru = async () => {
+    const nama = document.getElementById('input-nama-pelanggan').value;
+    const hp = document.getElementById('input-hp-pelanggan').value;
+
+    if (!nama) return alert("Nama pelanggan wajib diisi!");
+
+    const id = "P-" + Date.now();
+    const payload = { 
+        id: id, 
+        nama: nama, 
+        hp: hp, 
+        total_hutang: 0, 
+        sisa_hutang: 0, 
+        user_id: window.currentUid 
+    };
+
+    // 1. Simpan ke SQLite Lokal
+    window.db.run("INSERT INTO pelanggan (id, nama, hp, total_hutang, sisa_hutang) VALUES (?,?,?,?,?)", 
+                  [id, nama, hp, 0, 0]);
+
+    // 2. Masukkan ke Antrean Offline
+    window.offlineQueue.pelanggan.push(payload);
+    window.saveQueue();
+
+    // 3. Update UI Select di Kasir
+    window.renderPelangganSelect();
+    
+    // 4. Otomatis pilih pelanggan yang baru dibuat
+    setTimeout(() => {
+        document.getElementById('select-pelanggan').value = id;
+    }, 100);
+
+    // 5. Bersihkan dan Tutup Modal
+    document.getElementById('input-nama-pelanggan').value = "";
+    document.getElementById('input-hp-pelanggan').value = "";
+    document.getElementById('modal-tambah-pelanggan').classList.add('hidden');
+
+    // 6. Coba sinkron kalau online
+    if (navigator.onLine) window.processOfflineQueue();
+};
+
+window.renderHutang = (sortBy = 'baru') => {
+    if (!window.db) return;
+    
+    let query = `
+        SELECT p.id, p.nama, p.hp, p.sisa_hutang, MIN(CAST(h.tanggal AS UNSIGNED)) as tgl_lama 
+        FROM pelanggan p 
+        LEFT JOIN hutang h ON p.id = h.pelanggan_id AND h.sisa > 0
+        WHERE p.sisa_hutang > 0 
+        GROUP BY p.id
+    `;
+
+    if (sortBy === 'terbanyak') query += ` ORDER BY p.sisa_hutang DESC`;
+    else if (sortBy === 'terlama') query += ` ORDER BY tgl_lama ASC`;
+    else query += ` ORDER BY tgl_lama DESC`;
+
+    try {
+        const res = window.db.exec(query);
+        const container = document.getElementById('list-hutang');
+        let totalSemua = 0;
+
+        if (res.length > 0) {
+            container.innerHTML = res[0].values.map(row => {
+                const [id, nama, hp, sisa, tgl_lama] = row;
+                totalSemua += sisa;
+                const d = tgl_lama ? new Date(tgl_lama).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-';
+                
+                return `
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.05)] relative overflow-hidden transition-all">
+                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500 rounded-l-2xl z-10"></div>
+                    
+                    <div class="p-4 pl-5 cursor-pointer hover:bg-slate-50 flex justify-between items-start" onclick="window.toggleDetailHutang('${id}')">
+                        <div>
+                            <h3 class="font-black text-slate-800 text-xs md:text-sm uppercase tracking-tight flex items-center gap-2">
+                                ${nama} <span id="icon-pelanggan-${id}" class="text-[9px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded transition-transform">▼</span>
+                            </h3>
+                            <p class="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">📞 ${hp || '-'}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Sisa Hutang</p>
+                            <p class="font-black text-rose-600 text-sm md:text-base">Rp ${sisa.toLocaleString('id-ID')}</p>
+                        </div>
+                    </div>
+
+                    <div id="detail-hutang-${id}" class="hidden px-4 pl-5 pb-2 bg-slate-50/50">
+                        <div id="isi-hutang-${id}">
+                            <p class="text-[10px] text-center text-slate-400 py-3 italic animate-pulse">Memuat data nota...</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center p-3 pl-5 bg-white border-t border-slate-100 border-dashed">
+                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Hutang Sejak: ${d}</span>
+                        <button onclick="window.bukaModalCicilan('${id}', 'ALL', ${sisa}, '${nama.replace(/'/g, "\\'")}')" class="bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white px-4 py-2 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm active:scale-95">Bayar Semua</button>
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            container.innerHTML = `<div class="col-span-full py-16 flex flex-col items-center justify-center opacity-40"><div class="text-6xl mb-4 grayscale">🎉</div><p class="text-xs font-black uppercase tracking-widest text-slate-500">Bebas Hutang! Tidak ada tagihan.</p></div>`;
+        }
+        document.getElementById('total-semua-hutang').innerText = `Total Piutang: Rp ${totalSemua.toLocaleString('id-ID')}`;
+    } catch (e) { console.error("Gagal load hutang:", e); }
+};
+
+window.bukaModalCicilan = (pId, hutangId, sisa, namaInfo) => {
+    document.getElementById('cicil-pelanggan-id').value = pId;
+    document.getElementById('cicil-hutang-id').value = hutangId;
+    document.getElementById('cicil-sisa-max').value = sisa;
+    
+    document.getElementById('nama-pelanggan-cicil').innerText = namaInfo;
+    document.getElementById('sisa-hutang-display').innerText = "Rp " + sisa.toLocaleString('id-ID');
+    document.getElementById('input-bayar-cicilan').value = "";
+    document.getElementById('modal-cicilan').classList.remove('hidden');
+    setTimeout(() => document.getElementById('input-bayar-cicilan').focus(), 100);
+};
+
+window.prosesCicilan = () => {
+    const pId = document.getElementById('cicil-pelanggan-id').value;
+    const hutangId = document.getElementById('cicil-hutang-id').value;
+    const maxSisa = parseInt(document.getElementById('cicil-sisa-max').value);
+    let bayar = parseInt(document.getElementById('input-bayar-cicilan').value.replace(/\./g, ''));
+
+    if (!bayar || isNaN(bayar) || bayar <= 0) return alert("Masukkan nominal uang yang valid!");
+    if (bayar > maxSisa) return alert("Nominal bayar tidak boleh melebihi sisa tagihan!");
+
+    const ts = Date.now();
+    let sisaUangBayar = bayar;
+
+    // Logika Pintar: Cek apakah bayar SEMUA nota atau bayar SATU nota spesifik
+    let qSelect = "";
+    let params = [];
+    if (hutangId === 'ALL') {
+        qSelect = "SELECT id, sisa FROM hutang WHERE pelanggan_id = ? AND sisa > 0 ORDER BY CAST(tanggal AS UNSIGNED) ASC";
+        params = [pId];
+    } else {
+        qSelect = "SELECT id, sisa FROM hutang WHERE id = ? AND sisa > 0";
+        params = [hutangId];
+    }
+
+    const resHutang = window.db.exec(qSelect, params);
+    
+    if (resHutang.length > 0) {
+        resHutang[0].values.forEach(row => {
+            if (sisaUangBayar <= 0) return;
+            
+            let hId = row[0];
+            let hSisa = row[1];
+            let potong = Math.min(sisaUangBayar, hSisa); 
+            
+            window.db.run("UPDATE hutang SET sisa = sisa - ? WHERE id = ?", [potong, hId]);
+            
+            const cicilanId = "C-" + ts + "-" + Math.floor(Math.random() * 1000);
+            window.db.run("INSERT INTO cicilan (id, hutang_id, jumlah, tanggal) VALUES (?,?,?,?)", [cicilanId, hId, potong, ts.toString()]);
+            
+            window.offlineQueue.cicilan.push({ id: cicilanId, hutang_id: hId, jumlah: potong, tanggal: ts.toString(), user_id: window.currentUid });
+            
+            const resH = window.db.exec("SELECT pelanggan_id, transaksi_id, total, sisa, tanggal FROM hutang WHERE id=?", [hId]);
+            if(resH.length>0) {
+                const [p_id, t_id, tot, s, tgl] = resH[0].values[0];
+                window.offlineQueue.hutang = window.offlineQueue.hutang.filter(x => x.id !== hId);
+                window.offlineQueue.hutang.push({ id: hId, pelanggan_id: p_id, transaksi_id: t_id, total: tot, sisa: s, tanggal: tgl, user_id: window.currentUid });
+            }
+            sisaUangBayar -= potong;
+        });
+    }
+
+    window.db.run("UPDATE pelanggan SET sisa_hutang = sisa_hutang - ? WHERE id = ?", [bayar, pId]);
+    
+    const resP = window.db.exec("SELECT nama, hp, total_hutang, sisa_hutang FROM pelanggan WHERE id=?", [pId]);
+    if(resP.length>0) {
+        const [nm, hp, th, sh] = resP[0].values[0];
+        window.offlineQueue.pelanggan = window.offlineQueue.pelanggan.filter(x => x.id !== pId);
+        window.offlineQueue.pelanggan.push({ id: pId, nama: nm, hp: hp, total_hutang: th, sisa_hutang: sh, user_id: window.currentUid });
+    }
+
+    window.saveQueue();
+    if(navigator.onLine) window.processOfflineQueue();
+    
+    document.getElementById('modal-cicilan').classList.add('hidden');
+    window.renderHutang(document.getElementById('sort-hutang').value); 
+    window.renderPelangganSelect(); 
+    
+    alert(`Sukses! Pembayaran sebesar Rp ${bayar.toLocaleString('id-ID')} telah diproses.`);
+};
+
+window.toggleDetailHutang = (pId) => {
+    const targetEl = document.getElementById(`detail-hutang-${pId}`);
+    const targetIcon = document.getElementById(`icon-pelanggan-${pId}`);
+    
+    // Cek status saat ini: apakah elemen yang diklik sedang tertutup?
+    const isCurrentlyHidden = targetEl.classList.contains('hidden');
+
+    // 1. TUTUP SEMUA card detail hutang & kembalikan posisi panah
+    document.querySelectorAll('[id^="detail-hutang-"]').forEach(el => {
+        el.classList.add('hidden');
+    });
+    document.querySelectorAll('[id^="icon-pelanggan-"]').forEach(icon => {
+        icon.style.transform = 'rotate(0deg)';
+    });
+
+    // 2. BUKA HANYA card yang diklik (jika sebelumnya statusnya tertutup)
+    if (isCurrentlyHidden) {
+        targetEl.classList.remove('hidden');
+        targetIcon.style.transform = 'rotate(180deg)';
+        window.loadIsiDetailHutang(pId);
+    }
+};
+
+window.loadIsiDetailHutang = (pId) => {
+    const container = document.getElementById(`isi-hutang-${pId}`);
+    if(!container || !window.db) return;
+
+    // 1. Ambil daftar nota belum lunas milik pelanggan ini
+    const qHutang = `SELECT h.id, h.transaksi_id, h.total, h.sisa, h.tanggal FROM hutang h WHERE h.pelanggan_id = '${pId}' AND h.sisa > 0 ORDER BY CAST(h.tanggal AS UNSIGNED) ASC`;
+    const resH = window.db.exec(qHutang);
+
+    let htmlNota = '';
+    if(resH.length > 0) {
+        resH[0].values.forEach(row => {
+            const [hId, tId, hTotal, hSisa, hTglMs] = row;
+            const hTgl = new Date(parseInt(hTglMs)).toLocaleString('id-ID', {dateStyle:'medium', timeStyle:'short'});
+
+            // Ambil rincian item barang dari tabel transaksi_detail
+            const resDet = window.db.exec(`SELECT b.nama, td.qty, td.harga FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id WHERE td.transaksi_id = ${tId}`);
+            let htmlItem = '';
+            if(resDet.length > 0) {
+                resDet[0].values.forEach(item => {
+                    htmlItem += `<div class="flex justify-between text-[9px] text-slate-500 border-b border-dashed border-slate-200 py-1.5 last:border-0"><span class="truncate pr-2">${item[1]}x ${item[0] || '(Terhapus)'}</span><span class="whitespace-nowrap font-bold">Rp ${(item[1]*item[2]).toLocaleString('id-ID')}</span></div>`;
+                });
+            }
+
+            htmlNota += `
+            <div class="bg-white p-2.5 md:p-3 rounded-xl border border-slate-200 mb-2 shadow-sm">
+                <div class="flex justify-between items-center mb-2 cursor-pointer" onclick="document.getElementById('items-${hId}').classList.toggle('hidden')">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-700 tracking-wider">NOTA #${tId.toString().slice(-6)}</p>
+                        <p class="text-[8px] text-slate-400 mt-0.5">${hTgl}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[8px] font-bold text-slate-400">SISA TAGIHAN</p>
+                        <p class="text-[11px] font-black text-rose-600">Rp ${hSisa.toLocaleString()}</p>
+                    </div>
+                </div>
+                
+                <div id="items-${hId}" class="hidden bg-slate-50 p-2 rounded-lg border border-slate-100 mb-2 mt-2">
+                    <p class="text-[8px] font-black uppercase text-slate-400 mb-1">Rincian Belanja:</p>
+                    ${htmlItem}
+                </div>
+                
+                <button onclick="window.bukaModalCicilan('${pId}', '${hId}', ${hSisa}, 'Nota #${tId.toString().slice(-6)}')" class="w-full py-2 bg-amber-50 border border-amber-200 text-amber-600 hover:bg-amber-500 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors shadow-sm mt-1">Bayar Nota Ini</button>
+            </div>`;
+        });
+    }
+
+    // 2. Ambil riwayat cicilan pelanggan ini
+    const qCicil = `SELECT c.jumlah, c.tanggal, h.transaksi_id FROM cicilan c JOIN hutang h ON c.hutang_id = h.id WHERE h.pelanggan_id = '${pId}' ORDER BY CAST(c.tanggal AS UNSIGNED) DESC`;
+    const resC = window.db.exec(qCicil);
+    let htmlCicil = '';
+    
+    if(resC.length > 0) {
+        resC[0].values.forEach(row => {
+            const cTgl = new Date(parseInt(row[1])).toLocaleString('id-ID', {dateStyle:'medium', timeStyle:'short'});
+            htmlCicil += `
+            <div class="flex justify-between items-center py-2 border-b border-slate-200/60 last:border-0">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-black text-emerald-600">+ Rp ${row[0].toLocaleString('id-ID')}</span>
+                    <span class="text-[8px] text-slate-500 font-bold mt-0.5">Nota #${row[2].toString().slice(-6)}</span>
+                </div>
+                <span class="text-[8px] font-bold text-slate-400 text-right w-20 leading-tight">${cTgl.replace(', ', '<br>')}</span>
+            </div>`;
+        });
+    } else {
+        htmlCicil = `<p class="text-[9px] italic text-slate-400 text-center py-3">Belum ada riwayat pembayaran/cicilan.</p>`;
+    }
+
+    // 3. Inject HTML ke layar
+    container.innerHTML = `
+        <div class="mt-2 border-t border-slate-200 pt-3">
+            <h4 class="text-[9px] font-black uppercase tracking-[0.1em] text-slate-400 mb-2">📑 Rincian Nota Belum Lunas</h4>
+            ${htmlNota}
+        </div>
+        <div class="mt-4 border-t border-slate-200 pt-3 bg-emerald-50/40 p-3 rounded-xl border border-emerald-100/50">
+            <h4 class="text-[9px] font-black uppercase tracking-[0.1em] text-emerald-700 mb-2 flex items-center gap-1.5"><span>🗓️</span> History Pemb Pembayaran</h4>
+            <div class="max-h-40 overflow-y-auto pr-1">
+                ${htmlCicil}
+            </div>
+        </div>
+    `;
+};
+
+        // Tambahkan fungsi ini di dalam script module
+window.renderPelangganSelect = () => {
+    if(!window.db) return;
+    const res = window.db.exec("SELECT id, nama FROM pelanggan ORDER BY nama ASC");
+    const select = document.getElementById('select-pelanggan');
+    if(!select) return;
+
+    let options = '<option value="">-- Pelanggan Umum --</option>';
+    if(res.length > 0) {
+        res[0].values.forEach(row => {
+            options += `<option value="${row[0]}">${row[1]}</option>`;
+        });
+    }
+    select.innerHTML = options;
+};
+
         window.checkProStatus = async (uid) => {
             try {
                 if (navigator.onLine) {
                     const { data, error } = await supabase.from('users').select('is_pro, expired_at').eq('id', uid).single();
                     if (data && !error) {
                         const now = new Date();
-                        const expired = new Date(data.expired_at);
-                        window.isPro = data.is_pro && (now < expired);
+                        let isValidPro = false;
+                        
+                        // Perbaikan logika kedaluwarsa (bug JavaScript Date)
+                        if (data.is_pro) {
+                            if (data.expired_at) {
+                                const expired = new Date(data.expired_at);
+                                isValidPro = now < expired;
+                            } else {
+                                // Jika is_pro TRUE tapi expired_at kosong, otomatis dianggap akun PRO Lifetime
+                                isValidPro = true; 
+                            }
+                        }
+                        
+                        window.isPro = isValidPro;
                         localStorage.setItem(`poskita_pro_${uid}`, window.isPro);
                     } else {
                         window.isPro = false;
@@ -618,7 +1065,23 @@
             else floatBtn.classList.remove('hidden');
 
             if(pageId === 'stok') window.renderStokTable(window.masterData);
-            if(pageId === 'laporan') updateReports();
+            if(pageId === 'laporan') {
+    window.setReportFilter(window.currentReportFilter); // Trigger badge & filter
+}
+            if(pageId === 'pelanggan') window.renderHutang();
+
+            // Auto-focus ke input pencarian
+            if (pageId === 'kasir') {
+                setTimeout(() => {
+                    const searchBarang = document.getElementById('search-barang');
+                    if(searchBarang) searchBarang.focus();
+                }, 300);
+            } else if (pageId === 'stok') {
+                setTimeout(() => {
+                    const searchStok = document.getElementById('search-stok');
+                    if(searchStok) searchStok.focus();
+                }, 300);
+            }
         };
 
         window.bukaRiwayatShift = () => {
@@ -752,30 +1215,67 @@
                 const strTutup = new Date(waktuTutup).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' });
                 
                 let pesanWA = `*LAPORAN TUTUP KASIR* 🏪\n`;
-                pesanWA += `Kasir: ${window.userEmail}\n`;
-                pesanWA += `Buka: ${strBuka}\n`;
-                pesanWA += `Tutup: ${strTutup}\n`;
-                pesanWA += `Modal Awal: Rp ${modalAwal.toLocaleString('id-ID')}\n\n`;
+                pesanWA += `------------------------------------------\n`;
+                pesanWA += `👤 *Kasir:* ${(window.userEmail || 'admin').split('@')[0].toUpperCase()}\n`;
+                pesanWA += `📅 *Buka:* ${strBuka}\n`;
+                pesanWA += `🏁 *Tutup:* ${strTutup}\n`;
+                pesanWA += `💰 *Modal:* Rp ${modalAwal.toLocaleString('id-ID')}\n`;
+                pesanWA += `------------------------------------------\n\n`;
 
                 if(trxIds.length > 0) {
-                    pesanWA += `*Rincian Terjual:*\n`;
+                    pesanWA += `*🛍️ RINCIAN TERJUAL:*\n`;
                     const qDet = `SELECT b.nama, SUM(td.qty) as total_qty, td.harga FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id WHERE td.transaksi_id IN (${trxIds.join(',')}) GROUP BY td.barang_id, td.harga`;
                     const resDet = window.db.exec(qDet);
                     
                     if(resDet.length > 0) {
                         resDet[0].values.forEach(r => {
-                            const nama = r[0] || "Produk dihapus";
+                            const nama = (r[0] || "Produk dihapus").toUpperCase();
                             const qty = r[1];
                             const harga = r[2];
-                            pesanWA += `- ${nama} (${qty}x) @ Rp ${harga.toLocaleString('id-ID')} = Rp ${(qty*harga).toLocaleString('id-ID')}\n`;
+                            const subtotal = qty * harga;
+                            pesanWA += `▪️ ${nama}\n    _${qty}x @Rp${harga.toLocaleString('id-ID')}_  → *Rp${subtotal.toLocaleString('id-ID')}*\n`;
                         });
                     }
                 } else {
-                    pesanWA += `*Tidak ada transaksi pada shift ini.*\n`;
+                    pesanWA += `_Tidak ada transaksi pada shift ini._\n`;
                 }
 
-                pesanWA += `\n*Total Omzet:* Rp ${totalOmzet.toLocaleString('id-ID')}\n`;
-                pesanWA += `*Laba Bersih:* Rp ${totalLaba.toLocaleString('id-ID')}\n`;
+                pesanWA += `\n------------------------------------------\n`;
+                pesanWA += `💵 *TOTAL OMZET:* *Rp ${totalOmzet.toLocaleString('id-ID')}*\n`;
+                pesanWA += `📈 *LABA BERSIH:* *Rp ${totalLaba.toLocaleString('id-ID')}*\n`;
+                pesanWA += `------------------------------------------\n\n`;
+
+                pesanWA += `*🏆 5 TERLARIS (MINGGU INI)*\n`;
+                const satuMingguLalu = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                const qLaris = `
+                    SELECT b.nama, SUM(td.qty) as total_qty 
+                    FROM transaksi_detail td 
+                    LEFT JOIN barang b ON td.barang_id = b.id 
+                    WHERE td.transaksi_id >= ${satuMingguLalu}
+                    GROUP BY td.barang_id 
+                    ORDER BY total_qty DESC 
+                    LIMIT 5
+                `;
+
+                try {
+                    const resLaris = window.db.exec(qLaris);
+                    if (resLaris.length > 0) {
+                        const medali = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"];
+                        resLaris[0].values.forEach((r, idx) => {
+                            const namaLaris = (r[0] || "Produk dihapus").toUpperCase();
+                            const qtyLaris = r[1];
+                            pesanWA += `${medali[idx]} ${namaLaris} (_${qtyLaris} terjual_)\n`;
+                        });
+                    } else {
+                        pesanWA += `_Belum ada data penjualan minggu ini._\n`;
+                    }
+                } catch (e) {
+                    console.error("Gagal ambil data terlaris:", e);
+                    pesanWA += `_Gagal memuat data terlaris._\n`;
+                }
+
+                pesanWA += `\n------------------------------------------\n`;
+                pesanWA += `_Generated by PosKita Pro_`;
 
                 // LOGIKA PENGIRIMAN WA DINAMIS SAAS
                 if(window.fonnteToken && window.waOwner) {
@@ -807,7 +1307,8 @@
 
         window.updateSyncUI = () => {
             const shiftCount = (window.offlineQueue.shift || []).length;
-            const count = window.offlineQueue.barang.length + window.offlineQueue.transaksi.length + window.offlineQueue.hapus_barang.length + window.offlineQueue.hapus_transaksi.length + shiftCount;
+            const plgCount = (window.offlineQueue.pelanggan || []).length + (window.offlineQueue.hutang || []).length;
+            const count = window.offlineQueue.barang.length + window.offlineQueue.transaksi.length + window.offlineQueue.hapus_barang.length + window.offlineQueue.hapus_transaksi.length + shiftCount + plgCount;
             const btn = document.getElementById('btn-download');
             if (count > 0) {
                 btn.innerText = `SYNC (${count} PENDING)`;
@@ -840,6 +1341,9 @@
                 if(!q.hapus_barang) q.hapus_barang = [];
                 if(!q.hapus_transaksi) q.hapus_transaksi = [];
                 if(!q.shift) q.shift = []; 
+                if(!q.pelanggan) q.pelanggan = []; 
+                if(!q.hutang) q.hutang = []; 
+                if(!q.cicilan) q.cicilan = []; 
                 window.offlineQueue = q;
                 
                 await window.startAutoSync(); 
@@ -852,7 +1356,8 @@
         window.addEventListener('online', () => {
             if(window.currentUid) window.checkProStatus(window.currentUid);
             const shiftCount = (window.offlineQueue.shift || []).length;
-            if (window.offlineQueue.barang.length > 0 || window.offlineQueue.transaksi.length > 0 || window.offlineQueue.hapus_barang.length > 0 || window.offlineQueue.hapus_transaksi.length > 0 || shiftCount > 0) {
+            const plgCount = (window.offlineQueue.pelanggan || []).length;
+            if (window.offlineQueue.barang.length > 0 || window.offlineQueue.transaksi.length > 0 || window.offlineQueue.hapus_barang.length > 0 || window.offlineQueue.hapus_transaksi.length > 0 || shiftCount > 0 || plgCount > 0) {
                 window.processOfflineQueue();
             }
         });
@@ -885,6 +1390,23 @@
                 if (window.offlineQueue.barang.length > 0) {
                     const { error } = await supabase.from('barang').upsert(window.offlineQueue.barang);
                     if (!error) window.offlineQueue.barang = []; 
+                }
+
+                if (window.offlineQueue.pelanggan && window.offlineQueue.pelanggan.length > 0) {
+                    const { error } = await supabase.from('pelanggan').upsert(window.offlineQueue.pelanggan);
+                    if (!error) {
+                        window.offlineQueue.pelanggan = []; 
+                    } else {
+                        console.error("Supabase Error (Tabel Pelanggan):", error); 
+                    }
+                }
+                if (window.offlineQueue.hutang && window.offlineQueue.hutang.length > 0) {
+                    const { error } = await supabase.from('hutang').upsert(window.offlineQueue.hutang);
+                    if (!error) window.offlineQueue.hutang = []; 
+                }
+                if (window.offlineQueue.cicilan && window.offlineQueue.cicilan.length > 0) {
+                    const { error } = await supabase.from('cicilan').upsert(window.offlineQueue.cicilan);
+                    if (!error) window.offlineQueue.cicilan = []; 
                 }
 
                 if (window.offlineQueue.shift && window.offlineQueue.shift.length > 0) {
@@ -921,7 +1443,7 @@
                         window.waOwner = settingData.wa_owner || "";
                         localStorage.setItem(`poskita_setting_${window.currentUid}`, JSON.stringify({ fonnteToken: window.fonnteToken, waOwner: window.waOwner }));
                     } else if (errSetting && errSetting.code === 'PGRST116') {
-                        // JIKA BELUM ADA ROW (User Baru), KITA AUTO INSERT (BUAT WADAH KOSONG)
+                        // JIKA BELUM ADA ROW (User Baru), KITA AUTO INSERT
                         const defaultToko = "Toko " + (window.userEmail ? window.userEmail.split('@')[0] : "Baru");
                         await supabase.from('pengaturan').insert({
                             user_id: window.currentUid,
@@ -947,11 +1469,17 @@
             try {
                 const SQL = await initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` });
                 window.db = new SQL.Database();
+                
+                // --- KITA MASUKKAN TABEL ANDROID (Pelanggan, Hutang, Cicilan) ---
                 window.db.run(`
                     CREATE TABLE IF NOT EXISTS barang (id TEXT PRIMARY KEY, nama TEXT, stok INTEGER, harga_jual NUMERIC, modal NUMERIC);
-                    CREATE TABLE IF NOT EXISTS transaksi (id BIGINT PRIMARY KEY, tanggal TEXT, total NUMERIC, laba NUMERIC, metode_bayar TEXT);
+                    CREATE TABLE IF NOT EXISTS transaksi (id BIGINT PRIMARY KEY, tanggal TEXT, total NUMERIC, laba NUMERIC, metode_bayar TEXT, pelanggan_id TEXT);
                     CREATE TABLE IF NOT EXISTS transaksi_detail (id BIGINT PRIMARY KEY, transaksi_id BIGINT, barang_id TEXT, qty INTEGER, harga NUMERIC, modal NUMERIC);
                     CREATE TABLE IF NOT EXISTS shift_kasir (id TEXT PRIMARY KEY, waktu_buka BIGINT, waktu_tutup BIGINT, modal_awal NUMERIC, omzet NUMERIC, laba NUMERIC);
+                    
+                    CREATE TABLE IF NOT EXISTS pelanggan (id TEXT PRIMARY KEY, nama TEXT, hp TEXT, total_hutang NUMERIC, sisa_hutang NUMERIC);
+                    CREATE TABLE IF NOT EXISTS hutang (id TEXT PRIMARY KEY, pelanggan_id TEXT, transaksi_id BIGINT, total NUMERIC, sisa NUMERIC, tanggal TEXT);
+                    CREATE TABLE IF NOT EXISTS cicilan (id TEXT PRIMARY KEY, hutang_id TEXT, jumlah NUMERIC, tanggal TEXT);
                 `);
 
                 if (navigator.onLine) {
@@ -960,9 +1488,20 @@
                         barangData.forEach(b => window.db.run("INSERT INTO barang (id, nama, stok, harga_jual, modal) VALUES (?,?,?,?,?)", [b.id, b.nama, b.stok, b.harga_jual, b.modal]));
                     }
 
+                    // PULL PELANGGAN & HUTANG DARI SUPABASE
+                    const { data: pelangganData } = await supabase.from('pelanggan').select('*').eq('user_id', window.currentUid);
+                    if (pelangganData) {
+                        pelangganData.forEach(p => window.db.run("INSERT INTO pelanggan (id, nama, hp, total_hutang, sisa_hutang) VALUES (?,?,?,?,?)", [p.id, p.nama, p.hp, p.total_hutang, p.sisa_hutang]));
+                    }
+
+                    const { data: hutangData } = await supabase.from('hutang').select('*').eq('user_id', window.currentUid);
+                    if (hutangData) {
+                        hutangData.forEach(h => window.db.run("INSERT INTO hutang (id, pelanggan_id, transaksi_id, total, sisa, tanggal) VALUES (?,?,?,?,?,?)", [h.id, h.pelanggan_id, h.transaksi_id, h.total, h.sisa, h.tanggal]));
+                    }
+
                     const { data: trxData } = await supabase.from('transaksi').select('*').eq('user_id', window.currentUid).order('tanggal', { ascending: false }).limit(200);
                     if (trxData) {
-                        trxData.reverse().forEach(t => window.db.run("INSERT INTO transaksi (id, tanggal, total, laba, metode_bayar) VALUES (?,?,?,?,?)", [t.id, t.tanggal.toString(), t.total, t.laba, t.metode_bayar]));
+                        trxData.reverse().forEach(t => window.db.run("INSERT INTO transaksi (id, tanggal, total, laba, metode_bayar, pelanggan_id) VALUES (?,?,?,?,?,?)", [t.id, t.tanggal.toString(), t.total, t.laba, t.metode_bayar, t.pelanggan_id]));
                         
                         const trxIds = trxData.map(t => t.id);
                         if(trxIds.length > 0) {
@@ -992,21 +1531,22 @@
         };
 
         function refreshDataUI() {
-            if(!window.db) return;
-            const res = window.db.exec("SELECT nama, stok, harga_jual, modal, id FROM barang ORDER BY nama ASC");
-            
-            if (res.length > 0) { 
-                window.masterData = res[0].values; 
-            } else {
-                window.masterData = [];
-            }
-            
-            localStorage.setItem(`poskita_master_cache_${window.currentUid}`, JSON.stringify(window.masterData));
-            
-            renderTable(window.masterData); 
-            window.renderStokTable(window.masterData); 
-            window.updateReports();
-        }
+    if(!window.db) return;
+    const res = window.db.exec("SELECT nama, stok, harga_jual, modal, id FROM barang ORDER BY nama ASC");
+    
+    if (res.length > 0) { 
+        window.masterData = res[0].values; 
+    } else {
+        window.masterData = [];
+    }
+    
+    localStorage.setItem(`poskita_master_cache_${window.currentUid}`, JSON.stringify(window.masterData));
+    
+    renderTable(window.masterData); 
+    window.renderStokTable(window.masterData); 
+    window.updateReports();
+    window.renderPelangganSelect(); // <--- TAMBAHKAN BARIS INI
+}
 
         window.minQty = (id) => {
             const el = document.getElementById(id);
@@ -1105,101 +1645,169 @@
             }
         };
 
-        window.setReportFilter = (type, dateVal = null) => {
-            if (!window.isPro && type === 'custom') {
-                return window.showUpgradeModal("Fitur filter tanggal sesuai keinginan (Custom Date) hanya tersedia untuk langganan PRO. Yuk upgrade!");
-            }
+        // Fungsi pencegat klik untuk user Free
+window.bukaKalenderPro = () => {
+    // 1. Cek apakah user Free? (Cegat di sini)
+    if (!window.isPro) {
+        return window.showUpgradeModal("Fitur filter tanggal sesuai keinginan (Custom Date) hanya tersedia untuk langganan PRO. Yuk upgrade!");
+    }
 
-            document.querySelectorAll('.filter-btn').forEach(b => {
-                b.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
-                b.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-200');
-            });
-            
-            const activeBtn = document.getElementById(`btn-filter-${type.replace('_','-')}`);
-            if(activeBtn) {
-                activeBtn.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200');
-                activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow-md');
-            }
+    // 2. Jika user PRO, buka kalender secara paksa lewat API bawaan browser
+    const dateInput = document.getElementById('input-date-custom');
+    if (dateInput) {
+        try {
+            // Perintah modern yang sangat ampuh untuk membuka kalender di mobile/web
+            dateInput.showPicker(); 
+        } catch (error) {
+            // Fallback (cadangan) untuk browser versi lama
+            dateInput.focus();
+            dateInput.click();
+        }
+    }
+};
 
-            const dateInput = document.getElementById('input-date-custom');
-            
-            if (type === 'custom') {
-                dateInput.classList.remove('hidden');
-                if (dateVal) window.currentCustomDate = dateVal;
-                if (!window.currentCustomDate) {
-                    if (dateInput.showPicker) dateInput.showPicker();
-                    return; 
-                }
-            } else {
-                dateInput.classList.add('hidden');
-            }
+// [Kode window.setReportFilter milik Mas tetap biarkan seperti semula, tidak usah diubah lagi]
 
-            window.currentReportFilter = type;
-            window.updateReports();
-        };
+      window.setReportFilter = (type, dateVal = null) => {
+    // 1. LOGIKA BADGE: Munculkan badge jika bukan PRO
+    const badgePro = document.getElementById('badge-pro-custom');
+    if (badgePro) {
+        if (window.isPro) {
+            badgePro.classList.add('hidden');
+        } else {
+            badgePro.classList.remove('hidden');
+        }
+    }
+
+    // 2. BLOKIR AKSES CUSTOM DATE UNTUK FREE
+    if (!window.isPro && type === 'custom') {
+        const inputDate = document.getElementById('input-date-custom');
+        if(inputDate) inputDate.value = ''; 
+        return window.showUpgradeModal("Fitur filter tanggal (Custom Date) hanya tersedia untuk langganan PRO.");
+    }
+
+    // 3. RESET & UPDATE WARNA TOMBOL
+    document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
+        b.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+    });
+    
+    const activeBtn = document.getElementById(`btn-filter-${type.replace('_','-')}`);
+    if(activeBtn) {
+        activeBtn.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+        activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+    }
+
+    // 4. UPDATE LABEL TANGGAL
+    const labelCustom = document.getElementById('label-filter-custom');
+    if (type === 'custom' && dateVal) {
+        window.currentCustomDate = dateVal;
+        const parts = dateVal.split('-');
+        if (parts.length === 3 && labelCustom) {
+            labelCustom.innerText = `📅 ${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+    } else if (labelCustom) {
+        labelCustom.innerText = "📅 Pilih Tanggal";
+    }
+
+    // 5. EKSEKUSI REKAPAN
+    window.currentReportFilter = type;
+    window.updateReports();
+};
 
         window.updateReports = () => {
-            if (!window.db) return;
-            
-            let startMs = 0;
-            let endMs = Date.now() + 86400000; 
-            const now = new Date();
-            let labelTabel = "History Transaksi";
-            
-            if (window.currentReportFilter === 'hari_ini') {
-                startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-                endMs = startMs + 86399999;
-                labelTabel = "Transaksi Hari Ini";
-            } 
-            else if (window.currentReportFilter === 'kemarin') {
-                startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).getTime();
-                endMs = startMs + 86399999;
-                labelTabel = "Transaksi Kemarin";
-            } 
-            else if (window.currentReportFilter === 'custom' && window.currentCustomDate) {
-                const [y, m, d] = window.currentCustomDate.split('-');
-                startMs = new Date(y, m - 1, d).getTime();
-                endMs = startMs + 86399999;
-                labelTabel = `Transaksi tgl ${d}/${m}/${y}`;
-            }
+    if (!window.db) return;
+    
+    let startMs = 0;
+    let endMs = Date.now() + 86400000; 
+    const now = new Date();
+    let labelTabel = "History Transaksi";
+    
+    if (window.currentReportFilter === 'hari_ini') {
+        startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        endMs = startMs + 86399999;
+        labelTabel = "Transaksi Hari Ini";
+    } 
+    else if (window.currentReportFilter === 'kemarin') {
+        startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).getTime();
+        endMs = startMs + 86399999;
+        labelTabel = "Transaksi Kemarin";
+    } 
+    else if (window.currentReportFilter === 'custom' && window.currentCustomDate) {
+        const [y, m, d] = window.currentCustomDate.split('-');
+        startMs = new Date(y, m - 1, d).getTime();
+        endMs = startMs + 86399999;
+        labelTabel = `Transaksi tgl ${d}/${m}/${y}`;
+    }
 
-            document.getElementById('tabel-judul-rekap').innerText = labelTabel;
+    document.getElementById('tabel-judul-rekap').innerText = labelTabel;
 
-            try {
-                const query = `SELECT tanggal, total, laba, id FROM transaksi WHERE CAST(tanggal AS UNSIGNED) >= ${startMs} AND CAST(tanggal AS UNSIGNED) <= ${endMs} ORDER BY CAST(tanggal AS UNSIGNED) DESC`;
-                const res = window.db.exec(query);
+    // AMBIL KEYWORD PENCARIAN NOTA
+    const searchInput = document.getElementById('search-nota');
+    const keyword = searchInput ? searchInput.value.trim() : '';
+    let keywordFilter = '';
+    if (keyword) {
+        // Kita cari berdasarkan ID transaksi yang mengandung angka yang diketik
+        keywordFilter = `AND CAST(t.id AS TEXT) LIKE '%${keyword}%'`;
+    }
+
+    try {
+        // QUERY BARU: Kita JOIN dengan transaksi_detail untuk men-SUM total qty (Item)
+        const query = `
+            SELECT t.tanggal, t.total, t.laba, t.id, SUM(td.qty) as total_item 
+            FROM transaksi t 
+            LEFT JOIN transaksi_detail td ON t.id = td.transaksi_id 
+            WHERE CAST(t.tanggal AS UNSIGNED) >= ${startMs} 
+              AND CAST(t.tanggal AS UNSIGNED) <= ${endMs} 
+              ${keywordFilter}
+            GROUP BY t.id 
+            ORDER BY CAST(t.tanggal AS UNSIGNED) DESC
+        `;
+        const res = window.db.exec(query);
+        
+        let omzet = 0, laba = 0, countTrx = 0;
+        const hBody = document.getElementById('history-body');
+        
+        if (res.length > 0) {
+            countTrx = res[0].values.length;
+            hBody.innerHTML = res[0].values.map(row => {
+                const d = new Date(parseInt(row[0]));
+                const totalBelanja = row[1];
+                const profit = row[2];
+                const trxId = row[3];
+                const totalItem = row[4] || 0; // Hasil penjumlahan QTY
+                const notaStr = trxId.toString().slice(-6); // Potong 6 angka terakhir buat nomor nota
+
+                omzet += totalBelanja; 
+                laba += profit;
                 
-                let omzet = 0, laba = 0, countTrx = 0;
-                const hBody = document.getElementById('history-body');
-                
-                if (res.length > 0) {
-                    countTrx = res[0].values.length;
-                    hBody.innerHTML = res[0].values.map(row => {
-                        omzet += row[1]; laba += row[2];
-                        const d = new Date(parseInt(row[0]));
-                        const trxId = row[3];
-                        
-                        return `
-                        <tr class="tr-item hover:bg-slate-100" onclick="window.bukaDetailTransaksi('${trxId}')">
-                            <td class="p-3 pl-4 whitespace-nowrap">
-                                <p class="text-slate-800 font-bold text-[10px] md:text-xs">${d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}</p>
-                                <p class="text-[8px] md:text-[9px] text-slate-400 font-medium mt-0.5">${d.toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</p>
-                            </td>
-                            <td class="p-3 text-right font-black text-blue-700 text-[10px] md:text-xs whitespace-nowrap">Rp ${row[1].toLocaleString()}</td>
-                            <td class="p-3 pr-4 text-right text-emerald-600 font-black text-[10px] md:text-xs whitespace-nowrap">Rp ${row[2].toLocaleString()}</td>
-                        </tr>`;
-                    }).join('');
-                } else {
-                    hBody.innerHTML = `<tr><td colspan="3" class="p-8 md:p-10 text-center text-slate-400 text-[10px] md:text-xs italic font-medium"><div class="text-2xl md:text-3xl mb-2 grayscale opacity-40">📭</div>Belum ada transaksi di periode ini.</td></tr>`;
-                }
+                return `
+                <tr class="tr-item hover:bg-slate-100 cursor-pointer transition-colors" onclick="window.bukaDetailTransaksi('${trxId}')">
+                    <td class="p-3 pl-4 whitespace-nowrap">
+                        <p class="text-slate-800 font-black text-[10px] md:text-xs">NOTA #${notaStr}</p>
+                        <p class="text-[8px] md:text-[9px] text-slate-400 font-medium mt-0.5">${d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} • ${d.toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</p>
+                    </td>
+                    <td class="p-3 text-center whitespace-nowrap">
+                        <span class="bg-blue-50 border border-blue-100 text-blue-600 px-2.5 py-1 rounded-lg text-[9px] md:text-[10px] font-black">${totalItem} Item</span>
+                    </td>
+                    <td class="p-3 pr-4 text-right whitespace-nowrap">
+                        <p class="font-black text-slate-800 text-[10px] md:text-xs">Rp ${totalBelanja.toLocaleString('id-ID')}</p>
+                        <p class="text-[8px] md:text-[9px] text-emerald-500 font-black mt-0.5">+Rp ${profit.toLocaleString('id-ID')}</p>
+                    </td>
+                </tr>`;
+            }).join('');
+        } else {
+            hBody.innerHTML = `<tr><td colspan="3" class="p-8 md:p-10 text-center text-slate-400 text-[10px] md:text-xs italic font-medium"><div class="text-2xl md:text-3xl mb-2 grayscale opacity-40">📭</div>Tidak ada transaksi.</td></tr>`;
+        }
 
-                document.getElementById('stat-omzet').innerText = "Rp " + omzet.toLocaleString();
-                document.getElementById('stat-laba').innerText = "Rp " + laba.toLocaleString();
-                document.getElementById('tabel-count-rekap').innerText = countTrx + " Trx";
-            } catch (e) {
-                console.log(e);
-            }
-        };
+        // Update Dashboard atas
+        document.getElementById('stat-omzet').innerText = "Rp " + omzet.toLocaleString('id-ID');
+        document.getElementById('stat-laba').innerText = "Rp " + laba.toLocaleString('id-ID');
+        document.getElementById('tabel-count-rekap').innerText = countTrx + " Trx";
+    } catch (e) {
+        console.log("Error Load Laporan:", e);
+    }
+};
 
         window.bukaDetailTransaksi = (trxId) => {
             try {
@@ -1603,48 +2211,128 @@
             }
         };
 
-        document.getElementById('btn-proses-bayar').onclick = async () => {
-            if (!window.kasirAktif) {
-                alert("Harap BUKA KASIR terlebih dahulu sebelum melakukan transaksi.");
-                window.switchPage('kasir');
-                return;
-            }
+        window.showPaymentModal = () => {
+    const total = document.getElementById('cart-total').innerText;
+    const pelangganId = document.getElementById('select-pelanggan').value;
+    
+    document.getElementById('pay-total-display').innerText = total;
+    
+    // Reset input uang
+    document.getElementById('input-uang-bayar').value = "";
+    
+    document.getElementById('modal-pembayaran').classList.remove('hidden');
+    
+    // Matikan tombol hutang jika pelanggan belum dipilih
+    const btnHutang = document.getElementById('btn-pay-hutang');
+    if (!pelangganId) {
+        btnHutang.classList.add('opacity-40', 'grayscale');
+        btnHutang.title = "Pilih pelanggan dulu di keranjang";
+    } else {
+        btnHutang.classList.remove('opacity-40', 'grayscale');
+        btnHutang.title = "";
+    }
 
-            if(!confirm("Proses transaksi ini?")) return;
-            
-            const ts = Date.now();
-            let totalB = 0, totalL = 0;
-            window.cart.forEach(i => { totalB += (i.harga * i.qty); totalL += ((i.harga - i.modal) * i.qty); });
-            
-            window.db.run("INSERT INTO transaksi (id, tanggal, total, laba, metode_bayar) VALUES (?,?,?,?,?)", [ts, ts.toString(), totalB, totalL, "Tunai"]);
-            
-            let detailIndex = 1;
-            for (let i of window.cart) {
-                window.db.run("UPDATE barang SET stok = stok - ? WHERE id = ?", [i.qty, i.id]);
-                window.db.run("INSERT INTO transaksi_detail (id, transaksi_id, barang_id, qty, harga, modal) VALUES (?,?,?,?,?,?)", 
-                             [ts + detailIndex, ts, i.id, i.qty, i.harga, i.modal]);
-                detailIndex++;
-            }
+    // Auto-focus ke inputan uang
+    setTimeout(() => document.getElementById('input-uang-bayar').focus(), 100);
+};
 
-            const payload = { ts: ts, totalB: totalB, totalL: totalL, metode: "Tunai", uid: window.currentUid, cart: [...window.cart] };
-            
-            window.cart = [];
-            renderCart();
-            refreshDataUI();
-            if(window.innerWidth < 768) window.toggleCart();
+window.eksekusiBayar = async (metode) => {
+    const pelangganId = document.getElementById('select-pelanggan').value || null;
+    
+    // 1. Ambil nominal uang yang dimasukkan (Tunai atau DP)
+    const valBayar = document.getElementById('input-uang-bayar').value.replace(/\./g, '');
+    const uangBayar = parseInt(valBayar) || 0;
 
-            if (navigator.onLine) {
-                try {
-                    await window.pushTransaksiToCloud(payload);
-                } catch(e) {
-                    window.offlineQueue.transaksi.push(payload);
-                    window.saveQueue();
-                }
-            } else {
-                window.offlineQueue.transaksi.push(payload);
-                window.saveQueue();
-            }
-        };
+    let totalB = 0, totalL = 0;
+    window.cart.forEach(i => { totalB += (i.harga * i.qty); totalL += ((i.harga - i.modal) * i.qty); });
+
+    // 2. Validasi Cerdas
+    if (metode === 'Tunai' && uangBayar > 0 && uangBayar < totalB) {
+        return alert("⚠️ Uang tunai kurang! Jika bayar sebagian, silakan pilih metode 'Kasbon / Hutang'.");
+    }
+    if (metode === 'Hutang' && uangBayar >= totalB) {
+        return alert("⚠️ Uang DP melebihi/sama dengan tagihan! Silakan pilih metode 'Tunai / Lunas'.");
+    }
+    if (metode === 'Hutang' && !pelangganId) {
+        alert("⚠️ Pilih nama pelanggan terlebih dahulu di bagian atas keranjang!");
+        document.getElementById('modal-pembayaran').classList.add('hidden');
+        return;
+    }
+
+    document.getElementById('modal-pembayaran').classList.add('hidden');
+    const ts = Date.now();
+    
+    // SIMPAN TRANSAKSI
+    window.db.run("INSERT INTO transaksi (id, tanggal, total, laba, metode_bayar, pelanggan_id) VALUES (?,?,?,?,?,?)", [ts, ts.toString(), totalB, totalL, metode, pelangganId]);
+    
+    // SIMPAN HUTANG JIKA KASBON
+    if (metode === 'Hutang') {
+        const hutangId = "H-" + ts;
+        const sisaHutang = totalB - uangBayar; // Logika: Sisa Hutang = Total - DP
+
+        window.db.run("INSERT INTO hutang (id, pelanggan_id, transaksi_id, total, sisa, tanggal) VALUES (?,?,?,?,?,?)", [hutangId, pelangganId, ts, totalB, sisaHutang, ts.toString()]);
+        window.db.run("UPDATE pelanggan SET total_hutang = total_hutang + ?, sisa_hutang = sisa_hutang + ? WHERE id = ?", [totalB, sisaHutang, pelangganId]);
+        
+        window.offlineQueue.hutang.push({
+            id: hutangId, pelanggan_id: pelangganId, transaksi_id: ts, total: totalB, sisa: sisaHutang, tanggal: ts.toString(), user_id: window.currentUid
+        });
+
+        // JIKA ADA DP: Langsung buatkan history cicilan otomatis di DB!
+        if (uangBayar > 0) {
+            const cicilanId = "C-" + ts + "-DP";
+            window.db.run("INSERT INTO cicilan (id, hutang_id, jumlah, tanggal) VALUES (?,?,?,?)", [cicilanId, hutangId, uangBayar, ts.toString()]);
+            window.offlineQueue.cicilan.push({
+                id: cicilanId, hutang_id: hutangId, jumlah: uangBayar, tanggal: ts.toString(), user_id: window.currentUid
+            });
+        }
+        
+        const resPlg = window.db.exec("SELECT nama, hp, total_hutang, sisa_hutang FROM pelanggan WHERE id=?", [pelangganId]);
+        if(resPlg.length > 0) {
+            const p = resPlg[0].values[0];
+            window.offlineQueue.pelanggan = window.offlineQueue.pelanggan.filter(x => x.id !== pelangganId);
+            window.offlineQueue.pelanggan.push({
+                id: pelangganId, nama: p[0], hp: p[1], total_hutang: p[2], sisa_hutang: p[3], user_id: window.currentUid
+            });
+        }
+        window.saveQueue();
+    }
+
+    let detailIndex = 1;
+    for (let i of window.cart) {
+        window.db.run("UPDATE barang SET stok = stok - ? WHERE id = ?", [i.qty, i.id]);
+        window.db.run("INSERT INTO transaksi_detail (id, transaksi_id, barang_id, qty, harga, modal) VALUES (?,?,?,?,?,?)", 
+                     [ts + detailIndex, ts, i.id, i.qty, i.harga, i.modal]);
+        detailIndex++;
+    }
+
+    const payload = { ts: ts, totalB: totalB, totalL: totalL, metode: metode, pelanggan_id: pelangganId, uid: window.currentUid, cart: [...window.cart] };
+    
+    window.cart = [];
+    window.renderCart();
+    refreshDataUI(); 
+    
+    if(window.innerWidth < 768) window.toggleCart();
+
+    if (navigator.onLine) {
+        try {
+            await window.pushTransaksiToCloud(payload);
+            window.processOfflineQueue(); 
+        } catch(e) {
+            window.offlineQueue.transaksi.push(payload);
+            window.saveQueue();
+        }
+    } else {
+        window.offlineQueue.transaksi.push(payload);
+        window.saveQueue();
+    }
+
+    // Tampilkan notif kembalian atau info DP
+    if (metode === 'Tunai' && uangBayar > totalB) {
+        alert(`✅ LUNAS!\nKembalian: Rp ${(uangBayar - totalB).toLocaleString('id-ID')}`);
+    } else if (metode === 'Hutang' && uangBayar > 0) {
+        alert(`📒 HUTANG + DP TERCATAT!\nTotal: Rp ${totalB.toLocaleString('id-ID')}\nDP Dibayar: Rp ${uangBayar.toLocaleString('id-ID')}\nSisa Tagihan: Rp ${(totalB - uangBayar).toLocaleString('id-ID')}`);
+    }
+};
 
         document.getElementById('btn-logout').onclick = () => {
             const shiftCount = (window.offlineQueue.shift || []).length;
@@ -1667,18 +2355,83 @@
             }
         };
 
-        document.getElementById('search-barang').oninput = (e) => {
+        // --- LOGIC PENCARIAN KASIR ---
+        const inputBarang = document.getElementById('search-barang');
+        inputBarang.oninput = (e) => {
             const val = e.target.value.toLowerCase();
-            document.getElementById('clear-search-barang').classList.toggle('hidden', val === '');
             renderTable(window.masterData.filter(r => r[0].toLowerCase().includes(val)));
         };
-
-        document.getElementById('search-stok').oninput = (e) => {
-            const val = e.target.value.toLowerCase();
-            document.getElementById('clear-search-stok').classList.toggle('hidden', val === '');
-            window.renderStokTable(window.masterData.filter(r => r[0].toLowerCase().includes(val)));
+        inputBarang.onfocus = (e) => {
+            e.target.value = ''; 
+            renderTable(window.masterData); 
         };
 
+        // --- LOGIC PENCARIAN STOK/GUDANG ---
+        const inputStok = document.getElementById('search-stok');
+        inputStok.oninput = (e) => {
+            const val = e.target.value.toLowerCase();
+            window.renderStokTable(window.masterData.filter(r => r[0].toLowerCase().includes(val)));
+        };
+        inputStok.onfocus = (e) => {
+            e.target.value = '';
+            window.renderStokTable(window.masterData);
+        };
+
+        // --- LOGIC NAVIGASI KEYBOARD KASIR ---
+        window.selectedIndex = -1;
+
+        document.addEventListener('keydown', (e) => {
+            const activePage = document.querySelector('.page-active')?.id;
+            if (activePage !== 'menu-kasir') return;
+
+            const rows = document.querySelectorAll('#table-body tr');
+            if (rows.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                window.selectedIndex = Math.min(window.selectedIndex + 1, rows.length - 1);
+                updateRowSelection(rows);
+            } 
+            else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                window.selectedIndex = Math.max(window.selectedIndex - 1, 0);
+                updateRowSelection(rows);
+            } 
+            else if (e.key === 'Enter') {
+                if (window.selectedIndex >= 0) {
+                    const selectedRow = rows[window.selectedIndex];
+                    const qtyInput = selectedRow.querySelector('input[type="number"]');
+                    const addBtn = selectedRow.querySelector('button[onclick*="addQtyToCart"]');
+
+                    if (document.activeElement !== qtyInput) {
+                        e.preventDefault();
+                        qtyInput.focus();
+                        qtyInput.select();
+                    } else {
+                        e.preventDefault();
+                        addBtn.click();
+                        window.selectedIndex = -1;
+                        document.getElementById('search-barang').focus();
+                    }
+                }
+            }
+            else if (e.key === 'Escape') {
+                window.selectedIndex = -1;
+                updateRowSelection(rows);
+                document.getElementById('search-barang').focus();
+            }
+        });
+
+        function updateRowSelection(rows) {
+            rows.forEach((row, idx) => {
+                if (idx === window.selectedIndex) {
+                    row.classList.add('bg-blue-100', 'ring-2', 'ring-blue-400', 'ring-inset');
+                    row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                } else {
+                    row.classList.remove('bg-blue-100', 'ring-2', 'ring-blue-400', 'ring-inset');
+                }
+            });
+        }
     </script>
 </body>
 </html>
