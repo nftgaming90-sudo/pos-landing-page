@@ -2179,7 +2179,20 @@ window.bukaKalenderPro = () => {
 };
 
         window.clearCart = () => { if(confirm("Kosongkan keranjang?")) { window.cart = []; renderCart(); } };
-        window.toggleCart = () => document.getElementById('cart-section').classList.toggle('active');
+        window.toggleCart = () => {
+    const cartSection = document.getElementById('cart-section');
+    const isActive = cartSection.classList.toggle('active');
+
+    if (isActive) {
+        // Tambahkan "status" di history browser saat keranjang buka
+        history.pushState({ cartOpen: true }, "");
+    } else {
+        // Jika ditutup manual lewat tombol UX, pastikan history dibersihkan
+        if (history.state && history.state.cartOpen) {
+            history.back();
+        }
+    }
+};
         window.closeModal = () => document.getElementById('modal-barang').classList.add('hidden');
         
         window.openAddModal = () => {
@@ -2540,6 +2553,17 @@ window.cart.forEach(i => {
                 }
             });
         }
+
+        // Mencegat tombol Back bawaan HP
+window.addEventListener('popstate', (event) => {
+    const cartSection = document.getElementById('cart-section');
+    
+    // Jika keranjang sedang terbuka (punya class 'active')
+    if (cartSection.classList.contains('active')) {
+        // Tutup keranjangnya tanpa memicu history.back() lagi
+        cartSection.classList.remove('active');
+    }
+});
     </script>
 </body>
 </html>
