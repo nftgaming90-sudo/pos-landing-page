@@ -1579,22 +1579,27 @@ window.renderPelangganSelect = () => {
         };
 
         window.addQtyToCart = (id, nama, harga, stok, modal, inputId) => {
-            const el = document.getElementById(inputId);
-            const qtyToAdd = parseInt(el.value) || 1;
-            
-            if (stok < qtyToAdd) return alert("Stok gudang tidak mencukupi!");
-            
-            const exist = window.cart.find(i => i.id === id);
-            if (exist) { 
-                if (exist.qty + qtyToAdd > stok) return alert("Total di keranjang melebihi sisa stok!"); 
-                exist.qty += qtyToAdd; 
-            } else { 
-                window.cart.push({ id, nama, harga, modal, qty: qtyToAdd }); 
-            }
-            
-            el.value = 1; 
-            renderCart();
-        };
+    const el = document.getElementById(inputId);
+    const qtyToAdd = parseInt(el.value) || 1;
+    
+    if (stok < qtyToAdd) return alert("Stok gudang tidak mencukupi!");
+    
+    const exist = window.cart.find(i => i.id === id);
+    if (exist) { 
+        if (exist.qty + qtyToAdd > stok) return alert("Total di keranjang melebihi sisa stok!"); 
+        exist.qty += qtyToAdd; 
+    } else { 
+        // Tambahkan property diskon default 0
+        window.cart.push({ 
+            id, nama, harga, modal, qty: qtyToAdd, 
+            diskon: 0, 
+            tipeDiskon: 'nominal' // default potongan harga langsung
+        }); 
+    }
+    
+    el.value = 1; 
+    renderCart();
+};
 
         function renderTable(dataArray) {
             const tbody = document.getElementById('table-body');
@@ -2109,34 +2114,54 @@ window.bukaKalenderPro = () => {
             let total = 0;
             container.innerHTML = window.cart.map((item, index) => {
                 total += (item.harga * item.qty);
-                return `
-                <div class="bg-white p-3 md:p-3.5 rounded-xl md:rounded-2xl flex flex-col gap-2.5 border border-slate-100 shadow-sm relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-2xl"></div>
-                    
-                    <div class="flex justify-between items-start pl-2">
-                        <div>
-                            <p class="font-black text-slate-700 text-[10px] md:text-xs uppercase tracking-tight">${item.nama}</p>
-                            <div class="flex items-center gap-1 mt-1">
-                                <span class="text-[9px] md:text-[10px] text-slate-400 font-bold">@ Rp</span>
-                                <input type="text" inputmode="numeric" value="${window.formatAngka(item.harga)}" 
-                                    onblur="window.updateCartPrice(${index}, this.value)"
-                                    onfocus="this.select()"
-                                    class="w-16 md:w-20 text-[10px] md:text-xs font-bold text-blue-600 border-b border-dashed border-blue-300 outline-none focus:border-blue-600 focus:bg-blue-50 transition-all bg-transparent py-0.5">
-                                <span class="text-[8px] text-slate-300 ml-1">✏️</span>
-                            </div>
-                        </div>
-                        <button onclick="window.hapusCartItem(${index})" class="text-slate-300 hover:text-rose-500 text-lg md:text-lg w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-full hover:bg-rose-50 transition-colors">✕</button>
-                    </div>
+                // ... di dalam map window.cart ...
+return `
+<div class="bg-white p-3 md:p-3.5 rounded-xl md:rounded-2xl flex flex-col gap-2.5 border border-slate-100 shadow-sm relative overflow-hidden group">
+    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-2xl"></div>
+    
+    <div class="flex justify-between items-start pl-2">
+        <div class="flex-1">
+            <p class="font-black text-slate-700 text-[10px] md:text-xs uppercase tracking-tight">${item.nama}</p>
+            
+            <div class="flex flex-wrap items-center gap-2 mt-1">
+                <div class="flex items-center gap-1">
+                    <span class="text-[9px] text-slate-400 font-bold">@Rp</span>
+                    <input type="text" value="${window.formatAngka(item.harga)}" 
+                        onblur="window.updateCartPrice(${index}, this.value)"
+                        class="w-16 text-[10px] font-bold text-blue-600 border-b border-dashed border-blue-200 outline-none bg-transparent">
+                </div>
 
-                    <div class="flex justify-between items-center pl-2 border-t border-slate-50 pt-2.5">
-                        <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50 shadow-sm">
-                            <button onclick="window.updateCartQty(${index}, -1)" class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-slate-500 font-black hover:bg-slate-200 transition-colors">-</button>
-                            <span class="w-8 md:w-10 text-center text-[10px] md:text-xs font-black text-slate-700 bg-white py-1">${item.qty}</span>
-                            <button onclick="window.updateCartQty(${index}, 1)" class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-slate-500 font-black hover:bg-slate-200 transition-colors">+</button>
-                        </div>
-                        <span class="font-black text-slate-800 text-xs md:text-sm">Rp ${(item.harga * item.qty).toLocaleString('id-ID')}</span>
-                    </div>
-                </div>`;
+                <div class="flex items-center bg-rose-50 px-1.5 py-0.5 rounded-lg border border-rose-100">
+                    <span class="text-[8px] font-black text-rose-400 mr-1">OFF</span>
+<input type="number" value="${item.diskon}" 
+    onblur="window.updateCartDiscount(${index}, this.value)"
+    onfocus="this.select()"
+    class="w-10 text-[10px] font-black text-rose-600 bg-transparent outline-none">
+                    <select onchange="window.updateCartDiscountType(${index}, this.value)" 
+                        class="bg-transparent text-[9px] font-black text-rose-600 outline-none cursor-pointer">
+                        <option value="nominal" ${item.tipeDiskon === 'nominal' ? 'selected' : ''}>Rp</option>
+                        <option value="persen" ${item.tipeDiskon === 'persen' ? 'selected' : ''}>%</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <button onclick="window.hapusCartItem(${index})" class="text-slate-300 hover:text-rose-500 text-lg w-7 h-7 flex items-center justify-center rounded-full">✕</button>
+    </div>
+
+    <div class="flex justify-between items-center pl-2 border-t border-slate-50 pt-2.5">
+        <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50 shadow-sm">
+            <button onclick="window.updateCartQty(${index}, -1)" class="w-7 h-7 flex items-center justify-center text-slate-500 font-black">-</button>
+            <span class="w-8 text-center text-[10px] font-black text-slate-700 bg-white py-1">${item.qty}</span>
+            <button onclick="window.updateCartQty(${index}, 1)" class="w-7 h-7 flex items-center justify-center text-slate-500 font-black">+</button>
+        </div>
+        
+        <div class="text-right">
+            <span class="font-black text-slate-800 text-xs md:text-sm">
+                Rp ${window.hitungSubtotalItem(item).toLocaleString('id-ID')}
+            </span>
+        </div>
+    </div>
+</div>`;
             }).join('');
             totalEl.innerText = "Rp " + total.toLocaleString('id-ID');
             document.getElementById('btn-proses-bayar').disabled = false;
@@ -2254,6 +2279,39 @@ window.bukaKalenderPro = () => {
     setTimeout(() => document.getElementById('input-uang-bayar').focus(), 100);
 };
 
+// Fungsi hitung subtotal per baris item (setelah diskon)
+window.hitungSubtotalItem = (item) => {
+    let potong = 0;
+    if (item.tipeDiskon === 'persen') {
+        potong = (item.harga * item.diskon / 100);
+    } else {
+        potong = item.diskon;
+    }
+    const hargaNetto = item.harga - potong;
+    return hargaNetto * item.qty;
+};
+
+// Update Nilai Diskon
+window.updateCartDiscount = (index, val) => {
+    const num = parseInt(val) || 0;
+    // Cek dulu, kalau nilainya sama, nggak usah render ulang biar gak kedip
+    if (window.cart[index].diskon === num) return;
+    
+    window.cart[index].diskon = num;
+    renderCart();
+};
+
+window.updateCartDiscountType = (index, val) => {
+    // Kalau tipe ganti (Rp ke %), ini aman langsung render karena pake <select>
+    window.cart[index].tipeDiskon = val;
+    renderCart();
+};
+
+// Perbaiki perhitungan TOTAL AKHIR di renderCart
+// Cari baris: total += (item.harga * item.qty);
+// GANTI JADI:
+// total += window.hitungSubtotalItem(item);
+
 window.eksekusiBayar = async (metode) => {
     const pelangganId = document.getElementById('select-pelanggan').value || null;
     
@@ -2262,7 +2320,12 @@ window.eksekusiBayar = async (metode) => {
     const uangBayar = parseInt(valBayar) || 0;
 
     let totalB = 0, totalL = 0;
-    window.cart.forEach(i => { totalB += (i.harga * i.qty); totalL += ((i.harga - i.modal) * i.qty); });
+window.cart.forEach(i => { 
+    const subtotal = window.hitungSubtotalItem(i);
+    totalB += subtotal; 
+    // Laba = Subtotal (setelah diskon) - (Modal * Qty)
+    totalL += (subtotal - (i.modal * i.qty)); 
+});
 
     // 2. Validasi Cerdas
     if (metode === 'Tunai' && uangBayar > 0 && uangBayar < totalB) {
