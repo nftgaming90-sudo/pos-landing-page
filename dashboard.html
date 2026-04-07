@@ -79,7 +79,7 @@
 
         /* Floating Button Cart diatur agar tidak tabrakan dengan Nav */
         #floating-cart-btn {
-            bottom: 85px !important; 
+            
         }
     }
 
@@ -392,10 +392,25 @@
         </section>
     </main>
 
-    <button id="floating-cart-btn" onclick="window.toggleCart()" 
-        class="md:hidden fixed bottom-6 right-4 z-40 hidden bg-gradient-to-br from-blue-600 to-blue-800 text-white w-14 h-14 rounded-2xl shadow-[0_10px_25px_-5px_rgba(29,78,216,0.5)] flex items-center justify-center text-2xl border-[3px] border-white transition-transform active:scale-90">
-        🛒 <span id="mobile-cart-count" class="absolute -top-2.5 -right-2.5 bg-rose-500 text-white text-[11px] w-7 h-7 flex items-center justify-center rounded-full font-black border-2 border-white shadow-sm">0</span>
-    </button>
+    <div id="floating-cart-btn" onclick="window.toggleCart()" 
+    class="md:hidden fixed bottom-[75px] left-4 right-4 z-40 hidden bg-blue-700 text-white h-14 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.2)] flex items-center justify-between px-4 border border-blue-500 transition-transform active:scale-[0.98]">
+    
+    <div class="flex items-center gap-3">
+        <div class="relative">
+            <span class="text-xl">🛒</span>
+            <span id="mobile-cart-count" class="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full font-black border-2 border-blue-700">0</span>
+        </div>
+        <div class="flex flex-col">
+            <span id="mobile-item-count" class="text-[9px] font-black uppercase tracking-widest text-blue-200">0 Items</span>
+            <span id="mobile-cart-total" class="text-sm font-black tracking-tight">Rp 0</span>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+        <span class="text-[10px] font-black uppercase tracking-widest bg-blue-800 px-2 py-1 rounded-lg">Buka Kasir</span>
+        <span class="text-xs">➜</span>
+    </div>
+</div>
 
     <div id="modal-buka-kasir" class="fixed inset-0 z-[150] flex items-center justify-center hidden bg-slate-900/80 backdrop-blur-sm p-4 transition-opacity no-print">
         <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-sm overflow-hidden transform transition-transform">
@@ -2101,7 +2116,7 @@ window.bukaKalenderPro = () => {
             renderCart();
         };
 
-        window.renderCart = () => {
+       window.renderCart = () => {
     if(window.currentUid) localStorage.setItem(`poskita_cart_${window.currentUid}`, JSON.stringify(window.cart));
     
     const container = document.getElementById('cart-items');
@@ -2109,21 +2124,28 @@ window.bukaKalenderPro = () => {
     const badge = document.getElementById('mobile-cart-count');
     const count = window.cart.reduce((sum, i) => sum + i.qty, 0);
     
+    // Update badge/count
     if(badge) badge.innerText = count;
 
+    // Jika keranjang kosong
     if (window.cart.length === 0) {
         container.innerHTML = `<div class="flex flex-col items-center justify-center h-full min-h-[140px] md:min-h-[160px] opacity-30"><span class="text-4xl md:text-5xl mb-2.5 md:mb-3 grayscale">🛒</span><p class="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500">Keranjang Kosong</p></div>`;
         totalEl.innerText = "Rp 0";
         document.getElementById('btn-proses-bayar').disabled = true;
+        
+        // Sembunyikan floating bar kalau keranjang kosong
+        const floatingBar = document.getElementById('floating-cart-btn');
+        if (floatingBar) floatingBar.classList.add('hidden');
+        
         return;
     }
 
     let total = 0;
     container.innerHTML = window.cart.map((item, index) => {
-        // Pindahkan logika penentuan display ke DALAM map
+        // Logika penentuan display diskon
         const displayDiskon = item.tipeDiskon === 'persen' ? item.diskon : window.formatAngka(item.diskon);
         
-        // Gunakan fungsi hitungSubtotalItem yang sudah kita buat sebelumnya
+        // Hitung subtotal
         const subtotalBaris = window.hitungSubtotalItem(item);
         total += subtotalBaris;
 
@@ -2146,13 +2168,13 @@ window.bukaKalenderPro = () => {
                         <div class="flex items-center bg-rose-50 px-1.5 py-0.5 rounded-lg border border-rose-100">
                             <span class="text-[8px] font-black text-rose-400 mr-1">OFF</span>
                             
-<input type="text" 
-    inputmode="numeric" 
-    value="${displayDiskon}" 
-    oninput="this.value = window.formatDiskonLive(this, ${index})"
-    onblur="window.updateCartDiscount(${index}, this.value)"
-    onfocus="this.select()"
-    class="w-16 text-[10px] font-black text-rose-600 bg-transparent outline-none">
+                            <input type="text" 
+                                inputmode="numeric" 
+                                value="${displayDiskon}" 
+                                oninput="this.value = window.formatDiskonLive(this, ${index})"
+                                onblur="window.updateCartDiscount(${index}, this.value)"
+                                onfocus="this.select()"
+                                class="w-16 text-[10px] font-black text-rose-600 bg-transparent outline-none">
                             <select onchange="window.updateCartDiscountType(${index}, this.value)" 
                                 class="bg-transparent text-[9px] font-black text-rose-600 outline-none cursor-pointer">
                                 <option value="nominal" ${item.tipeDiskon === 'nominal' ? 'selected' : ''}>Rp</option>
@@ -2179,8 +2201,26 @@ window.bukaKalenderPro = () => {
         </div>`;
     }).join('');
 
+    // Update panel total di Sidebar (Versi Desktop)
     totalEl.innerText = "Rp " + total.toLocaleString('id-ID');
     document.getElementById('btn-proses-bayar').disabled = false;
+
+    // --- UPDATE FLOATING BAR (Versi Mobile HP) ---
+    const mobileItemText = document.getElementById('mobile-item-count');
+    const mobileTotalText = document.getElementById('mobile-cart-total');
+    const floatingBar = document.getElementById('floating-cart-btn');
+
+    if(mobileItemText) mobileItemText.innerText = `${count} Items`;
+    if(mobileTotalText) mobileTotalText.innerText = `Rp ${total.toLocaleString('id-ID')}`;
+
+    // Logika Pintar: Hanya munculkan Floating Bar jika di halaman KASIR dan keranjang ada isinya
+    if (floatingBar) {
+        if (count > 0 && document.querySelector('.page-active')?.id === 'menu-kasir') {
+            floatingBar.classList.remove('hidden');
+        } else {
+            floatingBar.classList.add('hidden');
+        }
+    }
 };
 
         window.clearCart = () => { if(confirm("Kosongkan keranjang?")) { window.cart = []; renderCart(); } };
