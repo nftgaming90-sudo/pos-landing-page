@@ -1,7 +1,7 @@
 {
   "name": "PosKita Mobile Vendor",
   "short_name": "PosKita",
-  "start_url": ".",
+  "start_url": "/index.html", 
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1d4ed8",
