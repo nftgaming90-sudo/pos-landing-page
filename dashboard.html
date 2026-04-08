@@ -2261,6 +2261,45 @@
                 printArea.innerHTML = htmlContent;
                 printArea.classList.add('show-capture');
 
+                // 1. Logika Tombol Bagikan (Share API)
+document.getElementById('btn-share-rekap').onclick = async () => {
+    const btn = document.getElementById('btn-share-rekap');
+    const originalText = btn.innerHTML;
+    btn.innerText = "MENYIAPKAN...";
+    
+    try {
+        const area = document.getElementById('struk-rekap-capture');
+        // Render element HTML rekap menjadi gambar
+        const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#ffffff" });
+        
+        canvas.toBlob(async (blob) => {
+            const fileName = `Rekap-${window.currentReportFilter}-${Date.now()}.png`;
+            const file = new File([blob], fileName, { type: "image/png" });
+
+            // Cek apakah browser support berbagi file (terutama di HP)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'Rekap Penjualan LabaGo',
+                    text: `Laporan Rekap: ${labelTabel}`
+                });
+            } else {
+                // Jika di Desktop (tidak support share), otomatis download saja
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                alert("Browser tidak mendukung share langsung. Gambar telah diunduh.");
+            }
+            btn.innerHTML = originalText;
+        }, 'image/png');
+    } catch (err) {
+        console.error(err);
+        btn.innerHTML = originalText;
+        alert("Gagal memproses gambar.");
+    }
+};
+
                 // Fungsi Simpan Gambar
                 document.getElementById('btn-do-capture').onclick = async () => {
                     const btn = document.getElementById('btn-do-capture');
