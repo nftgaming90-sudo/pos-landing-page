@@ -398,20 +398,15 @@
                 <div class="p-3 md:p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
                     <span id="tabel-judul-rekap" class="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-200">History Transaksi</span>
                     
-                    <div class="grid grid-cols-3 gap-2 mb-6 shrink-0">
-    <button onclick="window.printRekap('print')" class="flex flex-col items-center justify-center gap-1 bg-slate-800 hover:bg-slate-900 text-white p-3 rounded-2xl shadow-sm transition-all active:scale-95 border border-slate-700">
-        <span class="text-xl">🖨️</span>
-        <span class="text-[9px] font-black uppercase tracking-tighter">Print</span>
+                    <div class="grid grid-cols-2 gap-2 mb-6 shrink-0">
+    <button onclick="window.printRekap('print')" class="flex items-center justify-center gap-2 bg-slate-800 text-white p-3 rounded-2xl shadow-sm active:scale-95 border border-slate-700">
+        <span class="text-lg">🖨️</span>
+        <span class="text-[10px] font-black uppercase tracking-widest">Print Struk</span>
     </button>
     
-    <button onclick="window.printRekap('wa_text')" class="flex flex-col items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-2xl shadow-sm transition-all active:scale-95 border border-emerald-500">
-        <span class="text-xl">💬</span>
-        <span class="text-[9px] font-black uppercase tracking-tighter">Kirim WA</span>
-    </button>
-    
-    <button onclick="window.printRekap('image')" class="flex flex-col items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-2xl shadow-sm transition-all active:scale-95 border border-blue-500">
-        <span class="text-xl">📸</span>
-        <span class="text-[9px] font-black uppercase tracking-tighter">Gambar</span>
+    <button onclick="window.printRekap('preview_image')" class="flex items-center justify-center gap-2 bg-blue-600 text-white p-3 rounded-2xl shadow-sm active:scale-95 border border-blue-500">
+        <span class="text-lg">📸</span>
+        <span class="text-[10px] font-black uppercase tracking-widest">Buat Gambar</span>
     </button>
 </div>
                 </div>
@@ -2024,159 +2019,105 @@
     window.printRekap = async (mode = 'print') => {
             if (!window.db) return;
 
-            // --- AMBIL DATA (Logic ini tetap sama) ---
+            // --- AMBIL DATA (Logic query tetap sama) ---
             let startMs = 0;
-            let endMs = Date.now() + 86400000; 
             const now = new Date();
             let labelTabel = "REKAPAN PENJUALAN";
-            
             if (window.currentReportFilter === 'hari_ini') {
                 startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-                endMs = startMs + 86399999;
                 labelTabel = "REKAP BARANG HARI INI";
             } else if (window.currentReportFilter === 'kemarin') {
                 startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).getTime();
-                endMs = startMs + 86399999;
                 labelTabel = "REKAP BARANG KEMARIN";
             } else if (window.currentReportFilter === 'custom' && window.currentCustomDate) {
                 const [y, m, d] = window.currentCustomDate.split('-');
                 startMs = new Date(y, m - 1, d).getTime();
-                endMs = startMs + 86399999;
                 labelTabel = `REKAP BARANG TGL ${d}/${m}/${y}`;
             }
+            const endMs = startMs + 86399999;
 
-            const queryBarang = `
-                SELECT b.nama, SUM(td.qty), SUM(td.qty * td.harga)
-                FROM transaksi_detail td
-                LEFT JOIN barang b ON td.barang_id = b.id
-                JOIN transaksi t ON td.transaksi_id = t.id
-                WHERE CAST(t.tanggal AS UNSIGNED) >= ${startMs} AND CAST(t.tanggal AS UNSIGNED) <= ${endMs}
-                GROUP BY td.barang_id ORDER BY SUM(td.qty) DESC
-            `;
-
-            const queryTotal = `
-                SELECT SUM(total), SUM(laba), COUNT(id) FROM transaksi 
-                WHERE CAST(tanggal AS UNSIGNED) >= ${startMs} AND CAST(tanggal AS UNSIGNED) <= ${endMs}
-            `;
+            const queryBarang = `SELECT b.nama, SUM(td.qty), SUM(td.qty * td.harga) FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id JOIN transaksi t ON td.transaksi_id = t.id WHERE CAST(t.tanggal AS UNSIGNED) >= ${startMs} AND CAST(t.tanggal AS UNSIGNED) <= ${endMs} GROUP BY td.barang_id ORDER BY SUM(td.qty) DESC`;
+            const queryTotal = `SELECT SUM(total), SUM(laba), COUNT(id) FROM transaksi WHERE CAST(tanggal AS UNSIGNED) >= ${startMs} AND CAST(tanggal AS UNSIGNED) <= ${endMs}`;
 
             const resBarang = window.db.exec(queryBarang);
             const resTotal = window.db.exec(queryTotal);
-            
             let omzet = 0, laba = 0, countTrx = 0;
             if (resTotal.length > 0 && resTotal[0].values[0][0] !== null) {
-                omzet = resTotal[0].values[0][0];
-                laba = resTotal[0].values[0][1];
-                countTrx = resTotal[0].values[0][2];
+                omzet = resTotal[0].values[0][0]; laba = resTotal[0].values[0][1]; countTrx = resTotal[0].values[0][2];
             }
 
-            // --- JIKA MODE WA TEKS ---
-            if (mode === 'wa_text') {
-                let pesan = `*📊 ${labelTabel}*\n`;
-                pesan += `--------------------------------\n`;
+            // --- MODE PRINT LANGSUNG ---
+            if (mode === 'print') {
+                let itemsHtml = '';
                 if (resBarang.length > 0) {
-                    resBarang[0].values.forEach(r => {
-                        pesan += `▪️ ${r[0].toUpperCase()}\n   ${r[1]}x → *Rp${r[2].toLocaleString('id-ID')}*\n`;
+                    resBarang[0].values.forEach(row => {
+                        itemsHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:10px;"><span style="flex:1;">${(row[0] || "Dihapus").toUpperCase()}</span><span style="width:30px; text-align:right;">${row[1]}x</span><span style="width:70px; text-align:right;">${row[2].toLocaleString('id-ID')}</span></div>`;
                     });
                 }
-                pesan += `--------------------------------\n`;
-                pesan += `🛍️ Total: *${countTrx} Transaksi*\n`;
-                pesan += `💰 Omzet: *Rp${omzet.toLocaleString('id-ID')}*\n`;
-                pesan += `📈 Laba: *Rp${laba.toLocaleString('id-ID')}*\n`;
-                
-                const urlWA = `https://wa.me/${window.waOwner}?text=${encodeURIComponent(pesan)}`;
-                window.open(urlWA, '_blank');
+                document.getElementById('section-struk').innerHTML = `<div style="width:100%; padding:10px; font-family:monospace;">${labelTabel}<br>${itemsHtml}</div>`;
+                window.print();
                 return;
             }
 
-            // --- JIKA MODE PRINT ATAU GAMBAR ---
-            let itemsHtml = '';
-            if (resBarang.length > 0) {
-                resBarang[0].values.forEach(row => {
-                    itemsHtml += `
-                        <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:11px;">
-                            <span style="flex:1; text-align:left; padding-right:10px;">${(row[0] || "Dihapus").toUpperCase()}</span>
-                            <span style="width:35px; text-align:right; font-weight:bold;">${row[1]}x</span>
-                            <span style="width:75px; text-align:right;">${row[2].toLocaleString('id-ID')}</span>
-                        </div>`;
-                });
-            } else {
-                itemsHtml = `<div style="text-align:center; color:#888; font-size:10px; padding:10px;">Tidak ada barang terjual</div>`;
-            }
+            // --- MODE PREVIEW GAMBAR ---
+            if (mode === 'preview_image') {
+                let itemsHtml = '';
+                if (resBarang.length > 0) {
+                    resBarang[0].values.forEach(row => {
+                        itemsHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:11px;"><span style="flex:1; text-align:left;">${(row[0] || "Dihapus").toUpperCase()}</span><span style="width:35px; text-align:right; font-weight:bold;">${row[1]}x</span><span style="width:75px; text-align:right;">${row[2].toLocaleString('id-ID')}</span></div>`;
+                    });
+                }
 
-            let htmlStruk = `
-                <div id="struk-rekap-capture" style="width:300px; background:#fff; padding:25px; color:#000; font-family:monospace; box-sizing:border-box;">
-                    <div style="text-align:center; font-weight:900; font-size:16px; margin-bottom:3px;">POSKITA STORE</div>
-                    <div style="text-align:center; font-size:12px; font-weight:bold; margin-bottom:10px;">${labelTabel}</div>
-                    <div style="border-bottom:2px dashed #000; margin:10px 0;"></div>
-                    
-                    <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:10px; color:#555; margin-bottom:8px;">
-                        <span>ITEM</span>
-                        <span>QTY</span>
-                        <span>SUBTOTAL</span>
+                let htmlContent = `
+                    <div id="wrapper-preview-rekap" class="flex flex-col items-center gap-4 w-full max-w-[320px]">
+                        <div id="struk-rekap-capture" style="width:300px; background:#fff; padding:25px; color:#000; font-family:monospace; border-radius:8px;">
+                            <div style="text-align:center; font-weight:900; font-size:16px;">POSKITA STORE</div>
+                            <div style="text-align:center; font-size:11px; font-weight:bold;">${labelTabel}</div>
+                            <div style="border-bottom:2px dashed #000; margin:10px 0;"></div>
+                            ${itemsHtml}
+                            <div style="border-top:2px dashed #000; margin:10px 0; padding-top:10px;"></div>
+                            <div style="display:flex; justify-content:space-between; font-size:11px;"><span>Total Trx:</span><b>${countTrx} Nota</b></div>
+                            <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:900;"><span>TOTAL OMZET:</span><span>Rp ${omzet.toLocaleString('id-ID')}</span></div>
+                            <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:900; color:#059669;"><span>LABA BERSIH:</span><span>Rp ${laba.toLocaleString('id-ID')}</span></div>
+                            <div style="text-align:center; font-size:9px; margin-top:15px; color:#666; font-style:italic;">Dicetak: ${new Date().toLocaleString('id-ID')}</div>
+                        </div>
+
+                        <div class="flex flex-col gap-2 w-full px-4 no-capture">
+                            <button id="btn-do-capture" class="w-full py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">💾 Simpan ke Galeri</button>
+                            <button id="btn-do-wa" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">💬 Kirim Teks ke WA</button>
+                            <button onclick="document.getElementById('section-struk').classList.remove('show-capture')" class="w-full py-2 text-white/60 font-bold text-[9px] uppercase tracking-widest">Batal / Tutup</button>
+                        </div>
                     </div>
+                `;
 
-                    ${itemsHtml}
-                    
-                    <div style="border-top:2px dashed #000; margin:10px 0; padding-top:10px;"></div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:3px;"><span>Total Transaksi:</span><span style="font-weight:bold;">${countTrx} Nota</span></div>
-                    <div style="display:flex; justify-content:space-between; font-weight:900; font-size:14px; margin-bottom:3px;"><span>TOTAL OMZET:</span><span>Rp ${omzet.toLocaleString('id-ID')}</span></div>
-                    <div style="display:flex; justify-content:space-between; font-weight:900; font-size:14px; color:#059669;"><span>LABA BERSIH:</span><span>Rp ${laba.toLocaleString('id-ID')}</span></div>
-                    
-                    <div style="border-top:1px solid #eee; margin-top:15px; padding-top:10px; text-align:center;">
-                        <div style="font-size:9px; font-style:italic; color:#666;">Dicetak: ${new Date().toLocaleString('id-ID')}</div>
-                        <div style="font-size:8px; color:#aaa; margin-top:2px;">PosKita Pro Mobile Report</div>
-                    </div>
-                </div>
-            `;
-            
-            const printArea = document.getElementById('section-struk');
-            printArea.innerHTML = htmlStruk;
-
-            if (mode === 'print') {
-                window.print();
-            } else if (mode === 'image') {
-                // 1. Tampilkan struk beneran di layar
+                const printArea = document.getElementById('section-struk');
+                printArea.innerHTML = htmlContent;
                 printArea.classList.add('show-capture');
-                
-                // Beri jeda 300ms agar browser selesai menggambar modal di layar
-                await new Promise(r => setTimeout(r, 300));
 
-                const area = document.getElementById('struk-rekap-capture');
-                
-                // 2. Lakukan Capture
-                html2canvas(area, {
-                    scale: 2, // Biar tajam
-                    backgroundColor: "#ffffff",
-                    logging: false, // Matikan log biar cepat
-                    onclone: (clonedDoc) => {
-                        // Pastikan di dokumen kloningan, struknya terlihat jelas
-                        clonedDoc.getElementById('struk-rekap-capture').style.transform = 'scale(1)';
-                    }
-                }).then(canvas => {
-                    // 3. Sembunyikan kembali struk dari layar
-                    printArea.classList.remove('show-capture');
-                    printArea.innerHTML = ""; // Bersihkan DOM
-
-                    const imgData = canvas.toDataURL("image/png");
-                    
-                    // Cek jika gambar kosong
-                    if(imgData === "data:,") {
-                        alert("⚠️ Gagal mengambil gambar (Data Kosong). Mohon coba lagi.");
-                        return;
-                    }
-
-                    // 4. Unduh Gambar
+                // Fungsi Simpan Gambar
+                document.getElementById('btn-do-capture').onclick = async () => {
+                    const btn = document.getElementById('btn-do-capture');
+                    btn.innerText = "PROSES...";
+                    const area = document.getElementById('struk-rekap-capture');
+                    const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#ffffff" });
                     const link = document.createElement('a');
-                    link.download = `Rekap-${window.currentReportFilter}-${Date.now()}.png`;
-                    link.href = imgData;
+                    link.download = `Rekap-${Date.now()}.png`;
+                    link.href = canvas.toDataURL("image/png");
                     link.click();
-                    
-                    alert("✅ Gambar Berhasil Dibuat!\n\nSilakan cek di folder Download atau Galeri Mas, lalu lampirkan ke WA Owner.");
-                }).catch(err => {
-                    console.error("Canvas Error:", err);
                     printArea.classList.remove('show-capture');
-                    alert("❌ Terjadi kesalahan sistem saat membuat gambar.");
-                });
+                    alert("Gambar berhasil disimpan!");
+                };
+
+                // Fungsi Kirim WA Teks
+                document.getElementById('btn-do-wa').onclick = () => {
+                    let pesan = `*📊 ${labelTabel}*\n--------------------------------\n`;
+                    if (resBarang.length > 0) {
+                        resBarang[0].values.forEach(r => { pesan += `▪️ ${r[0].toUpperCase()}\n   ${r[1]}x → *Rp${r[2].toLocaleString('id-ID')}*\n`; });
+                    }
+                    pesan += `--------------------------------\n🛍️ Total: *${countTrx} Transaksi*\n💰 Omzet: *Rp${omzet.toLocaleString('id-ID')}*\n📈 Laba: *Rp${laba.toLocaleString('id-ID')}*`;
+                    window.open(`https://wa.me/${window.waOwner}?text=${encodeURIComponent(pesan)}`, '_blank');
+                    printArea.classList.remove('show-capture');
+                };
             }
         };
 
