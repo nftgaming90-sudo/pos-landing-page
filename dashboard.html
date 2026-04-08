@@ -95,19 +95,26 @@
         position: fixed;
         inset: 0;
         background: rgba(0,0,0,0.8);
-        z-index: 99999; /* Sangat tinggi agar di depan semua modal */
+        z-index: 99999; 
         justify-content: center;
-        align-items: center;
+        align-items: flex-start !important; /* Diubah ke flex-start agar kalau struk panjang bisa di-scroll */
         overflow: auto;
-        padding: 20px;
+        padding: 20px !important;
     }
     
-    /* Pastikan struknya sendiri punya background putih padat */
+    /* CSS Supaya Preview Gambar di HP pas di mata */
     #struk-rekap-capture {
         background: white !important;
         box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         border-radius: 8px;
-        transform: scale(0.9); /* Sedikit kecil agar muat di layar HP */
+        margin: 20px auto; 
+        
+        /* Ini kuncinya: di web dia fleksibel, tapi pas di-capture nanti kita lock ukurannya */
+        width: 100%; 
+        max-width: 320px; 
+        
+        box-sizing: border-box;
+        transform-origin: top center;
     }
 </style>
 </head>
@@ -391,15 +398,20 @@
                 <div class="p-3 md:p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
                     <span id="tabel-judul-rekap" class="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-200">History Transaksi</span>
                     
-                    <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
-    <button onclick="window.printRekap('print')" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase flex items-center gap-2">
-        <span>🖨️</span> Print
+                    <div class="grid grid-cols-3 gap-2 mb-6 shrink-0">
+    <button onclick="window.printRekap('print')" class="flex flex-col items-center justify-center gap-1 bg-slate-800 hover:bg-slate-900 text-white p-3 rounded-2xl shadow-sm transition-all active:scale-95 border border-slate-700">
+        <span class="text-xl">🖨️</span>
+        <span class="text-[9px] font-black uppercase tracking-tighter">Print</span>
     </button>
-    <button onclick="window.printRekap('wa_text')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase flex items-center gap-2">
-        <span>💬</span> Kirim WA
+    
+    <button onclick="window.printRekap('wa_text')" class="flex flex-col items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-2xl shadow-sm transition-all active:scale-95 border border-emerald-500">
+        <span class="text-xl">💬</span>
+        <span class="text-[9px] font-black uppercase tracking-tighter">Kirim WA</span>
     </button>
-    <button onclick="window.printRekap('image')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase flex items-center gap-2">
-        <span>📸</span> Simpan Gambar
+    
+    <button onclick="window.printRekap('image')" class="flex flex-col items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-2xl shadow-sm transition-all active:scale-95 border border-blue-500">
+        <span class="text-xl">📸</span>
+        <span class="text-[9px] font-black uppercase tracking-tighter">Gambar</span>
     </button>
 </div>
                 </div>
