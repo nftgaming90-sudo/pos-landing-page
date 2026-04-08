@@ -665,14 +665,19 @@
                     <span id="detail-total" class="font-black text-lg md:text-xl text-blue-700 tracking-tight">Rp 0</span>
                 </div>
 
-                <div class="flex gap-2 w-full pt-1">
-                    <button id="btn-print-trx" class="flex-1 py-3 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-widest transition-colors border border-blue-200 flex items-center justify-center gap-1.5 shadow-sm">
-                        <span class="text-xs">🖨️</span> PRINT
-                    </button>
-                    <button id="btn-hapus-trx" class="flex-1 py-3 bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-widest transition-colors border border-rose-100 hidden">
-                        HAPUS TRx
-                    </button>
-                </div>
+                <div class="flex flex-col gap-2 w-full pt-1">
+    <div class="flex gap-2">
+        <button id="btn-print-trx" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-sm">
+            <span>🖨️</span> PRINT
+        </button>
+        <button id="btn-image-trx" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-sm">
+            <span>📸</span> GAMBAR
+        </button>
+    </div>
+    <button id="btn-hapus-trx" class="w-full py-2 bg-rose-50 text-rose-600 rounded-xl font-black text-[9px] uppercase tracking-widest border border-rose-100 hidden">
+        HAPUS TRANSAKSI
+    </button>
+</div>
             </div>
         </div>
     </div>
@@ -1973,6 +1978,15 @@
             const btnPrintTrx = document.getElementById('btn-print-trx');
             btnPrintTrx.onclick = () => window.printStruk(trxId);
 
+            // --- TAMBAHAN UNTUK GAMBAR NOTA ---
+            const btnImageTrx = document.getElementById('btn-image-trx');
+            btnImageTrx.onclick = () => {
+                // Tutup modal detail dulu agar tidak mengganggu preview
+                document.getElementById('modal-detail-trx').classList.add('hidden');
+                // Panggil fungsi preview khusus nota tunggal
+                window.previewNotaImage(trxId);
+            };
+
             document.getElementById('modal-detail-trx').classList.remove('hidden');
         } catch (e) {
             console.error(e);
@@ -2027,6 +2041,115 @@
         
         document.getElementById('section-struk').innerHTML = html;
         window.print();
+    };
+
+    window.previewNotaImage = (trxId) => {
+        const resInfo = window.db.exec("SELECT tanggal, total, metode_bayar FROM transaksi WHERE id = ?", [trxId]);
+        if (resInfo.length === 0) return;
+        const info = resInfo[0].values[0];
+        
+        const resDetail = window.db.exec("SELECT b.nama, td.qty, td.harga FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id WHERE td.transaksi_id = ?", [trxId]);
+        
+        let itemsHtml = '';
+        if (resDetail.length > 0) {
+            resDetail[0].values.forEach(row => {
+                const sub = row[1] * row[2];
+                itemsHtml += `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:11px;">
+                        <span style="flex:1; text-align:left;">${(row[0] || "Barang").toUpperCase()}</span>
+                        <span style="width:35px; text-align:right;">${row[1]}x</span>
+                        <span style="width:75px; text-align:right;">${sub.toLocaleString('id-ID')}</span>
+                    </div>`;
+            });
+        }
+
+        const d = new Date(parseInt(info[0]));
+        const tglStr = d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+
+        let htmlContent = `
+            <div id="wrapper-preview-rekap" class="flex flex-col items-center gap-4 w-full max-w-[320px]">
+                <div id="struk-rekap-capture" style="width:300px; background:#fff; padding:25px; color:#000; font-family:monospace; border-radius:8px;">
+                    <div style="text-align:center; font-weight:900; font-size:16px;">POSKITA STORE</div>
+                    <div style="text-align:center; font-size:10px; margin-bottom:10px;">NOTA #${trxId.toString().slice(-6)}</div>
+                    <div style="font-size:9px; margin-bottom:5px;">Tgl: ${tglStr}</div>
+                    <div style="font-size:9px; margin-bottom:10px;">Metode: ${info[2]}</div>
+                    <div style="border-bottom:2px dashed #000; margin:10px 0;"></div>
+                    
+                    ${itemsHtml}
+                    
+                    <div style="border-top:2px dashed #000; margin:10px 0; padding-top:10px;"></div>
+                    <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:900;">
+                        <span>TOTAL:</span>
+                        <span>Rp ${info[1].toLocaleString('id-ID')}</span>
+                    </div>
+                    <div style="text-align:center; font-size:10px; margin-top:20px; font-style:italic;">-- Terima Kasih --</div>
+                </div>
+
+                <div class="flex flex-col gap-2 w-full px-4 no-capture">
+    <button id="btn-share-nota" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg flex items-center justify-center gap-2">
+        <span>📲</span> Bagikan ke WhatsApp / Lainnya
+    </button>
+    
+    <div class="grid grid-cols-2 gap-2">
+        <button id="btn-do-capture-nota" class="py-2 bg-slate-700 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">💾 Simpan Galeri</button>
+        <button onclick="document.getElementById('section-struk').classList.remove('show-capture')" class="py-2 bg-rose-100 text-rose-600 rounded-xl font-black text-[9px] uppercase tracking-widest">Tutup</button>
+    </div>
+</div>
+            </div>
+        `;
+
+        const printArea = document.getElementById('section-struk');
+        printArea.innerHTML = htmlContent;
+        printArea.classList.add('show-capture');
+
+        document.getElementById('btn-do-capture-nota').onclick = async () => {
+            const area = document.getElementById('struk-rekap-capture');
+            const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#ffffff" });
+            const link = document.createElement('a');
+            link.download = `Nota-${trxId.toString().slice(-6)}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            printArea.classList.remove('show-capture');
+        };
+
+        // --- FITUR SHARE GAMBAR LANGSUNG ---
+        document.getElementById('btn-share-nota').onclick = async () => {
+            const btn = document.getElementById('btn-share-nota');
+            const originalText = btn.innerHTML;
+            btn.innerText = "MENYIAPKAN...";
+
+            try {
+                const area = document.getElementById('struk-rekap-capture');
+                const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#ffffff" });
+                
+                // Ubah canvas ke Blob (File asli)
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], `Nota-${trxId.toString().slice(-6)}.png`, { type: "image/png" });
+                    
+                    // Cek apakah browser HP mendukung fitur Share File
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Struk Belanja PosKita',
+                            text: `Struk Nota #${trxId.toString().slice(-6)}`
+                        });
+                        printArea.classList.remove('show-capture');
+                    } else {
+                        // Jika tidak dukung (misal browser jadul), otomatis fallback ke download
+                        const link = document.createElement('a');
+                        link.download = `Nota-${trxId.toString().slice(-6)}.png`;
+                        link.href = canvas.toDataURL("image/png");
+                        link.click();
+                        alert("Browser Mas tidak mendukung share langsung. Gambar otomatis disimpan ke galeri.");
+                    }
+                    btn.innerHTML = originalText;
+                }, 'image/png');
+            } catch (err) {
+                console.error(err);
+                btn.innerHTML = originalText;
+                alert("Gagal membagikan gambar.");
+            }
+        };
     };
 
     window.printRekap = async (mode = 'print') => {
