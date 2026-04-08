@@ -15,17 +15,40 @@
     body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
 
     /* --- PRINT LOGIC --- */
-    @media screen { #section-struk { display: none !important; } }
-    @media print {
-        html, body { height: auto !important; overflow: visible !important; background-color: white !important; }
-        body > *:not(#section-struk) { display: none !important; }
-        #section-struk { 
-            display: block !important; position: absolute; left: 0; top: 0; width: 58mm; 
-            padding: 2mm; margin: 0; font-family: 'Courier New', Courier, monospace; 
-            font-size: 11px; color: #000;
-        }
-        @page { margin: 0; size: 58mm auto; }
+@media screen { #section-struk { display: none !important; } }
+@media print {
+    /* Paksa semua elemen induk untuk tidak memotong konten */
+    html, body { 
+        height: auto !important; 
+        overflow: visible !important; 
+        background-color: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
+
+    /* Sembunyikan semua kecuali area struk */
+    body > *:not(#section-struk) { display: none !important; }
+
+    #section-struk { 
+        display: block !important; 
+        position: static !important; /* Gunakan static agar mengikuti alur dokumen */
+        width: 58mm; 
+        padding: 0;
+        margin: 0;
+        font-family: 'Courier New', Courier, monospace; 
+        font-size: 11px; 
+        color: #000;
+        overflow: visible !important;
+    }
+
+    /* Pastikan tidak ada scrollbar yang ikut tercetak */
+    .no-print { display: none !important; }
+    
+    @page { 
+        margin: 0; 
+        size: 58mm auto; /* Membiarkan panjang kertas menyesuaikan konten */
+    }
+}
 
     /* --- FORM & UI ELEMENTS --- */
     select#select-pelanggan {
@@ -2179,20 +2202,31 @@
             if (!window.db) return;
 
             // --- AMBIL DATA (Logic query tetap sama) ---
-            let startMs = 0;
-            const now = new Date();
-            let labelTabel = "REKAPAN PENJUALAN";
-            if (window.currentReportFilter === 'hari_ini') {
-                startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-                labelTabel = "REKAP BARANG HARI INI";
-            } else if (window.currentReportFilter === 'kemarin') {
-                startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).getTime();
-                labelTabel = "REKAP BARANG KEMARIN";
-            } else if (window.currentReportFilter === 'custom' && window.currentCustomDate) {
-                const [y, m, d] = window.currentCustomDate.split('-');
-                startMs = new Date(y, m - 1, d).getTime();
-                labelTabel = `REKAP BARANG TGL ${d}/${m}/${y}`;
-            }
+            // --- BAGIAN AWAL FUNGSI printRekap ---
+let startMs = 0;
+const now = new Date();
+let labelTabel = "REKAPAN PENJUALAN";
+let subLabelTanggal = ""; // Variabel baru untuk simpan tanggal asli
+
+if (window.currentReportFilter === 'hari_ini') {
+    startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    labelTabel = "REKAP BARANG HARI INI";
+    // Ambil tanggal hari ini: misal 09 Apr 2026
+    subLabelTanggal = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+} 
+else if (window.currentReportFilter === 'kemarin') {
+    const kemarin = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    startMs = kemarin.getTime();
+    labelTabel = "REKAP BARANG KEMARIN";
+    // Ambil tanggal kemarin: misal 08 Apr 2026
+    subLabelTanggal = kemarin.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+} 
+else if (window.currentReportFilter === 'custom' && window.currentCustomDate) {
+    const [y, m, d] = window.currentCustomDate.split('-');
+    startMs = new Date(y, m - 1, d).getTime();
+    labelTabel = `REKAP TGL ${d}/${m}/${y}`;
+    subLabelTanggal = ""; // Kosongkan karena sudah ada di labelTabel
+}
             const endMs = startMs + 86399999;
 
             const queryBarang = `SELECT b.nama, SUM(td.qty), SUM(td.qty * td.harga) FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id JOIN transaksi t ON td.transaksi_id = t.id WHERE CAST(t.tanggal AS UNSIGNED) >= ${startMs} AND CAST(t.tanggal AS UNSIGNED) <= ${endMs} GROUP BY td.barang_id ORDER BY SUM(td.qty) DESC`;
@@ -2206,17 +2240,45 @@
             }
 
             // --- MODE PRINT LANGSUNG ---
-            if (mode === 'print') {
-                let itemsHtml = '';
-                if (resBarang.length > 0) {
-                    resBarang[0].values.forEach(row => {
-                        itemsHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:10px;"><span style="flex:1;">${(row[0] || "Dihapus").toUpperCase()}</span><span style="width:30px; text-align:right;">${row[1]}x</span><span style="width:70px; text-align:right;">${row[2].toLocaleString('id-ID')}</span></div>`;
-                    });
-                }
-                document.getElementById('section-struk').innerHTML = `<div style="width:100%; padding:10px; font-family:monospace;">${labelTabel}<br>${itemsHtml}</div>`;
-                window.print();
-                return;
-            }
+            // --- DI DALAM window.printRekap mode 'print' ---
+if (mode === 'print') {
+    let itemsHtml = '';
+    if (resBarang.length > 0) {
+        resBarang[0].values.forEach(row => {
+            itemsHtml += `
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <span style="flex:1; padding-right:5px;">${(row[0] || "Dihapus").toUpperCase()}</span>
+                    <span style="width:30px; text-align:right;">${row[1]}x</span>
+                    <span style="width:70px; text-align:right;">${row[2].toLocaleString('id-ID')}</span>
+                </div>`;
+        });
+    }
+
+    const strukContent = `
+        <div style="width:58mm; padding:2mm; font-family:monospace; color:#000;">
+            <div style="text-align:center; font-weight:bold; font-size:14px;">POSKITA STORE</div>
+            <div style="text-align:center; font-size:10px; margin-bottom:5px;">${labelTabel}</div>
+            ${subLabelTanggal ? `<div style="text-align:center; font-size:9px; margin-bottom:5px;">${subLabelTanggal}</div>` : ''}
+            <div style="border-bottom:1px dashed #000; margin:5px 0;"></div>
+            ${itemsHtml}
+            <div style="border-top:1px dashed #000; margin:5px 0; padding-top:5px;"></div>
+            <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                <span>TOTAL</span>
+                <span>Rp ${omzet.toLocaleString('id-ID')}</span>
+            </div>
+            <div style="text-align:center; margin-top:10px; font-size:9px;">-- Selesai --</div>
+        </div>
+    `;
+
+    const printArea = document.getElementById('section-struk');
+    printArea.innerHTML = strukContent;
+    
+    // Kasih jeda sedikit biar browser selesai render HTML baru panggil print
+    setTimeout(() => {
+        window.print();
+    }, 250);
+    return;
+}
 
             // --- MODE PREVIEW GAMBAR ---
             if (mode === 'preview_image') {
@@ -2232,6 +2294,7 @@
                         <div id="struk-rekap-capture" style="width:300px; background:#fff; padding:25px; color:#000; font-family:monospace; border-radius:8px;">
                             <div style="text-align:center; font-weight:900; font-size:16px;">POSKITA STORE</div>
                             <div style="text-align:center; font-size:11px; font-weight:bold;">${labelTabel}</div>
+                            ${subLabelTanggal ? `<div style="text-align:center; font-size:10px; color:#444;">(${subLabelTanggal})</div>` : ''}
                             <div style="border-bottom:2px dashed #000; margin:10px 0;"></div>
                             ${itemsHtml}
                             <div style="border-top:2px dashed #000; margin:10px 0; padding-top:10px;"></div>
@@ -2319,6 +2382,7 @@ document.getElementById('btn-share-rekap').onclick = async () => {
                     const separator = "--------------------------------";
                     let pesan = `*POSKITA STORE*\n`;
                     pesan += `*${labelTabel}*\n`;
+                    if (subLabelTanggal) pesan += `_Tanggal: ${subLabelTanggal}_\n`;
                     pesan += `${separator}\n`;
                     
                     if (resBarang.length > 0) {
