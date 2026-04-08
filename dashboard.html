@@ -638,50 +638,63 @@
     </div>
 
     <div id="modal-detail-trx" class="fixed inset-0 z-[110] flex items-end md:items-center justify-center hidden bg-slate-900/50 backdrop-blur-sm md:p-4 transition-opacity no-print">
-        <div class="bg-white rounded-t-[24px] md:rounded-[24px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] w-full max-w-md overflow-hidden transform transition-transform mt-auto md:mt-0 flex flex-col max-h-[85vh] md:max-h-[80vh]">
-            <div class="p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
-                <div>
-                    <h3 class="font-black text-[10px] md:text-xs uppercase tracking-[0.1em] text-slate-100">Detail Transaksi</h3>
-                    <p id="detail-waktu" class="text-[9px] md:text-[10px] text-slate-400 mt-0.5">Memuat waktu...</p>
-                </div>
-                <button onclick="document.getElementById('modal-detail-trx').classList.add('hidden')" class="text-2xl font-light hover:text-rose-300 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">&times;</button>
+    <div class="bg-white rounded-t-[24px] md:rounded-[24px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] w-full max-w-md overflow-hidden transform transition-transform mt-auto md:mt-0 flex flex-col max-h-[85vh] md:max-h-[80vh]">
+        
+        <div class="p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
+            <div>
+                <h3 class="font-black text-[10px] md:text-xs uppercase tracking-[0.1em] text-slate-100">Detail Transaksi</h3>
+                <p id="detail-waktu" class="text-[9px] md:text-[10px] text-slate-400 mt-0.5">Memuat waktu...</p>
             </div>
-            <div class="p-0 overflow-y-auto flex-1 bg-slate-50">
-                <table class="w-full text-xs text-left min-w-full">
-                    <thead class="bg-slate-100 text-[8px] md:text-[9px] uppercase font-black text-slate-500 tracking-widest sticky top-0 border-b border-slate-200 shadow-sm z-10">
-                        <tr>
-                            <th class="p-3 pl-4 whitespace-nowrap">Item</th>
-                            <th class="p-3 text-center whitespace-nowrap">Qty</th>
-                            <th class="p-3 pr-4 text-right whitespace-nowrap">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody id="detail-trx-body" class="divide-y divide-slate-100 bg-white">
-                    </tbody>
-                </table>
-            </div>
-            <div class="p-4 md:p-5 bg-white border-t border-slate-200 shrink-0 flex flex-col gap-3 md:gap-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] pb-safe md:pb-5">
-                <div class="flex justify-between items-center w-full">
-                    <span class="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">Total Belanja</span>
-                    <span id="detail-total" class="font-black text-lg md:text-xl text-blue-700 tracking-tight">Rp 0</span>
-                </div>
+            <button onclick="document.getElementById('modal-detail-trx').classList.add('hidden')" class="text-2xl font-light hover:text-rose-300 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">&times;</button>
+        </div>
 
-                <div class="flex flex-col gap-2 w-full pt-1">
-    <div class="flex gap-2">
-        <button id="btn-print-trx" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-sm">
-            <span>🖨️</span> PRINT
-        </button>
-        <button id="btn-image-trx" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-sm">
-            <span>📸</span> GAMBAR
-        </button>
-    </div>
-    <button id="btn-hapus-trx" class="w-full py-2 bg-rose-50 text-rose-600 rounded-xl font-black text-[9px] uppercase tracking-widest border border-rose-100 hidden">
-        HAPUS TRANSAKSI
-    </button>
-</div>
+        <div class="bg-slate-50 px-4 py-3 border-b border-slate-200 grid grid-cols-2 gap-3 shrink-0">
+            <div class="flex flex-col">
+                <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Pelanggan</span>
+                <span id="detail-pelanggan" class="text-[10px] font-bold text-blue-600 truncate">-</span>
+            </div>
+            <div class="flex flex-col items-end">
+                <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Metode Bayar</span>
+                <span id="detail-metode" class="mt-0.5 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter">-</span>
+            </div>
+        </div>
+
+        <div class="p-0 overflow-y-auto flex-1 bg-white">
+            <table class="w-full text-xs text-left min-w-full">
+                <thead class="bg-slate-100 text-[8px] md:text-[9px] uppercase font-black text-slate-500 tracking-widest sticky top-0 border-b border-slate-200 shadow-sm z-10">
+                    <tr>
+                        <th class="p-3 pl-4 whitespace-nowrap">Item</th>
+                        <th class="p-3 text-center whitespace-nowrap">Qty</th>
+                        <th class="p-3 pr-4 text-right whitespace-nowrap">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="detail-trx-body" class="divide-y divide-slate-100">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="p-4 md:p-5 bg-white border-t border-slate-200 shrink-0 flex flex-col gap-3 md:gap-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] pb-safe md:pb-5">
+            <div class="flex justify-between items-center w-full">
+                <span class="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">Total Belanja</span>
+                <span id="detail-total" class="font-black text-lg md:text-xl text-blue-700 tracking-tight">Rp 0</span>
+            </div>
+
+            <div class="flex flex-col gap-2 w-full pt-1">
+                <div class="flex gap-2">
+                    <button id="btn-print-trx" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-sm">
+                        <span>🖨️</span> PRINT
+                    </button>
+                    <button id="btn-image-trx" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-sm">
+                        <span>📸</span> GAMBAR
+                    </button>
+                </div>
+                <button id="btn-hapus-trx" class="w-full py-2 bg-rose-50 text-rose-600 rounded-xl font-black text-[9px] uppercase tracking-widest border border-rose-100 hidden">
+                    HAPUS TRANSAKSI
+                </button>
             </div>
         </div>
     </div>
-
+</div>
     <div id="section-struk"></div>
 
     <script type="module">
@@ -1876,15 +1889,15 @@
 
         try {
             const query = `
-                SELECT t.tanggal, t.total, t.laba, t.id, SUM(td.qty) as total_item 
-                FROM transaksi t 
-                LEFT JOIN transaksi_detail td ON t.id = td.transaksi_id 
-                WHERE CAST(t.tanggal AS UNSIGNED) >= ${startMs} 
-                  AND CAST(t.tanggal AS UNSIGNED) <= ${endMs} 
-                  ${keywordFilter}
-                GROUP BY t.id 
-                ORDER BY CAST(t.tanggal AS UNSIGNED) DESC
-            `;
+    SELECT t.tanggal, t.total, t.laba, t.id, SUM(td.qty) as total_item, t.metode_bayar
+    FROM transaksi t 
+    LEFT JOIN transaksi_detail td ON t.id = td.transaksi_id 
+    WHERE CAST(t.tanggal AS UNSIGNED) >= ${startMs} 
+      AND CAST(t.tanggal AS UNSIGNED) <= ${endMs} 
+      ${keywordFilter}
+    GROUP BY t.id 
+    ORDER BY CAST(t.tanggal AS UNSIGNED) DESC
+`;
             const res = window.db.exec(query);
             
             let omzet = 0, laba = 0, countTrx = 0;
@@ -1904,19 +1917,24 @@
                     laba += profit;
                     
                     return `
-                    <tr class="tr-item hover:bg-slate-100 cursor-pointer transition-colors" onclick="window.bukaDetailTransaksi('${trxId}')">
-                        <td class="p-3 pl-4 whitespace-nowrap">
-                            <p class="text-slate-800 font-black text-[10px] md:text-xs">NOTA #${notaStr}</p>
-                            <p class="text-[8px] md:text-[9px] text-slate-400 font-medium mt-0.5">${d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} • ${d.toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</p>
-                        </td>
-                        <td class="p-3 text-center whitespace-nowrap">
-                            <span class="bg-blue-50 border border-blue-100 text-blue-600 px-2.5 py-1 rounded-lg text-[9px] md:text-[10px] font-black">${totalItem} Item</span>
-                        </td>
-                        <td class="p-3 pr-4 text-right whitespace-nowrap">
-                            <p class="font-black text-slate-800 text-[10px] md:text-xs">Rp ${totalBelanja.toLocaleString('id-ID')}</p>
-                            <p class="text-[8px] md:text-[9px] text-emerald-500 font-black mt-0.5">+Rp ${profit.toLocaleString('id-ID')}</p>
-                        </td>
-                    </tr>`;
+<tr class="tr-item hover:bg-slate-100 cursor-pointer transition-colors" onclick="window.bukaDetailTransaksi('${trxId}')">
+    <td class="p-3 pl-4 whitespace-nowrap">
+        <div class="flex items-center gap-2 mb-1">
+            <p class="text-slate-800 font-black text-[10px] md:text-xs">NOTA #${notaStr}</p>
+            <span class="px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-tighter ${row[5] === 'Hutang' ? 'bg-amber-100 text-amber-600 border border-amber-200' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'}">
+                ${row[5] === 'Hutang' ? '📒 Hutang' : '💵 Tunai'}
+            </span>
+        </div>
+        <p class="text-[8px] md:text-[9px] text-slate-400 font-medium">${d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} • ${d.toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</p>
+    </td>
+    <td class="p-3 text-center whitespace-nowrap">
+        <span class="bg-blue-50 border border-blue-100 text-blue-600 px-2.5 py-1 rounded-lg text-[9px] md:text-[10px] font-black">${totalItem} Item</span>
+    </td>
+    <td class="p-3 pr-4 text-right whitespace-nowrap">
+        <p class="font-black text-slate-800 text-[10px] md:text-xs">Rp ${totalBelanja.toLocaleString('id-ID')}</p>
+        <p class="text-[8px] md:text-[9px] text-emerald-500 font-black mt-0.5">+Rp ${profit.toLocaleString('id-ID')}</p>
+    </td>
+</tr>`;
                 }).join('');
             } else {
                 hBody.innerHTML = `<tr><td colspan="3" class="p-8 md:p-10 text-center text-slate-400 text-[10px] md:text-xs italic font-medium"><div class="text-2xl md:text-3xl mb-2 grayscale opacity-40">📭</div>Tidak ada transaksi.</td></tr>`;
@@ -1931,68 +1949,82 @@
     };
 
     window.bukaDetailTransaksi = (trxId) => {
-        try {
-            const resInfo = window.db.exec("SELECT tanggal, total, metode_bayar FROM transaksi WHERE id = ?", [trxId]);
-            if (resInfo.length === 0) return;
-            const info = resInfo[0].values[0];
-            
-            const d = new Date(parseInt(info[0]));
-            document.getElementById('detail-waktu').innerText = d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
-            document.getElementById('detail-total').innerText = "Rp " + info[1].toLocaleString('id-ID');
+    try {
+        // Ambil data termasuk metode_bayar dan pelanggan (pelanggan_id)
+        const resInfo = window.db.exec("SELECT tanggal, total, metode_bayar, pelanggan_id FROM transaksi WHERE id = ?", [trxId]);
+        if (resInfo.length === 0) return;
+        
+        const info = resInfo[0].values[0];
+        const tglMs = info[0];
+        const totalTrx = info[1];
+        const metode = info[2] || 'Tunai'; // Definisi metode
+        const pId = info[3]; // Ambil ID pelanggan
 
-            const resDetail = window.db.exec(`
-                SELECT b.nama, td.qty, td.harga
-                FROM transaksi_detail td
-                LEFT JOIN barang b ON td.barang_id = b.id
-                WHERE td.transaksi_id = ?
-            `, [trxId]);
-
-            const tbody = document.getElementById('detail-trx-body');
-            
-            if (resDetail.length > 0) {
-                tbody.innerHTML = resDetail[0].values.map(row => {
-                    const nama = row[0] || "Barang (Dihapus)"; 
-                    const qty = row[1];
-                    const harga = row[2];
-                    const subtotal = qty * harga;
-                    return `
-                    <tr>
-                        <td class="p-3 pl-4 whitespace-nowrap">
-                            <p class="font-bold text-slate-700 text-[10px] md:text-xs uppercase tracking-tight">${nama}</p>
-                            <p class="text-[8px] md:text-[9px] text-slate-400 font-medium mt-0.5">@ Rp ${harga.toLocaleString('id-ID')}</p>
-                        </td>
-                        <td class="p-3 text-center whitespace-nowrap">
-                            <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[9px] md:text-[10px] font-black">${qty}x</span>
-                        </td>
-                        <td class="p-3 pr-4 text-right font-black text-slate-800 text-[10px] md:text-xs whitespace-nowrap">Rp ${subtotal.toLocaleString('id-ID')}</td>
-                    </tr>`;
-                }).join('');
-            } else {
-                tbody.innerHTML = '<tr><td colspan="3" class="p-5 text-center text-slate-400 text-xs italic font-medium">Detail barang tidak ditemukan.</td></tr>';
-            }
-
-            const btnHapusTrx = document.getElementById('btn-hapus-trx');
-            btnHapusTrx.onclick = () => window.hapusTransaksi(trxId);
-            btnHapusTrx.classList.remove('hidden');
-
-            const btnPrintTrx = document.getElementById('btn-print-trx');
-            btnPrintTrx.onclick = () => window.printStruk(trxId);
-
-            // --- TAMBAHAN UNTUK GAMBAR NOTA ---
-            const btnImageTrx = document.getElementById('btn-image-trx');
-            btnImageTrx.onclick = () => {
-                // Tutup modal detail dulu agar tidak mengganggu preview
-                document.getElementById('modal-detail-trx').classList.add('hidden');
-                // Panggil fungsi preview khusus nota tunggal
-                window.previewNotaImage(trxId);
-            };
-
-            document.getElementById('modal-detail-trx').classList.remove('hidden');
-        } catch (e) {
-            console.error(e);
-            alert("Gagal memuat detail transaksi.");
+        // Ambil Nama Pelanggan dari ID
+        let namaPelanggan = "Umum";
+        if (pId) {
+            const resP = window.db.exec("SELECT nama FROM pelanggan WHERE id = ?", [pId]);
+            if (resP.length > 0) namaPelanggan = resP[0].values[0][0];
         }
-    };
+
+        const d = new Date(parseInt(tglMs));
+        document.getElementById('detail-waktu').innerText = d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+        document.getElementById('detail-total').innerText = "Rp " + totalTrx.toLocaleString('id-ID');
+        
+        // Tampilkan Nama Pelanggan
+        document.getElementById('detail-pelanggan').innerText = namaPelanggan.toUpperCase();
+
+        // Tampilkan & Warnai Label Metode Bayar
+        const elMetode = document.getElementById('detail-metode');
+        elMetode.innerText = metode;
+        if (metode === 'Hutang') {
+            elMetode.className = "mt-0.5 px-2 py-0.5 rounded text-[8px] font-black uppercase bg-amber-100 text-amber-600 border border-amber-200";
+        } else {
+            elMetode.className = "mt-0.5 px-2 py-0.5 rounded text-[8px] font-black uppercase bg-emerald-100 text-emerald-600 border border-emerald-200";
+        }
+
+        // Render item barang
+        const resDetail = window.db.exec(`
+            SELECT b.nama, td.qty, td.harga
+            FROM transaksi_detail td
+            LEFT JOIN barang b ON td.barang_id = b.id
+            WHERE td.transaksi_id = ?
+        `, [trxId]);
+
+        const tbody = document.getElementById('detail-trx-body');
+        if (resDetail.length > 0) {
+            tbody.innerHTML = resDetail[0].values.map(row => {
+                const nama = row[0] || "Barang (Dihapus)"; 
+                const qty = row[1];
+                const harga = row[2];
+                return `
+                <tr>
+                    <td class="p-3 pl-4 whitespace-nowrap">
+                        <p class="font-bold text-slate-700 text-[10px] md:text-xs uppercase tracking-tight">${nama}</p>
+                        <p class="text-[8px] md:text-[9px] text-slate-400 font-medium mt-0.5">@ Rp ${harga.toLocaleString('id-ID')}</p>
+                    </td>
+                    <td class="p-3 text-center whitespace-nowrap">
+                        <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[9px] md:text-[10px] font-black">${qty}x</span>
+                    </td>
+                    <td class="p-3 pr-4 text-right font-black text-slate-800 text-[10px] md:text-xs whitespace-nowrap">Rp ${(qty * harga).toLocaleString('id-ID')}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Setup tombol aksi
+        document.getElementById('btn-hapus-trx').onclick = () => window.hapusTransaksi(trxId);
+        document.getElementById('btn-print-trx').onclick = () => window.printStruk(trxId);
+        document.getElementById('btn-image-trx').onclick = () => {
+            document.getElementById('modal-detail-trx').classList.add('hidden');
+            window.previewNotaImage(trxId);
+        };
+
+        document.getElementById('modal-detail-trx').classList.remove('hidden');
+    } catch (e) {
+        console.error(e);
+        alert("Gagal memuat detail transaksi.");
+    }
+};
 
     window.printStruk = (trxId) => {
         const resInfo = window.db.exec("SELECT tanggal, total, metode_bayar FROM transaksi WHERE id = ?", [trxId]);
@@ -2044,113 +2076,104 @@
     };
 
     window.previewNotaImage = (trxId) => {
-        const resInfo = window.db.exec("SELECT tanggal, total, metode_bayar FROM transaksi WHERE id = ?", [trxId]);
-        if (resInfo.length === 0) return;
-        const info = resInfo[0].values[0];
-        
-        const resDetail = window.db.exec("SELECT b.nama, td.qty, td.harga FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id WHERE td.transaksi_id = ?", [trxId]);
-        
-        let itemsHtml = '';
-        if (resDetail.length > 0) {
-            resDetail[0].values.forEach(row => {
-                const sub = row[1] * row[2];
-                itemsHtml += `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:11px;">
-                        <span style="flex:1; text-align:left;">${(row[0] || "Barang").toUpperCase()}</span>
-                        <span style="width:35px; text-align:right;">${row[1]}x</span>
-                        <span style="width:75px; text-align:right;">${sub.toLocaleString('id-ID')}</span>
-                    </div>`;
-            });
-        }
-
-        const d = new Date(parseInt(info[0]));
-        const tglStr = d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
-
-        let htmlContent = `
-            <div id="wrapper-preview-rekap" class="flex flex-col items-center gap-4 w-full max-w-[320px]">
-                <div id="struk-rekap-capture" style="width:300px; background:#fff; padding:25px; color:#000; font-family:monospace; border-radius:8px;">
-                    <div style="text-align:center; font-weight:900; font-size:16px;">POSKITA STORE</div>
-                    <div style="text-align:center; font-size:10px; margin-bottom:10px;">NOTA #${trxId.toString().slice(-6)}</div>
-                    <div style="font-size:9px; margin-bottom:5px;">Tgl: ${tglStr}</div>
-                    <div style="font-size:9px; margin-bottom:10px;">Metode: ${info[2]}</div>
-                    <div style="border-bottom:2px dashed #000; margin:10px 0;"></div>
-                    
-                    ${itemsHtml}
-                    
-                    <div style="border-top:2px dashed #000; margin:10px 0; padding-top:10px;"></div>
-                    <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:900;">
-                        <span>TOTAL:</span>
-                        <span>Rp ${info[1].toLocaleString('id-ID')}</span>
-                    </div>
-                    <div style="text-align:center; font-size:10px; margin-top:20px; font-style:italic;">-- Terima Kasih --</div>
-                </div>
-
-                <div class="flex flex-col gap-2 w-full px-4 no-capture">
-    <button id="btn-share-nota" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg flex items-center justify-center gap-2">
-        <span>📲</span> Bagikan ke WhatsApp / Lainnya
-    </button>
+    const resInfo = window.db.exec("SELECT tanggal, total, metode_bayar, pelanggan_id FROM transaksi WHERE id = ?", [trxId]);
+    if (resInfo.length === 0) return;
+    const info = resInfo[0].values[0];
     
-    <div class="grid grid-cols-2 gap-2">
-        <button id="btn-do-capture-nota" class="py-2 bg-slate-700 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">💾 Simpan Galeri</button>
-        <button onclick="document.getElementById('section-struk').classList.remove('show-capture')" class="py-2 bg-rose-100 text-rose-600 rounded-xl font-black text-[9px] uppercase tracking-widest">Tutup</button>
-    </div>
-</div>
+    const resDetail = window.db.exec("SELECT b.nama, td.qty, td.harga FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id WHERE td.transaksi_id = ?", [trxId]);
+    
+    let itemsHtml = '';
+    if (resDetail.length > 0) {
+        resDetail[0].values.forEach(row => {
+            const sub = row[1] * row[2];
+            itemsHtml += `
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:11px;">
+                    <span style="flex:1; text-align:left;">${(row[0] || "Barang").toUpperCase()}</span>
+                    <span style="width:35px; text-align:right;">${row[1]}x</span>
+                    <span style="width:75px; text-align:right;">${sub.toLocaleString('id-ID')}</span>
+                </div>`;
+        });
+    }
+
+    const d = new Date(parseInt(info[0]));
+    const tglStr = d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+
+    // Ambil nama pelanggan untuk tampilan gambar
+    let namaPlg = "UMUM";
+    if (info[3]) {
+        const resP = window.db.exec("SELECT nama FROM pelanggan WHERE id = ?", [info[3]]);
+        if(resP.length > 0) namaPlg = resP[0].values[0][0];
+    }
+
+    let htmlContent = `
+        <div id="wrapper-preview-rekap" class="flex flex-col items-center gap-4 w-full max-w-[320px]">
+            <div id="struk-rekap-capture" style="width:300px; background:#fff; padding:25px; color:#000; font-family:monospace; border-radius:8px;">
+                <div style="text-align:center; font-weight:900; font-size:16px;">POSKITA STORE</div>
+                <div style="text-align:center; font-size:10px; margin-bottom:10px;">NOTA #${trxId.toString().slice(-6)}</div>
+                
+                <div style="font-size:9px; margin-bottom:2px;">Tgl: ${tglStr}</div>
+                <div style="font-size:9px; margin-bottom:2px;">Pelanggan: ${namaPlg.toUpperCase()}</div>
+                <div style="font-size:9px; margin-bottom:10px;">Metode: ${info[2] === 'Hutang' ? '📒 HUTANG' : '💵 TUNAI'}</div>
+                
+                <div style="border-bottom:2px dashed #000; margin:10px 0;"></div>
+                ${itemsHtml}
+                <div style="border-top:2px dashed #000; margin:10px 0; padding-top:10px;"></div>
+                
+                <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:900;">
+                    <span>TOTAL:</span>
+                    <span>Rp ${info[1].toLocaleString('id-ID')}</span>
+                </div>
+                <div style="text-align:center; font-size:10px; margin-top:20px; font-style:italic;">-- Terima Kasih --</div>
             </div>
-        `;
 
-        const printArea = document.getElementById('section-struk');
-        printArea.innerHTML = htmlContent;
-        printArea.classList.add('show-capture');
+            <div class="flex flex-col gap-2 w-full px-4 no-capture">
+                <button id="btn-share-nota" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg flex items-center justify-center gap-2">
+                    <span>📲</span> Bagikan ke WhatsApp
+                </button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btn-do-capture-nota" class="py-2 bg-slate-700 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">💾 Simpan Galeri</button>
+                    <button onclick="document.getElementById('section-struk').classList.remove('show-capture')" class="py-2 bg-rose-100 text-rose-600 rounded-xl font-black text-[9px] uppercase tracking-widest">Tutup</button>
+                </div>
+            </div>
+        </div>
+    `;
 
-        document.getElementById('btn-do-capture-nota').onclick = async () => {
+    const printArea = document.getElementById('section-struk');
+    printArea.innerHTML = htmlContent;
+    printArea.classList.add('show-capture');
+
+    // LOGIC SHARE NYA MAS
+    document.getElementById('btn-share-nota').onclick = async () => {
+        const btn = document.getElementById('btn-share-nota');
+        const originalText = btn.innerHTML;
+        btn.innerText = "MENYIAPKAN...";
+        try {
             const area = document.getElementById('struk-rekap-capture');
             const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#ffffff" });
-            const link = document.createElement('a');
-            link.download = `Nota-${trxId.toString().slice(-6)}.png`;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-            printArea.classList.remove('show-capture');
-        };
-
-        // --- FITUR SHARE GAMBAR LANGSUNG ---
-        document.getElementById('btn-share-nota').onclick = async () => {
-            const btn = document.getElementById('btn-share-nota');
-            const originalText = btn.innerHTML;
-            btn.innerText = "MENYIAPKAN...";
-
-            try {
-                const area = document.getElementById('struk-rekap-capture');
-                const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#ffffff" });
-                
-                // Ubah canvas ke Blob (File asli)
-                canvas.toBlob(async (blob) => {
-                    const file = new File([blob], `Nota-${trxId.toString().slice(-6)}.png`, { type: "image/png" });
-                    
-                    // Cek apakah browser HP mendukung fitur Share File
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            files: [file],
-                            title: 'Struk Belanja PosKita',
-                            text: `Struk Nota #${trxId.toString().slice(-6)}`
-                        });
-                        printArea.classList.remove('show-capture');
-                    } else {
-                        // Jika tidak dukung (misal browser jadul), otomatis fallback ke download
-                        const link = document.createElement('a');
-                        link.download = `Nota-${trxId.toString().slice(-6)}.png`;
-                        link.href = canvas.toDataURL("image/png");
-                        link.click();
-                        alert("Browser Mas tidak mendukung share langsung. Gambar otomatis disimpan ke galeri.");
-                    }
-                    btn.innerHTML = originalText;
-                }, 'image/png');
-            } catch (err) {
-                console.error(err);
+            canvas.toBlob(async (blob) => {
+                const fileName = `Nota-${trxId.toString().slice(-6)}.png`;
+                const file = new File([blob], fileName, { type: "image/png" });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file], title: 'Struk PosKita', text: 'Terima kasih telah berbelanja!' });
+                } else {
+                    const link = document.createElement('a');
+                    link.download = fileName; link.href = canvas.toDataURL("image/png"); link.click();
+                    alert("Gambar disimpan ke galeri.");
+                }
                 btn.innerHTML = originalText;
-                alert("Gagal membagikan gambar.");
-            }
-        };
+            }, 'image/png');
+        } catch (err) { btn.innerHTML = originalText; alert("Gagal proses gambar."); }
     };
+
+    document.getElementById('btn-do-capture-nota').onclick = async () => {
+        const area = document.getElementById('struk-rekap-capture');
+        const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#ffffff" });
+        const link = document.createElement('a');
+        link.download = `Nota-${trxId.toString().slice(-6)}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    };
+};
 
     window.printRekap = async (mode = 'print') => {
             if (!window.db) return;
@@ -2218,11 +2241,19 @@
                             <div style="text-align:center; font-size:9px; margin-top:15px; color:#666; font-style:italic;">Dicetak: ${new Date().toLocaleString('id-ID')}</div>
                         </div>
 
-                        <div class="flex flex-col gap-2 w-full px-4 no-capture">
-                            <button id="btn-do-capture" class="w-full py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">💾 Simpan ke Galeri</button>
-                            <button id="btn-do-wa" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">💬 Kirim Teks ke WA</button>
-                            <button onclick="document.getElementById('section-struk').classList.remove('show-capture')" class="w-full py-2 text-white/60 font-bold text-[9px] uppercase tracking-widest">Batal / Tutup</button>
-                        </div>
+                        // Ganti blok tombol aksi di dalam htmlContent fungsi printRekap:
+<div class="flex flex-col gap-2 w-full px-4 no-capture">
+    <button id="btn-share-rekap" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg flex items-center justify-center gap-2">
+        <span>📲</span> Bagikan Gambar (WA/Lainnya)
+    </button>
+    
+    <div class="grid grid-cols-2 gap-2">
+        <button id="btn-do-capture" class="py-2.5 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">💾 Simpan Galeri</button>
+        <button id="btn-do-wa" class="py-2.5 bg-slate-700 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">💬 Kirim Teks WA</button>
+    </div>
+    
+    <button onclick="document.getElementById('section-struk').classList.remove('show-capture')" class="w-full py-2 text-white/60 font-bold text-[9px] uppercase tracking-widest">Batal / Tutup</button>
+</div>
                     </div>
                 `;
 
