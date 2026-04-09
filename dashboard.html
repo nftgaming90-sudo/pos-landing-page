@@ -391,7 +391,7 @@
     </button>
     
     <input type="date" id="input-date-custom" 
-        style="position: absolute; bottom: 0; left: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none;"
+        style="position: absolute; bottom: 0; left: 0; width: 1px; height: 1px; opacity: 0;"
         onchange="window.setReportFilter('custom', this.value)">
 </div>
             </div>
@@ -445,19 +445,6 @@
         </table>
     </div>
 </div>
-                </div>
-                <div class="overflow-x-auto flex-1">
-                    <table class="w-full text-xs text-left min-w-full">
-                        <thead class="bg-slate-50 text-[8px] md:text-[9px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-100 sticky top-0 z-10">
-                            <tr>
-                                <th class="p-3 pl-4 whitespace-nowrap">Nota & Waktu</th>
-        <th class="p-3 text-center whitespace-nowrap">Item</th>
-        <th class="p-3 pr-4 text-right whitespace-nowrap">Total & Profit</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-body" class="divide-y divide-slate-50"></tbody>
-                    </table>
-                </div>
             </div>
         </section>
     </main>
@@ -1530,7 +1517,10 @@
         await window.startAutoSync(); 
         window.renderCart();
     } else {
-        window.location.replace("index.html"); 
+        // PERBAIKAN: Jika belum login, jangan terus-terusan memutar jika file ini sendiri adalah index.html.
+        if (!window.location.pathname.endsWith('index.html') && !window.location.pathname.endsWith('/')) {
+            window.location.replace("index.html"); 
+        }
     }
 });
 
@@ -1642,7 +1632,8 @@
         // --- 1. INISIALISASI ENGINE SQL DULUAN ---
         // Ini kunci biar window.db nggak null saat fungsi lain dipanggil
         if (!window.db) {
-            const SQL = await initSqlJs({ 
+            // FIX: Panggil secara eksplisit window.initSqlJs
+            const SQL = await window.initSqlJs({ 
                 locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` 
             });
             window.db = new SQL.Database();
@@ -1660,21 +1651,25 @@
 
         // --- 2. LOGIKA FETCH PENGATURAN ---
         if (navigator.onLine && window.currentUid) {
-            const { data: settingData, error: errSetting } = await supabase.from('pengaturan').select('*').eq('user_id', window.currentUid).single();
-            
-            if (settingData) {
-                window.fonnteToken = settingData.fonnte_token || "";
-                window.waOwner = settingData.wa_owner || "";
-                window.namaToko = settingData.nama_toko || "PosKita";
-                localStorage.setItem(`poskita_setting_${window.currentUid}`, JSON.stringify({ fonnteToken: window.fonnteToken, waOwner: window.waOwner, namaToko: window.namaToko }));
-            } else if (errSetting && errSetting.code === 'PGRST116') {
-                const defaultToko = "Toko " + (window.userEmail ? window.userEmail.split('@')[0] : "Baru");
-                await supabase.from('pengaturan').insert({
-                    user_id: window.currentUid,
-                    fonnte_token: "",
-                    wa_owner: "",
-                    nama_toko: defaultToko
-                });
+            try {
+                const { data: settingData, error: errSetting } = await supabase.from('pengaturan').select('*').eq('user_id', window.currentUid).single();
+                
+                if (settingData) {
+                    window.fonnteToken = settingData.fonnte_token || "";
+                    window.waOwner = settingData.wa_owner || "";
+                    window.namaToko = settingData.nama_toko || "PosKita";
+                    localStorage.setItem(`poskita_setting_${window.currentUid}`, JSON.stringify({ fonnteToken: window.fonnteToken, waOwner: window.waOwner, namaToko: window.namaToko }));
+                } else if (errSetting && errSetting.code === 'PGRST116') {
+                    const defaultToko = "Toko " + (window.userEmail ? window.userEmail.split('@')[0] : "Baru");
+                    await supabase.from('pengaturan').insert({
+                        user_id: window.currentUid,
+                        fonnte_token: "",
+                        wa_owner: "",
+                        nama_toko: defaultToko
+                    });
+                }
+            } catch (settingError) {
+                console.warn("Tabel pengaturan belum siap, melanjutkan proses data:", settingError);
             }
         }
 
@@ -1701,7 +1696,23 @@
                 hutangData.forEach(h => window.db.run("INSERT OR REPLACE INTO hutang (id, pelanggan_id, transaksi_id, total, sisa, tanggal) VALUES (?,?,?,?,?,?)", [h.id, h.pelanggan_id, h.transaksi_id, h.total, h.sisa, h.tanggal]));
             }
             
-            // ... (lanjutkan pull transaksi & shift seperti kode Mas sebelumnya, pastikan pakai INSERT OR REPLACE)
+            // Ambil Transaksi
+const { data: trxData } = await supabase.from('transaksi').select('*').eq('user_id', window.currentUid);
+if (trxData) {
+    trxData.forEach(t => window.db.run("INSERT OR REPLACE INTO transaksi (id, tanggal, total, laba, metode_bayar, pelanggan_id) VALUES (?,?,?,?,?,?)", [t.id, t.tanggal, t.total, t.laba, t.metode_bayar, t.pelanggan_id]));
+}
+
+// Ambil Transaksi Detail
+const { data: detailData } = await supabase.from('transaksi_detail').select('*').eq('user_id', window.currentUid);
+if (detailData) {
+    detailData.forEach(td => window.db.run("INSERT OR REPLACE INTO transaksi_detail (id, transaksi_id, barang_id, qty, harga, modal) VALUES (?,?,?,?,?,?)", [td.id, td.transaksi_id, td.barang_id, td.qty, td.harga, td.modal]));
+}
+
+// Ambil Shift Kasir
+const { data: shiftData } = await supabase.from('shift_kasir').select('*').eq('user_id', window.currentUid);
+if (shiftData) {
+    shiftData.forEach(s => window.db.run("INSERT OR REPLACE INTO shift_kasir (id, waktu_buka, waktu_tutup, modal_awal, omzet, laba) VALUES (?,?,?,?,?,?)", [s.id, s.waktu_buka, s.waktu_tutup, s.modal_awal, s.omzet, s.laba]));
+}
         }
 
         window.refreshDataUI();
@@ -2240,31 +2251,27 @@
     window.printRekap = async (mode = 'print') => {
             if (!window.db) return;
 
-            // --- AMBIL DATA (Logic query tetap sama) ---
-            // --- BAGIAN AWAL FUNGSI printRekap ---
 let startMs = 0;
 const now = new Date();
 let labelTabel = "REKAPAN PENJUALAN";
-let subLabelTanggal = ""; // Variabel baru untuk simpan tanggal asli
+let subLabelTanggal = ""; 
 
 if (window.currentReportFilter === 'hari_ini') {
     startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     labelTabel = "REKAP BARANG HARI INI";
-    // Ambil tanggal hari ini: misal 09 Apr 2026
     subLabelTanggal = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 } 
 else if (window.currentReportFilter === 'kemarin') {
     const kemarin = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
     startMs = kemarin.getTime();
     labelTabel = "REKAP BARANG KEMARIN";
-    // Ambil tanggal kemarin: misal 08 Apr 2026
     subLabelTanggal = kemarin.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 } 
 else if (window.currentReportFilter === 'custom' && window.currentCustomDate) {
     const [y, m, d] = window.currentCustomDate.split('-');
     startMs = new Date(y, m - 1, d).getTime();
     labelTabel = `REKAP TGL ${d}/${m}/${y}`;
-    subLabelTanggal = ""; // Kosongkan karena sudah ada di labelTabel
+    subLabelTanggal = "";
 }
             const endMs = startMs + 86399999;
 
@@ -2278,8 +2285,6 @@ else if (window.currentReportFilter === 'custom' && window.currentCustomDate) {
                 omzet = resTotal[0].values[0][0]; laba = resTotal[0].values[0][1]; countTrx = resTotal[0].values[0][2];
             }
 
-            // --- MODE PRINT LANGSUNG ---
-            // --- DI DALAM window.printRekap mode 'print' ---
 if (mode === 'print') {
     let itemsHtml = '';
     if (resBarang.length > 0) {
@@ -2343,19 +2348,18 @@ if (mode === 'print') {
                             <div style="text-align:center; font-size:9px; margin-top:15px; color:#666; font-style:italic;">Dicetak: ${new Date().toLocaleString('id-ID')}</div>
                         </div>
 
-                        // Ganti blok tombol aksi di dalam htmlContent fungsi printRekap:
-<div class="flex flex-col gap-2 w-full px-4 no-capture">
-    <button id="btn-share-rekap" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg flex items-center justify-center gap-2">
-        <span>📲</span> Bagikan Gambar (WA/Lainnya)
-    </button>
-    
-    <div class="grid grid-cols-2 gap-2">
-        <button id="btn-do-capture" class="py-2.5 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">💾 Simpan Galeri</button>
-        <button id="btn-do-wa" class="py-2.5 bg-slate-700 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">💬 Kirim Teks WA</button>
-    </div>
-    
-    <button onclick="document.getElementById('section-struk').classList.remove('show-capture')" class="w-full py-2 text-white/60 font-bold text-[9px] uppercase tracking-widest">Batal / Tutup</button>
-</div>
+                        <div class="flex flex-col gap-2 w-full px-4 no-capture">
+                            <button id="btn-share-rekap" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg flex items-center justify-center gap-2">
+                                <span>📲</span> Bagikan Gambar (WA/Lainnya)
+                            </button>
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <button id="btn-do-capture" class="py-2.5 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">💾 Simpan Galeri</button>
+                                <button id="btn-do-wa" class="py-2.5 bg-slate-700 text-white rounded-xl font-black text-[9px] uppercase tracking-widest">💬 Kirim Teks WA</button>
+                            </div>
+                            
+                            <button onclick="document.getElementById('section-struk').classList.remove('show-capture')" class="w-full py-2 text-white/60 font-bold text-[9px] uppercase tracking-widest">Batal / Tutup</button>
+                        </div>
                     </div>
                 `;
 
@@ -2430,8 +2434,6 @@ document.getElementById('btn-share-rekap').onclick = async () => {
                             const qty = r[1];
                             const subtotal = r[2].toLocaleString('id-ID');
                             
-                            // Format: NAMA BARANG (1 baris)
-                            //         9x  -----------------  85.000
                             pesan += `*${nama}*\n`;
                             pesan += `${qty}x`.padEnd(5, ' ') + ` ................. `.padEnd(10, ' ') + `*${subtotal}*\n`;
                         });
@@ -2735,7 +2737,7 @@ document.getElementById('btn-share-rekap').onclick = async () => {
 
     window.pushTransaksiToCloud = async (payload) => {
         const { error: trxError } = await supabase.from('transaksi').upsert({
-            id: payload.ts, tanggal: payload.ts, total: payload.totalB, laba: payload.totalL, metode_bayar: payload.metode, user_id: payload.uid 
+            id: payload.ts, tanggal: payload.ts.toString(), total: payload.totalB, laba: payload.totalL, metode_bayar: payload.metode, user_id: payload.uid 
         });
         if(trxError) throw trxError;
 
