@@ -789,45 +789,62 @@
     };
 
     window.simpanPelangganBaru = async () => {
-        const nama = document.getElementById('input-nama-pelanggan').value;
-        const hp = document.getElementById('input-hp-pelanggan').value;
+    // 1. CEK APAKAH DATABASE SIAP
+    if (!window.db) {
+        return alert("Sistem sedang menyiapkan data, mohon tunggu sebentar...");
+    }
 
-        if (!nama) return alert("Nama pelanggan wajib diisi!");
+    const nama = document.getElementById('input-nama-pelanggan').value;
+    const hp = document.getElementById('input-hp-pelanggan').value;
 
-        const id = "P-" + Date.now();
-        const payload = { 
-            id: id, 
-            nama: nama, 
-            hp: hp, 
-            total_hutang: 0, 
-            sisa_hutang: 0, 
-            user_id: window.currentUid 
-        };
+    if (!nama) return alert("Nama pelanggan wajib diisi!");
 
-        // 1. Simpan ke SQLite Lokal
+    const id = "P-" + Date.now();
+    const payload = { 
+        id: id, 
+        nama: nama, 
+        hp: hp, 
+        total_hutang: 0, 
+        sisa_hutang: 0, 
+        user_id: window.currentUid 
+    };
+
+    try {
+        // 2. Simpan ke SQLite Lokal
         window.db.run("INSERT INTO pelanggan (id, nama, hp, total_hutang, sisa_hutang) VALUES (?,?,?,?,?)", 
                       [id, nama, hp, 0, 0]);
 
-        // 2. Masukkan ke Antrean Offline
+        // 3. Masukkan ke Antrean Offline (Pastikan array-nya ada)
+        if (!window.offlineQueue.pelanggan) window.offlineQueue.pelanggan = [];
         window.offlineQueue.pelanggan.push(payload);
         window.saveQueue();
 
-        // 3. Update UI Select di Kasir
+        // 4. Update UI Select di Kasir
         window.renderPelangganSelect();
         
-        // 4. Otomatis pilih pelanggan yang baru dibuat
+        // 5. Otomatis pilih pelanggan yang baru dibuat
         setTimeout(() => {
-            document.getElementById('select-pelanggan').value = id;
+            const selectPlg = document.getElementById('select-pelanggan');
+            if(selectPlg) selectPlg.value = id;
         }, 100);
 
-        // 5. Bersihkan dan Tutup Modal
+        // 6. Bersihkan dan Tutup Modal
         document.getElementById('input-nama-pelanggan').value = "";
         document.getElementById('input-hp-pelanggan').value = "";
         document.getElementById('modal-tambah-pelanggan').classList.add('hidden');
 
-        // 6. Coba sinkron kalau online
-        if (navigator.onLine) window.processOfflineQueue();
-    };
+        // 7. Coba sinkron kalau online
+        if (navigator.onLine) {
+            window.processOfflineQueue();
+        } else {
+            alert("Pelanggan tersimpan secara offline. Data akan disinkron saat internet aktif.");
+        }
+
+    } catch (err) {
+        console.error("Gagal simpan pelanggan:", err);
+        alert("Gagal menyimpan data pelanggan. Coba cek koneksi atau restart aplikasi.");
+    }
+};
 
     window.renderHutang = (sortBy = 'baru') => {
         if (!window.db) return;
@@ -1453,18 +1470,29 @@
     };
 
     window.updateSyncUI = () => {
-        const shiftCount = (window.offlineQueue.shift || []).length;
-        const plgCount = (window.offlineQueue.pelanggan || []).length + (window.offlineQueue.hutang || []).length;
-        const count = window.offlineQueue.barang.length + window.offlineQueue.transaksi.length + window.offlineQueue.hapus_barang.length + window.offlineQueue.hapus_transaksi.length + shiftCount + plgCount;
-        const btn = document.getElementById('btn-download');
-        if (count > 0) {
-            btn.innerText = `SYNC (${count} PENDING)`;
-            btn.classList.add('bg-amber-100', 'text-amber-700', 'border-amber-300', 'animate-pulse');
-        } else {
-            btn.innerText = "SINKRON";
-            btn.classList.remove('bg-amber-100', 'text-amber-700', 'border-amber-300', 'animate-pulse');
-        }
-    };
+    // Gunakan tanda ?. dan || [] supaya kalau undefined tidak crash
+    const barangCount = (window.offlineQueue?.barang || []).length;
+    const trxCount = (window.offlineQueue?.transaksi || []).length;
+    const delBarangCount = (window.offlineQueue?.hapus_barang || []).length;
+    const delTrxCount = (window.offlineQueue?.hapus_transaksi || []).length;
+    const shiftCount = (window.offlineQueue?.shift || []).length;
+    const plgCount = (window.offlineQueue?.pelanggan || []).length;
+    const hutangCount = (window.offlineQueue?.hutang || []).length;
+    const cicilanCount = (window.offlineQueue?.cicilan || []).length;
+
+    const totalCount = barangCount + trxCount + delBarangCount + delTrxCount + shiftCount + plgCount + hutangCount + cicilanCount;
+    
+    const btn = document.getElementById('btn-download');
+    if (!btn) return;
+
+    if (totalCount > 0) {
+        btn.innerText = `SYNC (${totalCount} PENDING)`;
+        btn.classList.add('bg-amber-100', 'text-amber-700', 'border-amber-300', 'animate-pulse');
+    } else {
+        btn.innerText = "SINKRON";
+        btn.classList.remove('bg-amber-100', 'text-amber-700', 'border-amber-300', 'animate-pulse');
+    }
+};
 
     window.saveQueue = () => {
         if(window.currentUid) {
@@ -1474,29 +1502,37 @@
     };
 
     onAuthStateChanged(auth, async (user) => {
-        if (user) { 
-            // Pastikan session tersimpan permanen di perangkat ini
-            await setPersistence(auth, browserLocalPersistence);
-            
-            window.currentUid = user.uid; 
-            window.userEmail = user.email;
-            document.getElementById('user-email').innerText = user.email; 
-            
-            await window.checkProStatus(user.uid);
-            window.loadShiftState();
+    if (user) { 
+        await setPersistence(auth, browserLocalPersistence);
+        window.currentUid = user.uid; 
+        window.userEmail = user.email;
+        document.getElementById('user-email').innerText = user.email; 
+        
+        await window.checkProStatus(user.uid);
+        window.loadShiftState();
 
-            window.cart = JSON.parse(localStorage.getItem(`poskita_cart_${user.uid}`)) || [];
-            
-            let q = JSON.parse(localStorage.getItem(`poskita_offline_queue_${user.uid}`)) || { barang: [], transaksi: [] };
-            window.offlineQueue = q;
-            
-            await window.startAutoSync(); 
-            window.renderCart();
-        } else { 
-            // Jika tidak ada user, baru lempar ke halaman login
-            window.location.replace("index.html"); 
-        }
-    });
+        window.cart = JSON.parse(localStorage.getItem(`poskita_cart_${user.uid}`)) || [];
+        
+        // --- PERBAIKAN DI SINI ---
+        let q = JSON.parse(localStorage.getItem(`poskita_offline_queue_${user.uid}`));
+        window.offlineQueue = {
+            barang: q?.barang || [],
+            transaksi: q?.transaksi || [],
+            pelanggan: q?.pelanggan || [],
+            hutang: q?.hutang || [],
+            cicilan: q?.cicilan || [],
+            hapus_barang: q?.hapus_barang || [],
+            hapus_transaksi: q?.hapus_transaksi || [],
+            shift: q?.shift || []
+        };
+        // -------------------------
+        
+        await window.startAutoSync(); 
+        window.renderCart();
+    } else { 
+        window.location.replace("index.html"); 
+    }
+});
 
     window.addEventListener('online', () => {
         if(window.currentUid) window.checkProStatus(window.currentUid);
@@ -2868,27 +2904,44 @@ document.getElementById('btn-share-rekap').onclick = async () => {
         }
     };
 
-    document.getElementById('btn-logout').onclick = () => {
-        const shiftCount = (window.offlineQueue.shift || []).length;
-        const pendingCount = window.offlineQueue.barang.length + window.offlineQueue.transaksi.length + window.offlineQueue.hapus_barang.length + window.offlineQueue.hapus_transaksi.length + shiftCount;
+    // Pastikan kode ini ada di dalam <script type="module">
+const btnKeluar = document.getElementById('btn-logout');
+if (btnKeluar) {
+    btnKeluar.onclick = async () => {
+        // Cek apakah ada data antrean (mencegah data hilang)
+        const pendingCount = (window.offlineQueue?.barang?.length || 0) + 
+                           (window.offlineQueue?.transaksi?.length || 0) + 
+                           (window.offlineQueue?.shift?.length || 0);
         
         if (pendingCount > 0) {
-            alert("⚠️ TIDAK BISA LOGOUT!\n\nMasih ada data struk/barang/shift yang belum tersinkron ke Cloud (Tombol Sync masih Kuning). Harap tunggu internet stabil dan data terkirim dulu agar laporan tidak hilang.");
-            return;
-        }
-        if (window.kasirAktif) {
-            alert("⚠️ KASIR MASIH BUKA!\n\nHarap 'Tutup Kasir' terlebih dahulu di menu Kasir agar laporan rekap bisa terkirim ke owner.");
+            alert(`⚠️ TIDAK BISA KELUAR!\nMasih ada ${pendingCount} data yang belum sinkron ke Cloud.`);
             return;
         }
 
-        if(confirm("Yakin ingin keluar dari kasir?")) {
-            signOut(auth).then(() => {
+        if (window.kasirAktif) {
+            alert("⚠️ KASIR MASIH BUKA!\nTutup kasir dulu sebelum keluar.");
+            return;
+        }
+
+        if (confirm("Yakin ingin keluar?")) {
+            try {
+                // Ambil UID sebelum dihapus untuk bersihkan localStorage
+                const uidLama = window.currentUid;
+                await signOut(auth);
+                
+                // BERSIHKAN TOTAL
                 window.db = null;
+                window.currentUid = null;
+                window.masterData = [];
+                
+                // Redirect balik ke login
                 window.location.replace("index.html");
-            });
+            } catch (err) {
+                console.error("Logout error:", err);
+            }
         }
     };
-
+}
     // --- LOGIC PENCARIAN KASIR ---
     const inputBarang = document.getElementById('search-barang');
     inputBarang.oninput = (e) => {
