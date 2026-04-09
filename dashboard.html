@@ -1586,9 +1586,18 @@
                 if (!error) window.offlineQueue.hutang = []; 
             }
             if (window.offlineQueue.cicilan && window.offlineQueue.cicilan.length > 0) {
-                const { error } = await supabase.from('cicilan').upsert(window.offlineQueue.cicilan);
-                if (!error) window.offlineQueue.cicilan = []; 
-            }
+    // Pastikan setiap item dalam array punya user_id
+    const dataToPush = window.offlineQueue.cicilan.map(item => ({
+        id: item.id,
+        hutang_id: item.hutang_id,
+        jumlah: item.jumlah,
+        tanggal: item.tanggal,
+        user_id: window.currentUid // Pastikan ini terisi
+    }));
+
+    const { error } = await supabase.from('cicilan').upsert(dataToPush);
+    if (!error) window.offlineQueue.cicilan = [];
+}
 
             if (window.offlineQueue.shift && window.offlineQueue.shift.length > 0) {
                 const { error } = await supabase.from('shift_kasir').upsert(window.offlineQueue.shift);
