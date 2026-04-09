@@ -1586,17 +1586,29 @@
                 if (!error) window.offlineQueue.hutang = []; 
             }
             if (window.offlineQueue.cicilan && window.offlineQueue.cicilan.length > 0) {
-    // Pastikan setiap item dalam array punya user_id
-    const dataToPush = window.offlineQueue.cicilan.map(item => ({
-        id: item.id,
-        hutang_id: item.hutang_id,
-        jumlah: item.jumlah,
-        tanggal: item.tanggal,
-        user_id: window.currentUid // Pastikan ini terisi
-    }));
+    // Kita filter agar hanya mengirim kolom yang pasti ada di tabel Supabase
+    const dataToPush = window.offlineQueue.cicilan.map(item => {
+        const payload = {
+            id: item.id,
+            hutang_id: item.hutang_id,
+            jumlah: item.jumlah,
+            tanggal: item.tanggal
+        };
+        
+        // Hanya tambahkan user_id jika window.currentUid tersedia
+        if (window.currentUid) {
+            payload.user_id = window.currentUid;
+        }
+        
+        return payload;
+    });
 
     const { error } = await supabase.from('cicilan').upsert(dataToPush);
-    if (!error) window.offlineQueue.cicilan = [];
+    if (!error) {
+        window.offlineQueue.cicilan = [];
+    } else {
+        console.error("Gagal sinkron cicilan:", error.message);
+    }
 }
 
             if (window.offlineQueue.shift && window.offlineQueue.shift.length > 0) {
