@@ -63,6 +63,10 @@
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+    #filter-kategori-kasir button, #filter-kategori-stok button {
+    white-space: nowrap; /* Biar tulisan kategori nggak patah ke bawah */
+}
+
     input[type="number"]::-webkit-inner-spin-button, 
     input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type="number"] { -moz-appearance: textfield; }
@@ -263,76 +267,81 @@
 </section>
 
         <section id="menu-kasir" class="page-content flex-col md:flex-row p-2 md:p-4 gap-3 md:gap-4">
-            <div class="w-full md:w-2/3 flex-1 flex flex-col gap-3 overflow-hidden">
-                <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 flex flex-col flex-1 overflow-hidden">
-                    
-                    <div class="bg-emerald-50 border-b border-emerald-100 px-3 py-2 flex justify-between items-center shrink-0">
-                        <div class="flex items-center gap-2">
-                            <span class="relative flex h-2.5 w-2.5">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                            </span>
-                            <span class="text-[9px] md:text-[10px] font-black text-emerald-700 uppercase tracking-widest">KASIR AKTIF</span>
-                        </div>
-                        <button id="btn-header-tutup-kasir" onclick="window.konfirmasiTutupKasir()" class="bg-rose-100 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-200 px-3 py-1.5 rounded-lg text-[9px] font-black tracking-widest uppercase transition-colors disabled:opacity-50">Tutup Kasir</button>
-                    </div>
-
-                    <div class="p-2.5 md:p-3 border-b border-slate-100 bg-white flex gap-2 md:gap-3 items-center z-10 shrink-0">
-                        <div class="relative flex-1 flex items-center">
-                            <span class="absolute left-3 md:left-3.5 opacity-40 text-sm">🔍</span>
-                            <input type="text" id="search-barang" placeholder="Cari nama produk..." 
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 md:pl-10 pr-4 py-2.5 md:py-3 text-[16px] md:text-sm font-medium focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none text-slate-700 placeholder-slate-400">
-                        </div>
-                        <button id="btn-download" onclick="startAutoSync()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3 md:px-5 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm whitespace-nowrap">Sync</button>
-                    </div>
-
-                    <div class="overflow-y-auto overflow-x-auto flex-1 bg-white relative pb-24 md:pb-0">
-                        <table class="w-full text-left min-w-full">
-                            <thead class="sticky top-0 bg-blue-50/95 backdrop-blur-md border-b border-blue-100 text-blue-800 text-[10px] uppercase font-black tracking-widest z-10">
-                                <tr>
-                                    <th class="p-3 md:p-4 pl-4 md:pl-5 whitespace-nowrap">Produk</th>
-                                    <th class="p-3 md:p-4 text-center whitespace-nowrap">Stok</th>
-                                    <th class="p-3 md:p-4 pr-4 md:pr-5 text-right whitespace-nowrap">Order</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-body" class="divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
+    <div class="w-full md:w-2/3 flex-1 flex flex-col gap-3 overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 flex flex-col flex-1 overflow-hidden">
+            
+            <div class="bg-emerald-50 border-b border-emerald-100 px-3 py-2 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-[9px] md:text-[10px] font-black text-emerald-700 uppercase tracking-widest">KASIR AKTIF</span>
                 </div>
+                <button id="btn-header-tutup-kasir" onclick="window.konfirmasiTutupKasir()" class="bg-rose-100 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-200 px-3 py-1.5 rounded-lg text-[9px] font-black tracking-widest uppercase transition-colors disabled:opacity-50">Tutup Kasir</button>
             </div>
 
-            <aside id="cart-section" class="w-full md:w-1/3 bg-slate-50 md:bg-slate-50/50 rounded-none md:rounded-2xl shadow-2xl md:shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] flex flex-col overflow-hidden border border-slate-200/70 pb-safe md:pb-0">
-    <div class="p-3 bg-white border-b border-slate-200 flex flex-col gap-2 z-10 shrink-0">
-        <div class="flex justify-between items-center">
-            <h2 class="font-bold text-slate-800 flex items-center gap-2 text-xs uppercase tracking-widest">🛒 Keranjang</h2>
-            <button onclick="window.clearCart()" class="text-[9px] text-rose-500 font-black px-2 py-1 hover:bg-rose-50 rounded-md transition-all">RESET</button>
-        </div>
-        <div class="flex gap-2 items-center">
-    <div class="relative flex-1 group">
-        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs opacity-40">👤</span>
-        <select id="select-pelanggan" class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-[11px] font-bold outline-none focus:border-blue-500 appearance-none">
-            <option value="">-- Pelanggan Umum --</option>
-        </select>
-    </div>
-    <button onclick="document.getElementById('modal-tambah-pelanggan').classList.remove('hidden')" class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-sm hover:bg-blue-600 hover:text-white transition-all">+</button>
-</div>
-    </div>
-    
-    <div id="cart-items" class="flex-1 overflow-y-auto p-3 space-y-2 relative"></div>
+            <div class="p-2.5 md:p-3 border-b border-slate-100 bg-white flex flex-col gap-2 z-10 shrink-0">
+                <div class="flex gap-2 md:gap-3 items-center">
+                    <div class="relative flex-1 flex items-center">
+                        <span class="absolute left-3 md:left-3.5 opacity-40 text-sm">🔍</span>
+                        <input type="text" id="search-barang" placeholder="Cari nama produk..." 
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 md:pl-10 pr-4 py-2.5 md:py-3 text-[16px] md:text-sm font-medium focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none text-slate-700 placeholder-slate-400">
+                    </div>
+                    <button id="btn-download" onclick="startAutoSync()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3 md:px-5 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm whitespace-nowrap">Sync</button>
+                </div>
 
-    <div class="p-4 bg-white border-t border-slate-200 space-y-3 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10 shrink-0">
-        <div class="flex justify-between items-center">
-            <p class="text-slate-400 font-black uppercase text-[9px] tracking-widest">Total Belanja</p>
-            <p id="cart-total" class="text-2xl font-black text-blue-700 tracking-tighter">Rp 0</p>
+                <div id="filter-kategori-kasir" class="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+                    </div>
+            </div>
+
+            <div class="overflow-y-auto overflow-x-auto flex-1 bg-white relative pb-24 md:pb-0">
+                <table class="w-full text-left min-w-full">
+                    <thead class="sticky top-0 bg-blue-50/95 backdrop-blur-md border-b border-blue-100 text-blue-800 text-[10px] uppercase font-black tracking-widest z-10">
+                        <tr>
+                            <th class="p-3 md:p-4 pl-4 md:pl-5 whitespace-nowrap">Produk</th>
+                            <th class="p-3 md:p-4 text-center whitespace-nowrap">Stok</th>
+                            <th class="p-3 md:p-4 pr-4 md:pr-5 text-right whitespace-nowrap">Order</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
         </div>
-        <button id="btn-proses-bayar" disabled onclick="window.showPaymentModal()"
-            class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-sm shadow-lg disabled:bg-slate-200 disabled:text-slate-400 transition-all transform active:scale-95 uppercase tracking-widest">
-            BAYAR SEKARANG
-        </button>
-        <button onclick="window.toggleCart()" class="md:hidden w-full py-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest">Kembali</button>
     </div>
-</aside>
-        </section>
+
+    <aside id="cart-section" class="w-full md:w-1/3 bg-slate-50 md:bg-slate-50/50 rounded-none md:rounded-2xl shadow-2xl md:shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] flex flex-col overflow-hidden border border-slate-200/70 pb-safe md:pb-0">
+        <div class="p-3 bg-white border-b border-slate-200 flex flex-col gap-2 z-10 shrink-0">
+            <div class="flex justify-between items-center">
+                <h2 class="font-bold text-slate-800 flex items-center gap-2 text-xs uppercase tracking-widest">🛒 Keranjang</h2>
+                <button onclick="window.clearCart()" class="text-[9px] text-rose-500 font-black px-2 py-1 hover:bg-rose-50 rounded-md transition-all">RESET</button>
+            </div>
+            <div class="flex gap-2 items-center">
+                <div class="relative flex-1 group">
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs opacity-40">👤</span>
+                    <select id="select-pelanggan" class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-[11px] font-bold outline-none focus:border-blue-500 appearance-none">
+                        <option value="">-- Pelanggan Umum --</option>
+                    </select>
+                </div>
+                <button onclick="document.getElementById('modal-tambah-pelanggan').classList.remove('hidden')" class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-sm hover:bg-blue-600 hover:text-white transition-all">+</button>
+            </div>
+        </div>
+        
+        <div id="cart-items" class="flex-1 overflow-y-auto p-3 space-y-2 relative"></div>
+
+        <div class="p-4 bg-white border-t border-slate-200 space-y-3 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10 shrink-0">
+            <div class="flex justify-between items-center">
+                <p class="text-slate-400 font-black uppercase text-[9px] tracking-widest">Total Belanja</p>
+                <p id="cart-total" class="text-2xl font-black text-blue-700 tracking-tighter">Rp 0</p>
+            </div>
+            <button id="btn-proses-bayar" disabled onclick="window.showPaymentModal()"
+                class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-sm shadow-lg disabled:bg-slate-200 disabled:text-slate-400 transition-all transform active:scale-95 uppercase tracking-widest">
+                BAYAR SEKARANG
+            </button>
+            <button onclick="window.toggleCart()" class="md:hidden w-full py-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest">Kembali</button>
+        </div>
+    </aside>
+</section>
 
         <section id="menu-stok" class="page-content flex-col p-2.5 md:p-4">
             <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 flex-1 flex flex-col overflow-hidden">
@@ -351,6 +360,8 @@
                         <input type="text" id="search-stok" placeholder="Cari barang di gudang..." 
                             class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-[16px] md:text-sm outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700">
                     </div>
+                    <div id="filter-kategori-stok" class="flex gap-2 overflow-x-auto pb-2 hide-scrollbar shrink-0">
+    </div>
                 </div>
                 <div class="overflow-auto flex-1 relative pb-10 md:pb-0">
                     <table class="w-full text-sm text-left min-w-full">
@@ -426,6 +437,24 @@
     </button>
 </div>
 
+<button onclick="window.bukaLogVoid()" class="w-full mt-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-slate-200 transition-all">
+    🔎 Cek Riwayat Hapus (Audit Log)
+</button>
+
+<div id="modal-log-void" class="fixed inset-0 z-[200] flex items-center justify-center hidden bg-slate-900/80 backdrop-blur-sm p-4 no-print">
+    <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh]">
+        <div class="p-4 bg-rose-600 text-white flex justify-between items-center shrink-0">
+            <h3 class="font-black text-[10px] uppercase tracking-widest">Riwayat Pembatalan Nota</h3>
+            <button onclick="document.getElementById('modal-log-void').classList.add('hidden')" class="text-2xl">&times;</button>
+        </div>
+        <div id="list-log-void" class="overflow-y-auto p-4 space-y-3 bg-slate-50 flex-1">
+            </div>
+        <div class="p-4 bg-white border-t border-slate-100">
+            <button onclick="document.getElementById('modal-log-void').classList.add('hidden')" class="w-full py-3 bg-slate-100 text-slate-500 rounded-xl font-black text-[10px] uppercase">Tutup</button>
+        </div>
+    </div>
+</div>
+
 <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 overflow-hidden flex-1 flex flex-col min-h-[300px]">
     <div class="p-3 md:p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
         <span id="tabel-judul-rekap" class="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-200">History Transaksi</span>
@@ -447,6 +476,22 @@
 </div>
             </div>
         </section>
+
+        <div id="modal-kelola-kategori" class="fixed inset-0 z-[300] flex items-center justify-center hidden bg-slate-900/80 backdrop-blur-sm p-4 no-print">
+    <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-xs overflow-hidden">
+        <div class="p-4 bg-slate-800 text-white flex justify-between items-center">
+            <h3 class="font-black text-[10px] uppercase tracking-widest text-slate-100">Kelola Kategori</h3>
+            <button onclick="document.getElementById('modal-kelola-kategori').classList.add('hidden')" class="text-2xl hover:text-rose-400">&times;</button>
+        </div>
+        <div id="list-kelola-kategori" class="p-4 space-y-2 max-h-60 overflow-y-auto bg-slate-50">
+            </div>
+        <div class="p-4 bg-white border-t border-slate-100 text-center">
+            <p class="text-[8px] text-slate-400 font-bold italic leading-tight">
+                *Menghapus kategori tidak menghapus barang.<br>Label kategori barang tersebut akan kembali ke 'Umum'.
+            </p>
+        </div>
+    </div>
+</div>
     </main>
 
     <div id="floating-cart-btn" onclick="window.toggleCart()" 
@@ -623,6 +668,21 @@
                         <label class="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-wider">Nama Produk</label>
                         <input type="text" id="barang-nama" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 md:px-4 py-2.5 md:py-3 font-bold text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-[16px] md:text-sm">
                     </div>
+                    <div class="space-y-1.5">
+    <div class="space-y-1.5">
+    <div class="flex justify-between items-center">
+        <label class="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-wider">Kategori</label>
+        <button onclick="window.bukaKelolaKategori()" class="text-[9px] font-black text-blue-600 hover:underline">⚙️ KELOLA</button>
+    </div>
+    <select id="barang-kategori" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 md:px-4 py-2.5 font-bold text-slate-800 outline-none focus:border-blue-500 transition-all text-[16px] md:text-sm appearance-none">
+        <option value="Umum">Umum</option>
+        <option value="Makanan">Makanan</option>
+        <option value="Minuman">Minuman</option>
+        <option value="Rokok">Rokok</option>
+        <option value="Sembako">Sembako</option>
+        <option value="Lainnya">Lainnya</option>
+    </select>
+</div>
                     <div class="grid grid-cols-2 gap-3 md:gap-4">
                         <div class="space-y-1.5">
                             <label class="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-wider">Stok</label>
@@ -1626,26 +1686,23 @@
     const btn = document.getElementById('btn-download');
     if (btn) btn.innerText = "LOADING...";
 
-    window.renderTable(null); // Skeleton loading
-
     try {
-        // --- 1. INISIALISASI ENGINE SQL DULUAN ---
-        // Ini kunci biar window.db nggak null saat fungsi lain dipanggil
+        // --- 1. INISIALISASI ENGINE SQL ---
         if (!window.db) {
-            // FIX: Panggil secara eksplisit window.initSqlJs
             const SQL = await window.initSqlJs({ 
                 locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` 
             });
             window.db = new SQL.Database();
             
             window.db.run(`
-                CREATE TABLE IF NOT EXISTS barang (id TEXT PRIMARY KEY, nama TEXT, stok INTEGER, harga_jual NUMERIC, modal NUMERIC);
+                CREATE TABLE IF NOT EXISTS barang (id TEXT PRIMARY KEY, nama TEXT, kategori TEXT, stok INTEGER, harga_jual NUMERIC, modal NUMERIC);
                 CREATE TABLE IF NOT EXISTS transaksi (id BIGINT PRIMARY KEY, tanggal TEXT, total NUMERIC, laba NUMERIC, metode_bayar TEXT, pelanggan_id TEXT);
                 CREATE TABLE IF NOT EXISTS transaksi_detail (id BIGINT PRIMARY KEY, transaksi_id BIGINT, barang_id TEXT, qty INTEGER, harga NUMERIC, modal NUMERIC);
                 CREATE TABLE IF NOT EXISTS shift_kasir (id TEXT PRIMARY KEY, waktu_buka BIGINT, waktu_tutup BIGINT, modal_awal NUMERIC, omzet NUMERIC, laba NUMERIC);
                 CREATE TABLE IF NOT EXISTS pelanggan (id TEXT PRIMARY KEY, nama TEXT, hp TEXT, total_hutang NUMERIC, sisa_hutang NUMERIC);
                 CREATE TABLE IF NOT EXISTS hutang (id TEXT PRIMARY KEY, pelanggan_id TEXT, transaksi_id BIGINT, total NUMERIC, sisa NUMERIC, tanggal TEXT);
                 CREATE TABLE IF NOT EXISTS cicilan (id TEXT PRIMARY KEY, hutang_id TEXT, jumlah NUMERIC, tanggal TEXT);
+                CREATE TABLE IF NOT EXISTS kategori (id TEXT PRIMARY KEY, nama TEXT);
             `);
         }
 
@@ -1669,77 +1726,297 @@
                     });
                 }
             } catch (settingError) {
-                console.warn("Tabel pengaturan belum siap, melanjutkan proses data:", settingError);
+                console.warn("Tabel pengaturan belum siap:", settingError);
             }
         }
 
         // --- 3. PROSES OFFLINE QUEUE ---
-        if(navigator.onLine) await window.processOfflineQueue();
+        if (navigator.onLine) await window.processOfflineQueue();
 
         // --- 4. PULL DATA DARI CLOUD KE SQL LOKAL ---
-        if (navigator.onLine) {
-            // Ambil Barang
+        if (navigator.onLine && window.currentUid) {
+            // Pull Barang
             const { data: barangData } = await supabase.from('barang').select('*').eq('user_id', window.currentUid);
             if (barangData) {
-                barangData.forEach(b => window.db.run("INSERT OR REPLACE INTO barang (id, nama, stok, harga_jual, modal) VALUES (?,?,?,?,?)", [b.id, b.nama, b.stok, b.harga_jual, b.modal]));
+                barangData.forEach(b => {
+                    window.db.run("INSERT OR REPLACE INTO barang (id, nama, kategori, stok, harga_jual, modal) VALUES (?,?,?,?,?,?)", 
+                    [b.id, b.nama, b.kategori || 'Umum', b.stok, b.harga_jual, b.modal]);
+                });
             }
 
-            // Ambil Pelanggan
+            // Pull Pelanggan
             const { data: pelangganData } = await supabase.from('pelanggan').select('*').eq('user_id', window.currentUid);
             if (pelangganData) {
-                pelangganData.forEach(p => window.db.run("INSERT OR REPLACE INTO pelanggan (id, nama, hp, total_hutang, sisa_hutang) VALUES (?,?,?,?,?)", [p.id, p.nama, p.hp, p.total_hutang, p.sisa_hutang]));
+                pelangganData.forEach(p => {
+                    window.db.run("INSERT OR REPLACE INTO pelanggan (id, nama, hp, total_hutang, sisa_hutang) VALUES (?,?,?,?,?)", 
+                    [p.id, p.nama, p.hp, p.total_hutang, p.sisa_hutang]);
+                });
             }
 
-            // Ambil Hutang & Shift (Gunakan INSERT OR REPLACE agar tidak error duplikat)
+            // Pull Hutang
             const { data: hutangData } = await supabase.from('hutang').select('*').eq('user_id', window.currentUid);
             if (hutangData) {
-                hutangData.forEach(h => window.db.run("INSERT OR REPLACE INTO hutang (id, pelanggan_id, transaksi_id, total, sisa, tanggal) VALUES (?,?,?,?,?,?)", [h.id, h.pelanggan_id, h.transaksi_id, h.total, h.sisa, h.tanggal]));
+                hutangData.forEach(h => {
+                    window.db.run("INSERT OR REPLACE INTO hutang (id, pelanggan_id, transaksi_id, total, sisa, tanggal) VALUES (?,?,?,?,?,?)", 
+                    [h.id, h.pelanggan_id, h.transaksi_id, h.total, h.sisa, h.tanggal]);
+                });
             }
             
-            // Ambil Transaksi
-const { data: trxData } = await supabase.from('transaksi').select('*').eq('user_id', window.currentUid);
-if (trxData) {
-    trxData.forEach(t => window.db.run("INSERT OR REPLACE INTO transaksi (id, tanggal, total, laba, metode_bayar, pelanggan_id) VALUES (?,?,?,?,?,?)", [t.id, t.tanggal, t.total, t.laba, t.metode_bayar, t.pelanggan_id]));
-}
+            // Pull Transaksi
+            const { data: trxData } = await supabase.from('transaksi').select('*').eq('user_id', window.currentUid);
+            if (trxData) {
+                trxData.forEach(t => {
+                    window.db.run("INSERT OR REPLACE INTO transaksi (id, tanggal, total, laba, metode_bayar, pelanggan_id) VALUES (?,?,?,?,?,?)", 
+                    [t.id, t.tanggal, t.total, t.laba, t.metode_bayar, t.pelanggan_id]);
+                });
+            }
 
-// Ambil Transaksi Detail
-const { data: detailData } = await supabase.from('transaksi_detail').select('*').eq('user_id', window.currentUid);
-if (detailData) {
-    detailData.forEach(td => window.db.run("INSERT OR REPLACE INTO transaksi_detail (id, transaksi_id, barang_id, qty, harga, modal) VALUES (?,?,?,?,?,?)", [td.id, td.transaksi_id, td.barang_id, td.qty, td.harga, td.modal]));
-}
+            // Pull Detail Transaksi
+            const { data: detailData } = await supabase.from('transaksi_detail').select('*').eq('user_id', window.currentUid);
+            if (detailData) {
+                detailData.forEach(td => {
+                    window.db.run("INSERT OR REPLACE INTO transaksi_detail (id, transaksi_id, barang_id, qty, harga, modal) VALUES (?,?,?,?,?,?)", 
+                    [td.id, td.transaksi_id, td.barang_id, td.qty, td.harga, td.modal]);
+                });
+            }
 
-// Ambil Shift Kasir
-const { data: shiftData } = await supabase.from('shift_kasir').select('*').eq('user_id', window.currentUid);
-if (shiftData) {
-    shiftData.forEach(s => window.db.run("INSERT OR REPLACE INTO shift_kasir (id, waktu_buka, waktu_tutup, modal_awal, omzet, laba) VALUES (?,?,?,?,?,?)", [s.id, s.waktu_buka, s.waktu_tutup, s.modal_awal, s.omzet, s.laba]));
-}
+            // Pull Shift
+            const { data: shiftData } = await supabase.from('shift_kasir').select('*').eq('user_id', window.currentUid);
+            if (shiftData) {
+                shiftData.forEach(s => {
+                    window.db.run("INSERT OR REPLACE INTO shift_kasir (id, waktu_buka, waktu_tutup, modal_awal, omzet, laba) VALUES (?,?,?,?,?,?)", 
+                    [s.id, s.waktu_buka, s.waktu_tutup, s.modal_awal, s.omzet, s.laba]);
+                });
+            }
         }
 
         window.refreshDataUI();
-        if(btn) btn.innerText = "SINKRON";
+        if (btn) btn.innerText = "SINKRON";
+
     } catch (err) { 
         console.error("Gagal startAutoSync:", err); 
-        if(btn) btn.innerText = "ERROR DB"; 
+        if (btn) btn.innerText = "ERROR DB"; 
+    }
+};
+
+window.bukaKelolaKategori = () => {
+    if (!window.db) return;
+    const container = document.getElementById('list-kelola-kategori');
+    const res = window.db.exec("SELECT id, nama FROM kategori ORDER BY nama ASC");
+    
+    document.getElementById('modal-kelola-kategori').classList.remove('hidden');
+
+    if (res.length > 0) {
+        container.innerHTML = res[0].values.map(row => {
+            const [id, nama] = row;
+            if (nama === 'Umum') return ''; // Kategori 'Umum' jangan bisa dihapus
+            return `
+                <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <span class="text-xs font-bold text-slate-700">${nama}</span>
+                    <button onclick="window.eksekusiHapusKategori('${id}', '${nama.replace(/'/g, "\\'")}')" 
+                        class="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition-colors text-sm">🗑️</button>
+                </div>
+            `;
+        }).join('');
+    } else {
+        container.innerHTML = '<p class="text-center text-[10px] text-slate-400 py-5">Belum ada kategori tambahan.</p>';
+    }
+};
+
+window.eksekusiHapusKategori = async (id, nama) => {
+    // 1. Konfirmasi (Supaya tidak salah pencet)
+    if (!confirm(`Hapus kategori "${nama}"?\n\nKategori pada barang yang sudah ada akan otomatis berubah jadi "Umum".`)) return;
+
+    try {
+        // 2. Eksekusi Hapus di SQLite Lokal
+        window.db.run("DELETE FROM kategori WHERE id = ?", [id]);
+        
+        // 3. Amankan data barang: Kategori yang dihapus balik ke 'Umum'
+        window.db.run("UPDATE barang SET kategori = 'Umum' WHERE kategori = ?", [nama]);
+
+        // 4. Sinkronisasi ke Supabase (Jika Online)
+        if (navigator.onLine && window.currentUid) {
+            // Hapus kategorinya di Cloud
+            await supabase.from('kategori').delete().eq('id', id).eq('user_id', window.currentUid);
+            // Update massal barang di Cloud agar tetap sinkron dengan lokal
+            await supabase.from('barang').update({ kategori: 'Umum' }).eq('kategori', nama).eq('user_id', window.currentUid);
+        }
+
+        // 5. REFRESH SEMUA TAMPILAN (Bagian Paling Penting)
+        window.refreshDataUI();       // Update data master
+        window.renderCategoryTabs();  // <--- TAMBAHKAN INI: Update tombol filter Kasir/Stok
+        window.bukaKelolaKategori();  // Update list di dalam modal kelola (biar itemnya langsung hilang)
+        
+        alert("Kategori berhasil dihapus!");
+        
+    } catch (err) {
+        console.error("Gagal hapus kategori:", err);
+        alert("Aduh Mas, gagal hapus kategori. Coba cek koneksi internet ya.");
+    }
+};
+
+window.currentCategoryFilter = "Semua";
+
+window.renderCategoryTabs = () => {
+    if (!window.db) return;
+    
+    try {
+        // Ambil kategori UNIK yang benar-benar ada di tabel barang
+        const resBarang = window.db.exec("SELECT DISTINCT kategori FROM barang WHERE kategori IS NOT NULL AND kategori != ''");
+        
+        // Mulai dengan kategori default
+        let kategoriList = ["Semua"];
+        
+        if (resBarang.length > 0) {
+            resBarang[0].values.forEach(row => {
+                if (row[0] !== "Semua") {
+                    kategoriList.push(row[0]);
+                }
+            });
+        }
+
+        // Render ke dua tempat (Kasir & Stok)
+        const containers = ['filter-kategori-kasir', 'filter-kategori-stok'];
+        containers.forEach(containerId => {
+            const el = document.getElementById(containerId);
+            if (!el) return;
+
+            el.innerHTML = kategoriList.map(kat => {
+                const isActive = window.currentCategoryFilter === kat;
+                return `
+                    <button onclick="window.applyCategoryFilter('${kat.replace(/'/g, "\\'")}')" 
+                        class="shrink-0 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all border
+                        ${isActive 
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-md scale-105' 
+                            : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50 shadow-sm'}">
+                        ${kat}
+                    </button>
+                `;
+            }).join('');
+        });
+    } catch (e) {
+        console.error("Gagal render tabs:", e);
+    }
+};
+
+window.applyCategoryFilter = (kat) => {
+    window.currentCategoryFilter = kat;
+    window.renderCategoryTabs(); // Re-render biar tombol yang aktif berubah warna
+    
+    // Filter data master
+    const filteredData = window.currentCategoryFilter === "Semua" 
+        ? window.masterData 
+        : window.masterData.filter(item => item[5] === window.currentCategoryFilter);
+
+    // Update kedua tabel
+    window.renderTable(filteredData);
+    window.renderStokTable(filteredData);
+};
+
+window.renderKategoriSelect = () => {
+    if (!window.db) return;
+    try {
+        // Ambil kategori dari tabel kategori DAN kategori yang sudah nempel di barang
+        // Biar nggak ada kategori yang "hilang" dari pilihan
+        const res = window.db.exec(`
+            SELECT DISTINCT kategori_nama FROM (
+                SELECT nama AS kategori_nama FROM kategori 
+                UNION 
+                SELECT kategori AS kategori_nama FROM barang
+            ) WHERE kategori_nama IS NOT NULL AND kategori_nama != '' 
+            ORDER BY kategori_nama ASC
+        `);
+
+        const select = document.getElementById('barang-kategori');
+        if (!select) return;
+
+        // Reset dan kasih opsi default
+        let options = '<option value="Umum">Umum</option>';
+        
+        if (res.length > 0) {
+            res[0].values.forEach(row => {
+                const namaKat = row[0];
+                // 'Umum' sudah kita hardcode di atas, jadi skip kalau ada di database
+                if (namaKat.toLowerCase() !== 'umum') { 
+                    options += `<option value="${namaKat}">${namaKat}</option>`;
+                }
+            });
+        }
+        
+        // Tambahkan opsi spesial untuk tambah kategori baru
+        options += '<option value="TAMBAH_BARU" class="font-bold text-blue-600">+ Tambah Kategori Baru...</option>';
+        select.innerHTML = options;
+    } catch (e) {
+        console.error("Gagal render kategori select:", e);
+    }
+};
+
+document.getElementById('barang-kategori').onchange = async (e) => {
+    const val = e.target.value;
+    
+    if (val === 'TAMBAH_BARU') {
+        const namaBaru = prompt("Masukkan Nama Kategori Baru:");
+        
+        if (namaBaru && namaBaru.trim() !== "") {
+            const cleanNama = namaBaru.trim();
+            const idKat = "KAT-" + Date.now();
+
+            try {
+                // 1. Simpan ke SQLite Lokal
+                window.db.run("INSERT INTO kategori (id, nama) VALUES (?,?)", [idKat, cleanNama]);
+                
+                // 2. Refresh Dropdown
+                window.renderKategoriSelect();
+                
+                // 3. Otomatis pilih kategori yang baru dibuat
+                document.getElementById('barang-kategori').value = cleanNama;
+
+                // 4. Sinkron ke Supabase jika online
+                if (navigator.onLine) {
+                    await supabase.from('kategori').upsert({ 
+                        id: idKat, 
+                        nama: cleanNama, 
+                        user_id: window.currentUid 
+                    });
+                }
+            } catch (err) {
+                console.error("Gagal simpan kategori baru:", err);
+                e.target.value = "Umum"; // Fallback ke Umum kalau error
+            }
+        } else {
+            e.target.value = "Umum"; // Balikin ke Umum kalau dibatalkan
+        }
     }
 };
 
     window.refreshDataUI = () => {
-        if(!window.db) return;
-        const res = window.db.exec("SELECT nama, stok, harga_jual, modal, id FROM barang ORDER BY nama ASC");
+    if(!window.db) return;
+    
+    try {
+        // Ambil 6 kolom: nama(0), stok(1), harga_jual(2), modal(3), id(4), kategori(5)
+        const res = window.db.exec("SELECT nama, stok, harga_jual, modal, id, kategori FROM barang ORDER BY nama ASC");
         
         if (res.length > 0) { 
             window.masterData = res[0].values; 
         } else {
             window.masterData = [];
         }
+
+        // Reset filter ke "Semua" saat data di-refresh total
+    window.currentCategoryFilter = "Semua";
         
+        // Update cache dan render semua tabel
         localStorage.setItem(`poskita_master_cache_${window.currentUid}`, JSON.stringify(window.masterData));
-        
         window.renderTable(window.masterData); 
         window.renderStokTable(window.masterData); 
         window.updateReports();
         window.renderPelangganSelect();
-    };
+        window.renderCategoryTabs();
+        window.renderKategoriSelect(); // Pastikan ini dipanggil agar dropdown kategori terisi
+    } catch (e) {
+        console.error("Gagal refresh UI:", e);
+    }
+};
 
     window.minQty = (id) => {
         const el = document.getElementById(id);
@@ -1828,26 +2105,47 @@ if (shiftData) {
     };
 
     window.renderStokTable = (dataArray) => {
-        const countStr = window.isPro ? `${dataArray.length} Item (Unimited PRO)` : `${dataArray.length} / ${FREE_ITEM_LIMIT} Item (Free)`;
-        document.getElementById('stok-counter').innerText = countStr;
+    const counterEl = document.getElementById('stok-counter');
+    if (counterEl) {
+        const totalItem = dataArray.length;
+        if (window.isPro) {
+            counterEl.innerHTML = `<span class="text-blue-600 font-black">🏆 ${totalItem} Item (Unlimited Pro)</span>`;
+        } else {
+            counterEl.innerHTML = `<span class="text-slate-500 font-black">📦 ${totalItem}/${FREE_ITEM_LIMIT} Item (Free)</span>`;
+        }
+    }
 
-        const tbody = document.getElementById('stok-table-body');
-        tbody.innerHTML = dataArray.map(row => `
+    const tbody = document.getElementById('stok-table-body');
+    tbody.innerHTML = dataArray.map(row => {
+        const nama = row[0];
+        const stok = row[1];
+        const harga = row[2];
+        const modal = row[3];
+        const id = row[4];
+        const kat = row[5] || 'Umum'; // Ambil kolom kategori
+
+        return `
             <tr class="tr-item border-b border-slate-50">
-                <td class="p-3 md:p-4 pl-4 md:pl-5 whitespace-nowrap">
-                    <p class="font-bold text-slate-800 text-xs md:text-sm capitalize">${row[0]}</p>
-                    <p class="text-[9px] md:text-[10px] text-blue-600 font-bold mt-0.5">Jual: Rp ${row[2].toLocaleString()}</p>
-                </td>
-                <td class="p-3 md:p-4 text-center font-black text-slate-600 whitespace-nowrap">${row[1]}</td>
-                <td class="p-3 md:p-4 text-right text-slate-500 font-medium text-[10px] md:text-xs whitespace-nowrap hidden sm:table-cell">Rp ${row[3].toLocaleString()}</td>
-                <td class="p-3 md:p-4 pr-4 md:pr-5 whitespace-nowrap">
-                    <div class="flex items-center justify-end gap-1.5 md:gap-2">
-                        <button onclick="window.openEditModal('${row[4]}', '${row[0].replace(/'/g, "\\'")}', ${row[1]}, ${row[2]}, ${row[3]})" class="bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 w-9 h-9 md:w-8 md:h-8 flex items-center justify-center rounded-xl transition-all shadow-sm text-sm">✏️</button>
-                        <button onclick="window.hapusBarang('${row[4]}', '${row[0].replace(/'/g, "\\'")}')" class="bg-white border border-slate-200 hover:border-rose-300 hover:bg-rose-50 w-9 h-9 md:w-8 md:h-8 flex items-center justify-center rounded-xl transition-all shadow-sm text-sm opacity-60 hover:opacity-100">🗑️</button>
+                <td class="p-3 md:p-4 pl-4 md:pl-5">
+                    <div class="flex flex-col text-left">
+                        <span class="text-[7px] font-black text-blue-500 uppercase tracking-[0.2em] mb-0.5">${kat}</span>
+                        <p class="font-bold text-slate-800 text-xs md:text-sm capitalize">${nama}</p>
+                        <p class="text-[9px] md:text-[10px] text-slate-400 font-bold mt-0.5">Jual: Rp ${harga.toLocaleString('id-ID')}</p>
                     </div>
                 </td>
-            </tr>`).join('');
-    };
+                <td class="p-3 md:p-4 text-center font-black text-slate-600">${stok}</td>
+                <td class="p-3 md:p-4 text-right hidden sm:table-cell">Rp ${modal.toLocaleString('id-ID')}</td>
+                <td class="p-3 md:p-4 text-center">
+                    <div class="flex justify-end gap-2">
+                        <button onclick="window.openEditModal('${id}', '${nama.replace(/'/g, "\\'")}', ${stok}, ${harga}, ${modal}, '${kat.replace(/'/g, "\\'")}')" 
+                            class="p-2 bg-blue-50 text-blue-600 rounded-lg active:scale-90 transition-all">✏️</button>
+                        <button onclick="window.hapusBarang('${id}', '${nama.replace(/'/g, "\\'")}')" 
+                            class="p-2 bg-rose-50 text-rose-600 rounded-lg active:scale-90 transition-all">🗑️</button>
+                    </div>
+                </td>
+            </tr>`;
+    }).join('');
+};
 
     window.hapusBarang = async (id, nama) => {
         if(!confirm(`YAKIN HAPUS BARANG:\n\n"${nama}" ?\n\nBarang yang dihapus tidak bisa dikembalikan.`)) return;
@@ -2091,6 +2389,8 @@ if (shiftData) {
             document.getElementById('modal-detail-trx').classList.add('hidden');
             window.previewNotaImage(trxId);
         };
+
+        document.getElementById('btn-hapus-trx').classList.remove('hidden');
 
         document.getElementById('modal-detail-trx').classList.remove('hidden');
     } catch (e) {
@@ -2459,61 +2759,179 @@ document.getElementById('btn-share-rekap').onclick = async () => {
         };
 
     window.hapusTransaksi = async (trxId) => {
-        if(!confirm("HAPUS TRANSAKSI INI?\n\nStok barang akan otomatis dikembalikan ke gudang, dan rekapan omzet akan dikurangi. Tindakan ini tidak bisa dibatalkan.")) return;
+    // 1. Minta Alasan (Sesuai aliran 1 dengan catatan)
+    const alasan = prompt("⚠️ KONFIRMASI HAPUS TRANSAKSI\nMasukkan alasan pembatalan (Misal: Salah input, Barang retur, dll):");
+    
+    if (alasan === null) return; // User klik Batal di prompt
+    if (alasan.trim() === "") return alert("Alasan wajib diisi untuk menghapus transaksi!");
 
-        document.getElementById('modal-detail-trx').classList.add('hidden');
+    if (!confirm("Stok barang akan otomatis dikembalikan ke gudang dan omzet akan dikurangi. Lanjutkan?")) return;
 
-        const resDetail = window.db.exec("SELECT barang_id, qty FROM transaksi_detail WHERE transaksi_id = ?", [trxId]);
-        let itemsToRestore = [];
+    // Tutup modal detail jika sedang terbuka
+    const modalDetail = document.getElementById('modal-detail-trx');
+    if (modalDetail) modalDetail.classList.add('hidden');
+
+    try {
+        // 2. Ambil rincian barang untuk kembalikan stok
+        // 2. Ambil rincian barang (Pakai INNER JOIN biar lebih pasti narik namanya)
+const resDetail = window.db.exec(`
+    SELECT td.barang_id, td.qty, b.nama 
+    FROM transaksi_detail td 
+    JOIN barang b ON td.barang_id = b.id 
+    WHERE td.transaksi_id = ?
+`, [trxId]);
+
+let itemsToRestore = [];
+let teksRincian = ""; 
+
+if (resDetail.length > 0) {
+    resDetail[0].values.forEach(row => {
+        const bId = row[0];
+        const q = row[1];
+        const namaB = row[2]; // Ini nama asli dari tabel barang
         
-        if(resDetail.length > 0) {
-            resDetail[0].values.forEach(row => {
-                itemsToRestore.push({ id: row[0], qty: row[1] });
-                window.db.run("UPDATE barang SET stok = stok + ? WHERE id = ?", [row[1], row[0]]);
-            });
+        itemsToRestore.push({ id: bId, qty: q });
+        teksRincian += `${q}x ${namaB}, `; 
+
+        // Kembalikan stok di SQLite lokal
+        window.db.run("UPDATE barang SET stok = stok + ? WHERE id = ?", [q, bId]);
+    });
+    teksRincian = teksRincian.replace(/, $/, ""); 
+} else {
+    // JIKA JOIN GAGAL (Barang mungkin sudah tidak ada di master stok)
+    // Kita ambil data mentah dari transaksi_detail saja
+    const resFallback = window.db.exec("SELECT qty, barang_id FROM transaksi_detail WHERE transaksi_id = ?", [trxId]);
+    if(resFallback.length > 0) {
+        resFallback[0].values.forEach(rf => {
+            teksRincian += `${rf[0]}x ID:${rf[1]}, `;
+        });
+    }
+}
+
+        // 3. Ambil data transaksi lama untuk LOG sebelum dihapus
+        const resTrx = window.db.exec("SELECT total, pelanggan_id FROM transaksi WHERE id = ?", [trxId]);
+        let totalLama = 0;
+        let pId = null;
+        if (resTrx.length > 0) {
+            totalLama = resTrx[0].values[0][0];
+            pId = resTrx[0].values[0][1];
         }
 
+        // 4. Eksekusi Hapus di SQLite Lokal
         window.db.run("DELETE FROM transaksi_detail WHERE transaksi_id = ?", [trxId]);
         window.db.run("DELETE FROM transaksi WHERE id = ?", [trxId]);
         
-        window.refreshDataUI();
+        // Jika ada hutang terkait, hapus juga dan update saldo pelanggan
+        window.db.run("DELETE FROM hutang WHERE transaksi_id = ?", [trxId]);
+        if (pId) {
+            // Logika sederhana: Kurangi saldo hutang pelanggan jika transaksi dihapus
+            window.db.run("UPDATE pelanggan SET sisa_hutang = sisa_hutang - ? WHERE id = ?", [totalLama, pId]);
+        }
 
-        if(navigator.onLine) {
-            try {
-                await supabase.from('transaksi_detail').delete().eq('transaksi_id', trxId).eq('user_id', window.currentUid);
-                await supabase.from('transaksi').delete().eq('id', trxId).eq('user_id', window.currentUid);
-                
-                for(let item of itemsToRestore) {
-                    const {data} = await supabase.from('barang').select('stok').eq('id', item.id).eq('user_id', window.currentUid).single();
-                    if(data) {
-                        await supabase.from('barang').update({stok: data.stok + item.qty}).eq('id', item.id).eq('user_id', window.currentUid);
-                    }
+        window.refreshDataUI(); // Segarkan tampilan kasir & stok
+
+        // 5. SINKRONISASI KE CLOUD (Supabase)
+        if (navigator.onLine) {
+            // Hapus di Supabase
+            await supabase.from('transaksi_detail').delete().eq('transaksi_id', trxId).eq('user_id', window.currentUid);
+            await supabase.from('transaksi').delete().eq('id', trxId).eq('user_id', window.currentUid);
+
+            // Simpan Log Penghapusan ke tabel baru 'logs_void' (Opsional tapi sangat disarankan)
+            await supabase.from('logs_void').insert({
+                transaksi_id: trxId,
+                user_id: window.currentUid,
+                total: totalLama,
+                alasan: alasan,
+                rincian_barang: teksRincian,
+                waktu_hapus: new Date().toISOString()
+            });
+
+            // Update stok barang di Supabase
+            for (let item of itemsToRestore) {
+                const { data } = await supabase.from('barang').select('stok').eq('id', item.id).eq('user_id', window.currentUid).single();
+                if (data) {
+                    await supabase.from('barang').update({ stok: data.stok + item.qty }).eq('id', item.id).eq('user_id', window.currentUid);
                 }
-            } catch(e) {
-                window.offlineQueue.hapus_transaksi.push(trxId);
-                
-                itemsToRestore.forEach(item => {
-                    const resB = window.db.exec("SELECT nama, stok, harga_jual, modal FROM barang WHERE id=?", [item.id]);
-                    if(resB.length>0) {
-                        const b = resB[0].values[0];
-                        window.offlineQueue.barang.push({ id: item.id, nama: b[0], stok: b[1], harga_jual: b[2], modal: b[3], user_id: window.currentUid });
-                    }
-                });
-                window.saveQueue();
             }
         } else {
-            window.offlineQueue.hapus_transaksi.push(trxId);
-            
+            // Jika Offline, masukkan ke queue untuk diproses nanti
+            window.offlineQueue.hapus_transaksi.push({ id: trxId, alasan: alasan });
+            // Stok juga perlu masuk antrean update
             itemsToRestore.forEach(item => {
                 const resB = window.db.exec("SELECT nama, stok, harga_jual, modal FROM barang WHERE id=?", [item.id]);
-                if(resB.length>0) {
+                if (resB.length > 0) {
                     const b = resB[0].values[0];
                     window.offlineQueue.barang.push({ id: item.id, nama: b[0], stok: b[1], harga_jual: b[2], modal: b[3], user_id: window.currentUid });
                 }
             });
             window.saveQueue();
         }
-    };
+
+        alert(`✅ Sukses!\nTransaksi #${trxId.toString().slice(-6)} telah dihapus dan stok dikembalikan.\nAlasan: ${alasan}`);
+
+    } catch (e) {
+        console.error("Gagal hapus transaksi:", e);
+        alert("Terjadi kesalahan saat menghapus data. Cek koneksi Anda.");
+    }
+};
+
+window.bukaLogVoid = async () => {
+    const container = document.getElementById('list-log-void');
+    const modal = document.getElementById('modal-log-void');
+    
+    // Tampilkan modal & loading state
+    modal.classList.remove('hidden');
+    container.innerHTML = '<p class="text-center text-[10px] font-bold text-slate-400 animate-pulse py-10">MENGAMBIL DATA AUDIT...</p>';
+
+    try {
+        // Ambil data dari tabel logs_void di Supabase
+        const { data, error } = await supabase
+            .from('logs_void')
+            .select('*')
+            .eq('user_id', window.currentUid)
+            .order('waktu_hapus', { ascending: false });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+            container.innerHTML = data.map(log => {
+                const tgl = new Date(log.waktu_hapus).toLocaleString('id-ID', { 
+                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
+                });
+                // Ganti bagian return HTML-nya jadi begini:
+return `
+<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+    <div class="absolute left-0 top-0 bottom-0 w-1 bg-rose-500"></div>
+    <div class="flex justify-between items-start mb-2">
+        <div>
+            <p class="text-[10px] font-black text-slate-800 uppercase">NOTA #${log.transaksi_id.toString().slice(-6)}</p>
+            <p class="text-[8px] text-slate-400 font-bold">${tgl}</p>
+        </div>
+        <p class="text-xs font-black text-rose-600">Rp ${log.total.toLocaleString('id-ID')}</p>
+    </div>
+    
+    <p class="text-[9px] text-slate-500 font-medium mb-2 uppercase tracking-tight">
+        📦 ${log.rincian_barang || '-'}
+    </p>
+
+    <div class="bg-rose-50 p-2 rounded-lg border border-rose-100">
+        <p class="text-[8px] font-black text-rose-400 uppercase mb-0.5">Alasan Hapus:</p>
+        <p class="text-[10px] font-bold text-slate-700 leading-relaxed italic">"${log.alasan}"</p>
+    </div>
+</div>`;
+            }).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center py-10 opacity-40">
+                    <p class="text-4xl mb-2">✅</p>
+                    <p class="text-[10px] font-black uppercase tracking-widest">Tidak ada riwayat hapus</p>
+                </div>`;
+        }
+    } catch (err) {
+        console.error("Gagal load log void:", err);
+        container.innerHTML = '<p class="text-center text-rose-500 text-[10px] font-bold">Gagal mengambil data. Cek koneksi.</p>';
+    }
+};
 
     window.updateCartQty = (index, delta) => {
         const item = window.cart[index];
@@ -2677,9 +3095,12 @@ document.getElementById('btn-share-rekap').onclick = async () => {
             return window.showUpgradeModal(`Batas penyimpanan maksimal ${FREE_ITEM_LIMIT} item untuk pengguna FREE telah tercapai.`);
         }
 
+        window.renderKategoriSelect(); 
+
         document.getElementById('modal-title').innerText = "TAMBAH BARANG";
         document.getElementById('barang-id').value = "";
         document.getElementById('barang-nama').value = "";
+        document.getElementById('barang-kategori').value = "Umum";
         document.getElementById('barang-stok').value = "";
         document.getElementById('barang-modal').value = "";
         document.getElementById('barang-harga').value = "";
@@ -2687,19 +3108,32 @@ document.getElementById('btn-share-rekap').onclick = async () => {
         setTimeout(() => document.getElementById('barang-nama').focus(), 100);
     };
 
-    window.openEditModal = (id, n, s, h, m) => {
-        document.getElementById('modal-title').innerText = "EDIT BARANG";
-        document.getElementById('barang-id').value = id;
-        document.getElementById('barang-nama').value = n;
-        document.getElementById('barang-stok').value = s;
-        document.getElementById('barang-harga').value = window.formatAngka(h);
-        document.getElementById('barang-modal').value = window.formatAngka(m);
-        document.getElementById('modal-barang').classList.remove('hidden');
-    };
+    window.openEditModal = (id, n, s, h, m, kat) => {
+    // 1. Segarkan dulu isi dropdown kategorinya
+    window.renderKategoriSelect(); 
+
+    // 2. Masukkan datanya ke form modal
+    document.getElementById('modal-title').innerText = "EDIT BARANG";
+    document.getElementById('barang-id').value = id;
+    document.getElementById('barang-nama').value = n;
+    document.getElementById('barang-stok').value = s;
+    document.getElementById('barang-harga').value = window.formatAngka(h);
+    document.getElementById('barang-modal').value = window.formatAngka(m);
+    
+    // 3. Set kategorinya, kalau ga ketemu default ke Umum
+    const selectKat = document.getElementById('barang-kategori');
+    if (selectKat) {
+        selectKat.value = kat || "Umum";
+    }
+    
+    // 4. Munculkan modalnya
+    document.getElementById('modal-barang').classList.remove('hidden');
+};
 
     document.getElementById('btn-simpan-barang').onclick = async () => {
         const id = document.getElementById('barang-id').value;
         const n = document.getElementById('barang-nama').value;
+        const kat = document.getElementById('barang-kategori').value;
         const s = Number(document.getElementById('barang-stok').value);
         const m = Number(document.getElementById('barang-modal').value.replace(/\./g, ''));
         const h = Number(document.getElementById('barang-harga').value.replace(/\./g, ''));
@@ -2713,10 +3147,13 @@ document.getElementById('btn-share-rekap').onclick = async () => {
 
         const finalId = id ? id : Date.now().toString();
         
-        const payload = { id: finalId, nama: n, stok: s, harga_jual: h, modal: m, user_id: window.currentUid };
+        const payload = { id: finalId, nama: n, kategori: kat, stok: s, harga_jual: h, modal: m, user_id: window.currentUid };
 
-        if (id) window.db.run("UPDATE barang SET nama=?, stok=?, harga_jual=?, modal=? WHERE id=?", [n, s, h, m, id]); 
-        else window.db.run("INSERT INTO barang (id, nama, stok, harga_jual, modal) VALUES (?,?,?,?,?)", [finalId, n, s, h, m]); 
+        if (id) {
+    window.db.run("UPDATE barang SET nama=?, kategori=?, stok=?, harga_jual=?, modal=? WHERE id=?", [n, kat, s, h, m, id]);
+} else {
+    window.db.run("INSERT INTO barang (id, nama, kategori, stok, harga_jual, modal) VALUES (?,?,?,?,?,?)", [finalId, n, kat, s, h, m]);
+} 
         
         window.closeModal();
         window.refreshDataUI(); 
@@ -2966,26 +3403,48 @@ if (btnKeluar) {
     };
 }
     // --- LOGIC PENCARIAN KASIR ---
-    const inputBarang = document.getElementById('search-barang');
+const inputBarang = document.getElementById('search-barang');
+if (inputBarang) {
     inputBarang.oninput = (e) => {
         const val = e.target.value.toLowerCase();
-        window.renderTable(window.masterData.filter(r => r[0].toLowerCase().includes(val)));
+        const filtered = window.masterData.filter(r => {
+            const matchText = r[0].toLowerCase().includes(val);
+            // Cek apakah kategori cocok dengan yang sedang di-filter
+            const matchKat = window.currentCategoryFilter === "Semua" || r[5] === window.currentCategoryFilter;
+            return matchText && matchKat;
+        });
+        window.renderTable(filtered);
     };
     inputBarang.onfocus = (e) => {
+        // Saat fokus, bersihkan input tapi tetap tampilkan data sesuai kategori aktif
         e.target.value = ''; 
-        window.renderTable(window.masterData); 
+        const baseData = window.currentCategoryFilter === "Semua" 
+            ? window.masterData 
+            : window.masterData.filter(r => r[5] === window.currentCategoryFilter);
+        window.renderTable(baseData); 
     };
+}
 
-    // --- LOGIC PENCARIAN STOK/GUDANG ---
-    const inputStok = document.getElementById('search-stok');
+// --- LOGIC PENCARIAN STOK/GUDANG ---
+const inputStok = document.getElementById('search-stok');
+if (inputStok) {
     inputStok.oninput = (e) => {
         const val = e.target.value.toLowerCase();
-        window.renderStokTable(window.masterData.filter(r => r[0].toLowerCase().includes(val)));
+        const filtered = window.masterData.filter(r => {
+            const matchText = r[0].toLowerCase().includes(val);
+            const matchKat = window.currentCategoryFilter === "Semua" || r[5] === window.currentCategoryFilter;
+            return matchText && matchKat;
+        });
+        window.renderStokTable(filtered);
     };
     inputStok.onfocus = (e) => {
         e.target.value = '';
-        window.renderStokTable(window.masterData);
+        const baseData = window.currentCategoryFilter === "Semua" 
+            ? window.masterData 
+            : window.masterData.filter(r => r[5] === window.currentCategoryFilter);
+        window.renderStokTable(baseData);
     };
+}
 
     // --- LOGIC NAVIGASI KEYBOARD KASIR ---
     window.selectedIndex = -1;
