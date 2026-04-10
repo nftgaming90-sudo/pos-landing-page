@@ -143,6 +143,16 @@
         box-sizing: border-box;
         transform-origin: top center;
     }
+
+    /* Pastikan Modal Detail Transaksi tampil paling depan */
+#modal-detail-trx {
+    z-index: 9999 !important;
+}
+
+/* Pastikan Modal Pembayaran juga aman */
+#modal-pembayaran {
+    z-index: 9998 !important;
+}
 </style>
 </head>
 <body class="bg-slate-50 h-[100dvh] flex flex-col overflow-hidden text-slate-800 selection:bg-blue-200">
@@ -707,7 +717,9 @@
         </div>
     </div>
 
-    <div id="modal-detail-trx" class="fixed inset-0 z-[110] flex items-end md:items-center justify-center hidden bg-slate-900/50 backdrop-blur-sm md:p-4 transition-opacity no-print">
+    
+</div>
+<div id="modal-detail-trx" class="fixed inset-0 z-[110] flex items-end md:items-center justify-center hidden bg-slate-900/50 backdrop-blur-sm md:p-4 transition-opacity no-print">
     <div class="bg-white rounded-t-[24px] md:rounded-[24px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] w-full max-w-md overflow-hidden transform transition-transform mt-auto md:mt-0 flex flex-col max-h-[85vh] md:max-h-[80vh]">
         
         <div class="p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
@@ -763,9 +775,7 @@
                 </button>
             </div>
         </div>
-    </div>
-</div>
-    <div id="section-struk"></div>
+    </div> </div> <div id="section-struk"></div>
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -2225,228 +2235,161 @@ document.getElementById('barang-kategori').onchange = async (e) => {
     };
 
     window.updateReports = () => {
-        if (!window.db) return;
-        
-        let startMs = 0;
-        let endMs = Date.now() + 86400000; 
-        const now = new Date();
-        let labelTabel = "History Transaksi";
-        
-        if (window.currentReportFilter === 'hari_ini') {
-            startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-            endMs = startMs + 86399999;
-            labelTabel = "Transaksi Hari Ini";
-        } 
-        else if (window.currentReportFilter === 'kemarin') {
-            startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).getTime();
-            endMs = startMs + 86399999;
-            labelTabel = "Transaksi Kemarin";
-        } 
-        else if (window.currentReportFilter === 'custom' && window.currentCustomDate) {
-            const [y, m, d] = window.currentCustomDate.split('-');
-            startMs = new Date(y, m - 1, d).getTime();
-            endMs = startMs + 86399999;
-            labelTabel = `Transaksi tgl ${d}/${m}/${y}`;
-        }
+    if (!window.db) return;
+    
+    let startMs = 0;
+    let endMs = Date.now() + 86400000; 
+    const now = new Date();
+    let labelTabel = "History Transaksi";
+    
+    if (window.currentReportFilter === 'hari_ini') {
+        // Set ke jam 00:00:00 hari ini
+        startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        // Set ke jam 23:59:59 hari ini
+        endMs = startMs + 86399999;
+        labelTabel = "Transaksi Hari Ini";
+    } 
+    else if (window.currentReportFilter === 'kemarin') {
+        const kemarin = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        startMs = kemarin.getTime();
+        endMs = startMs + 86399999;
+        labelTabel = "Transaksi Kemarin";
+    } 
+    else if (window.currentReportFilter === 'custom' && window.currentCustomDate) {
+        const [y, m, d] = window.currentCustomDate.split('-');
+        startMs = new Date(y, m - 1, d).getTime();
+        endMs = startMs + 86399999;
+        labelTabel = `Transaksi tgl ${d}/${m}/${y}`;
+    }
 
-        document.getElementById('tabel-judul-rekap').innerText = labelTabel;
+    document.getElementById('tabel-judul-rekap').innerText = labelTabel;
 
-        const searchInput = document.getElementById('search-nota');
-        const keyword = searchInput ? searchInput.value.trim() : '';
-        let keywordFilter = '';
-        if (keyword) {
-            keywordFilter = `AND CAST(t.id AS TEXT) LIKE '%${keyword}%'`;
-        }
+    const searchInput = document.getElementById('search-nota');
+    const keyword = searchInput ? searchInput.value.trim() : '';
+    let keywordFilter = '';
+    if (keyword) {
+        // PERBAIKAN: Gunakan LIKE agar pencarian nota lebih fleksibel
+        keywordFilter = `AND CAST(t.id AS TEXT) LIKE '%${keyword}%'`;
+    }
 
-        try {
-            const query = `
-    SELECT t.tanggal, t.total, t.laba, t.id, SUM(td.qty) as total_item, t.metode_bayar
-    FROM transaksi t 
-    LEFT JOIN transaksi_detail td ON t.id = td.transaksi_id 
-    WHERE CAST(t.tanggal AS UNSIGNED) >= ${startMs} 
-      AND CAST(t.tanggal AS UNSIGNED) <= ${endMs} 
-      ${keywordFilter}
-    GROUP BY t.id 
-    ORDER BY CAST(t.tanggal AS UNSIGNED) DESC
-`;
-            const res = window.db.exec(query);
-            
-            let omzet = 0, laba = 0, countTrx = 0;
-            const hBody = document.getElementById('history-body');
-            
-            if (res.length > 0) {
-                countTrx = res[0].values.length;
-                hBody.innerHTML = res[0].values.map(row => {
-                    const d = new Date(parseInt(row[0]));
-                    const totalBelanja = row[1];
-                    const profit = row[2];
-                    const trxId = row[3];
-                    const totalItem = row[4] || 0; 
-                    const notaStr = trxId.toString().slice(-6); 
-
-                    omzet += totalBelanja; 
-                    laba += profit;
-                    
-                    return `
-<tr class="tr-item hover:bg-slate-100 cursor-pointer transition-colors" onclick="window.bukaDetailTransaksi('${trxId}')">
-    <td class="p-3 pl-4 whitespace-nowrap">
-        <div class="flex items-center gap-2 mb-1">
-            <p class="text-slate-800 font-black text-[10px] md:text-xs">NOTA #${notaStr}</p>
-            <span class="px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-tighter ${row[5] === 'Hutang' ? 'bg-amber-100 text-amber-600 border border-amber-200' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'}">
-                ${row[5] === 'Hutang' ? '📒 Hutang' : '💵 Tunai'}
-            </span>
-        </div>
-        <p class="text-[8px] md:text-[9px] text-slate-400 font-medium">${d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} • ${d.toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</p>
-    </td>
-    <td class="p-3 text-center whitespace-nowrap">
-        <span class="bg-blue-50 border border-blue-100 text-blue-600 px-2.5 py-1 rounded-lg text-[9px] md:text-[10px] font-black">${totalItem} Item</span>
-    </td>
-    <td class="p-3 pr-4 text-right whitespace-nowrap">
-        <p class="font-black text-slate-800 text-[10px] md:text-xs">Rp ${totalBelanja.toLocaleString('id-ID')}</p>
-        <p class="text-[8px] md:text-[9px] text-emerald-500 font-black mt-0.5">+Rp ${profit.toLocaleString('id-ID')}</p>
-    </td>
-</tr>`;
-                }).join('');
-            } else {
-                hBody.innerHTML = `<tr><td colspan="3" class="p-8 md:p-10 text-center text-slate-400 text-[10px] md:text-xs italic font-medium"><div class="text-2xl md:text-3xl mb-2 grayscale opacity-40">📭</div>Tidak ada transaksi.</td></tr>`;
-            }
-
-            document.getElementById('stat-omzet').innerText = "Rp " + omzet.toLocaleString('id-ID');
-            document.getElementById('stat-laba').innerText = "Rp " + laba.toLocaleString('id-ID');
-            document.getElementById('tabel-count-rekap').innerText = countTrx + " Trx";
-        } catch (e) {
-            console.log("Error Load Laporan:", e);
-        }
-    };
-
-    window.bukaDetailTransaksi = (trxId) => {
     try {
-        // Ambil data termasuk metode_bayar dan pelanggan (pelanggan_id)
-        const resInfo = window.db.exec("SELECT tanggal, total, metode_bayar, pelanggan_id FROM transaksi WHERE id = ?", [trxId]);
-        if (resInfo.length === 0) return;
+        const query = `
+            SELECT t.tanggal, t.total, t.laba, t.id, SUM(td.qty) as total_item, t.metode_bayar
+            FROM transaksi t 
+            LEFT JOIN transaksi_detail td ON t.id = td.transaksi_id 
+            WHERE CAST(t.tanggal AS UNSIGNED) >= ${startMs} 
+              AND CAST(t.tanggal AS UNSIGNED) <= ${endMs} 
+              ${keywordFilter}
+            GROUP BY t.id 
+            ORDER BY CAST(t.tanggal AS UNSIGNED) DESC
+        `;
         
-        const info = resInfo[0].values[0];
-        const tglMs = info[0];
-        const totalTrx = info[1];
-        const metode = info[2] || 'Tunai'; // Definisi metode
-        const pId = info[3]; // Ambil ID pelanggan
-
-        // Ambil Nama Pelanggan dari ID
-        let namaPelanggan = "Umum";
-        if (pId) {
-            const resP = window.db.exec("SELECT nama FROM pelanggan WHERE id = ?", [pId]);
-            if (resP.length > 0) namaPelanggan = resP[0].values[0][0];
-        }
-
-        const d = new Date(parseInt(tglMs));
-        document.getElementById('detail-waktu').innerText = d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
-        document.getElementById('detail-total').innerText = "Rp " + totalTrx.toLocaleString('id-ID');
+        const res = window.db.exec(query);
         
-        // Tampilkan Nama Pelanggan
-        document.getElementById('detail-pelanggan').innerText = namaPelanggan.toUpperCase();
+        let omzet = 0, laba = 0, countTrx = 0;
+        const hBody = document.getElementById('history-body');
+        
+        if (res.length > 0 && res[0].values.length > 0) {
+            countTrx = res[0].values.length;
+            hBody.innerHTML = res[0].values.map(row => {
+                const tglRaw = row[0];
+                const totalBelanja = row[1];
+                const profit = row[2];
+                const trxId = row[3];
+                const totalItem = row[4] || 0; 
+                const metode = row[5] || 'Tunai';
+                const notaStr = trxId.toString().slice(-6); 
 
-        // Tampilkan & Warnai Label Metode Bayar
-        const elMetode = document.getElementById('detail-metode');
-        elMetode.innerText = metode;
-        if (metode === 'Hutang') {
-            elMetode.className = "mt-0.5 px-2 py-0.5 rounded text-[8px] font-black uppercase bg-amber-100 text-amber-600 border border-amber-200";
-        } else {
-            elMetode.className = "mt-0.5 px-2 py-0.5 rounded text-[8px] font-black uppercase bg-emerald-100 text-emerald-600 border border-emerald-200";
-        }
-
-        // Render item barang
-        const resDetail = window.db.exec(`
-            SELECT b.nama, td.qty, td.harga
-            FROM transaksi_detail td
-            LEFT JOIN barang b ON td.barang_id = b.id
-            WHERE td.transaksi_id = ?
-        `, [trxId]);
-
-        const tbody = document.getElementById('detail-trx-body');
-        if (resDetail.length > 0) {
-            tbody.innerHTML = resDetail[0].values.map(row => {
-                const nama = row[0] || "Barang (Dihapus)"; 
-                const qty = row[1];
-                const harga = row[2];
+                omzet += totalBelanja; 
+                laba += profit;
+                
+                const d = new Date(parseInt(tglRaw));
+                
                 return `
-                <tr>
+                <tr class="tr-item hover:bg-slate-100 cursor-pointer transition-colors border-b border-slate-50" 
+                    onclick="window.bukaDetailTransaksi('${trxId}')">
                     <td class="p-3 pl-4 whitespace-nowrap">
-                        <p class="font-bold text-slate-700 text-[10px] md:text-xs uppercase tracking-tight">${nama}</p>
-                        <p class="text-[8px] md:text-[9px] text-slate-400 font-medium mt-0.5">@ Rp ${harga.toLocaleString('id-ID')}</p>
+                        <div class="flex items-center gap-2 mb-1">
+                            <p class="text-slate-800 font-black text-[10px] md:text-xs uppercase">NOTA #${notaStr}</p>
+                            <span class="px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-tighter ${metode === 'Hutang' ? 'bg-amber-100 text-amber-600 border border-amber-200' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'}">
+                                ${metode === 'Hutang' ? '📒 Hutang' : '💵 Tunai'}
+                            </span>
+                        </div>
+                        <p class="text-[8px] md:text-[9px] text-slate-400 font-medium">
+                            ${d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} • ${d.toLocaleDateString('id-ID', {day:'numeric', month:'short'})}
+                        </p>
                     </td>
                     <td class="p-3 text-center whitespace-nowrap">
-                        <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[9px] md:text-[10px] font-black">${qty}x</span>
+                        <span class="bg-blue-50 border border-blue-100 text-blue-600 px-2.5 py-1 rounded-lg text-[9px] md:text-[10px] font-black">${totalItem} Item</span>
                     </td>
-                    <td class="p-3 pr-4 text-right font-black text-slate-800 text-[10px] md:text-xs whitespace-nowrap">Rp ${(qty * harga).toLocaleString('id-ID')}</td>
+                    <td class="p-3 pr-4 text-right whitespace-nowrap">
+                        <p class="font-black text-slate-800 text-[10px] md:text-xs">Rp ${totalBelanja.toLocaleString('id-ID')}</p>
+                        <p class="text-[8px] md:text-[9px] text-emerald-500 font-black mt-0.5">+Rp ${profit.toLocaleString('id-ID')}</p>
+                    </td>
                 </tr>`;
             }).join('');
+        } else {
+            hBody.innerHTML = `<tr><td colspan="3" class="p-8 md:p-10 text-center text-slate-400 text-[10px] md:text-xs italic font-medium"><div class="text-2xl md:text-3xl mb-2 grayscale opacity-40">📭</div>Tidak ada transaksi.</td></tr>`;
         }
 
-        // Setup tombol aksi
-        document.getElementById('btn-hapus-trx').onclick = () => window.hapusTransaksi(trxId);
-        document.getElementById('btn-print-trx').onclick = () => window.printStruk(trxId);
-        document.getElementById('btn-image-trx').onclick = () => {
-            document.getElementById('modal-detail-trx').classList.add('hidden');
-            window.previewNotaImage(trxId);
-        };
-
-        document.getElementById('btn-hapus-trx').classList.remove('hidden');
-
-        document.getElementById('modal-detail-trx').classList.remove('hidden');
+        document.getElementById('stat-omzet').innerText = "Rp " + omzet.toLocaleString('id-ID');
+        document.getElementById('stat-laba').innerText = "Rp " + laba.toLocaleString('id-ID');
+        document.getElementById('tabel-count-rekap').innerText = countTrx + " Trx";
+        
     } catch (e) {
-        console.error(e);
-        alert("Gagal memuat detail transaksi.");
+        console.error("Error Load Laporan:", e);
     }
 };
 
     window.printStruk = (trxId) => {
-        const resInfo = window.db.exec("SELECT tanggal, total, metode_bayar FROM transaksi WHERE id = ?", [trxId]);
-        if (resInfo.length === 0) return;
-        
-        const resDetail = window.db.exec("SELECT b.nama, td.qty, td.harga FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id WHERE td.transaksi_id = ?", [trxId]);
-        
-        let userDisplay = document.getElementById('user-email').innerText.split('@')[0].toUpperCase();
-        let dateDisplay = document.getElementById('detail-waktu').innerText;
-        let totalDisplay = document.getElementById('detail-total').innerText.replace('Rp ', '');
+    const numTrxId = Number(trxId);
+    const resInfo = window.db.exec("SELECT tanggal, total, metode_bayar FROM transaksi WHERE id = ?", [numTrxId]);
+    if (resInfo.length === 0) return;
+    
+    const resDetail = window.db.exec("SELECT b.nama, td.qty, td.harga FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id WHERE td.transaksi_id = ?", [numTrxId]);
+    
+    let userDisplay = document.getElementById('user-email').innerText.split('@')[0].toUpperCase();
+    let dateDisplay = document.getElementById('detail-waktu').innerText;
+    let totalDisplay = document.getElementById('detail-total').innerText.replace('Rp ', '');
 
-        let html = `
-            <div style="text-align:center; font-weight:bold; margin-bottom:5px; font-size:14px;">POSKITA STORE</div>
-            <div style="text-align:center; font-size:10px; margin-bottom:5px;">Kasir: ${userDisplay}</div>
-            <div style="font-size:10px; border-bottom:1px dashed #000; padding-bottom:5px; margin-bottom:5px;">
-                Tgl: ${dateDisplay}<br>
-                Trx: #${trxId.toString().slice(-6)}
-            </div>
-            <table style="width:100%; font-size:10px; margin-bottom:5px; border-collapse:collapse;">
-        `;
-        
-        if (resDetail.length > 0) {
-            resDetail[0].values.forEach(row => {
-                let nama = row[0] || 'Barang Terhapus';
-                let qty = row[1];
-                let harga = row[2];
-                let subtotal = qty * harga;
-                html += `
-                    <tr><td colspan="2" style="padding:2px 0; font-weight:bold;">${nama.toUpperCase()}</td></tr>
-                    <tr>
-                        <td style="padding:2px 0; color:#444;">${qty} x ${harga.toLocaleString('id-ID')}</td>
-                        <td style="text-align:right; padding:2px 0;">${subtotal.toLocaleString('id-ID')}</td>
-                    </tr>
-                `;
-            });
-        }
+    let html = `
+        <div style="text-align:center; font-weight:bold; margin-bottom:5px; font-size:14px;">POSKITA STORE</div>
+        <div style="text-align:center; font-size:10px; margin-bottom:5px;">Kasir: ${userDisplay}</div>
+        <div style="font-size:10px; border-bottom:1px dashed #000; padding-bottom:5px; margin-bottom:5px;">
+            Tgl: ${dateDisplay}<br>
+            Trx: #${numTrxId.toString().slice(-6)}
+        </div>
+        <table style="width:100%; font-size:10px; margin-bottom:5px; border-collapse:collapse;">
+    `;
+    
+    if (resDetail.length > 0) {
+        resDetail[0].values.forEach(row => {
+            let nama = row[0] || 'Barang Terhapus';
+            let qty = row[1];
+            let harga = row[2];
+            let subtotal = qty * harga;
+            html += `
+                <tr><td colspan="2" style="padding:2px 0; font-weight:bold;">${nama.toUpperCase()}</td></tr>
+                <tr>
+                    <td style="padding:2px 0; color:#444;">${qty} x ${harga.toLocaleString('id-ID')}</td>
+                    <td style="text-align:right; padding:2px 0;">${subtotal.toLocaleString('id-ID')}</td>
+                </tr>
+            `;
+        });
+    }
 
-        html += `
-            </table>
-            <div style="border-top:1px dashed #000; padding-top:5px; margin-top:5px; display:flex; justify-content:space-between; font-weight:bold; font-size:12px;">
-                <span>TOTAL</span>
-                <span>Rp ${totalDisplay}</span>
-            </div>
-            <div style="text-align:center; font-size:10px; margin-top:15px; font-style:italic;">-- Terima Kasih --</div>
-        `;
-        
-        document.getElementById('section-struk').innerHTML = html;
-        window.print();
-    };
+    html += `
+        </table>
+        <div style="border-top:1px dashed #000; padding-top:5px; margin-top:5px; display:flex; justify-content:space-between; font-weight:bold; font-size:12px;">
+            <span>TOTAL</span>
+            <span>Rp ${totalDisplay}</span>
+        </div>
+        <div style="text-align:center; font-size:10px; margin-top:15px; font-style:italic;">-- Terima Kasih --</div>
+    `;
+    
+    document.getElementById('section-struk').innerHTML = html;
+    window.print();
+};
 
     window.previewNotaImage = (trxId) => {
     const resInfo = window.db.exec("SELECT tanggal, total, metode_bayar, pelanggan_id FROM transaksi WHERE id = ?", [trxId]);
@@ -2538,14 +2481,31 @@ document.getElementById('barang-kategori').onchange = async (e) => {
         } catch (err) { btn.innerHTML = originalText; alert("Gagal proses gambar."); }
     };
 
-    document.getElementById('btn-do-capture-nota').onclick = async () => {
+    // Di dalam window.previewNotaImage
+document.getElementById('btn-do-capture-nota').onclick = async () => {
+    const btn = document.getElementById('btn-do-capture-nota');
+    const oriText = btn.innerText;
+    btn.innerText = "PROSES...";
+    try {
         const area = document.getElementById('struk-rekap-capture');
         const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#ffffff" });
-        const link = document.createElement('a');
-        link.download = `Nota-${trxId.toString().slice(-6)}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-    };
+        canvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `Nota-${Number(trxId).toString().slice(-6)}.png`;
+            link.href = url;
+            document.body.appendChild(link); // WAJIB ADA UNTUK HP
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            alert("Gambar nota berhasil disimpan!");
+        }, 'image/png');
+    } catch (err) {
+        alert("Gagal menyimpan gambar.");
+    } finally {
+        btn.innerText = oriText;
+    }
+};
 };
 
     window.printRekap = async (mode = 'print') => {
@@ -2707,18 +2667,35 @@ document.getElementById('btn-share-rekap').onclick = async () => {
 };
 
                 // Fungsi Simpan Gambar
-                document.getElementById('btn-do-capture').onclick = async () => {
-                    const btn = document.getElementById('btn-do-capture');
-                    btn.innerText = "PROSES...";
-                    const area = document.getElementById('struk-rekap-capture');
-                    const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#ffffff" });
-                    const link = document.createElement('a');
-                    link.download = `Rekap-${Date.now()}.png`;
-                    link.href = canvas.toDataURL("image/png");
-                    link.click();
-                    printArea.classList.remove('show-capture');
-                    alert("Gambar berhasil disimpan!");
-                };
+                // Di dalam window.printRekap
+document.getElementById('btn-do-capture').onclick = async () => {
+    const btn = document.getElementById('btn-do-capture');
+    const oriText = btn.innerText;
+    btn.innerText = "PROSES...";
+    try {
+        const area = document.getElementById('struk-rekap-capture');
+        const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#ffffff" });
+        
+        canvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `Rekap-${Date.now()}.png`;
+            link.href = url;
+            document.body.appendChild(link); // WAJIB ADA UNTUK HP
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            document.getElementById('section-struk').classList.remove('show-capture');
+            alert("Gambar rekap berhasil disimpan!");
+        }, 'image/png');
+    } catch (err) {
+        console.error("Gagal capture:", err);
+        alert("Gagal memproses gambar. Pastikan browser mendukung.");
+    } finally {
+        btn.innerText = oriText;
+    }
+};
 
                 // Fungsi Kirim WA Teks (Format Struk Thermal)
                 document.getElementById('btn-do-wa').onclick = () => {
@@ -2758,58 +2735,134 @@ document.getElementById('btn-share-rekap').onclick = async () => {
             }
         };
 
-    window.hapusTransaksi = async (trxId) => {
-    // 1. Minta Alasan (Sesuai aliran 1 dengan catatan)
+    window.bukaDetailTransaksi = (trxId) => {
+    console.log("Klik jalan! ID:", trxId); // Buka F12 untuk lihat ini
+    
+    try {
+        const numTrxId = Number(trxId); 
+
+        // PERBAIKAN: Jangan pakai tanda '?' untuk BIGINT, langsung gabung ke string
+        const qInfo = `SELECT tanggal, total, metode_bayar, pelanggan_id FROM transaksi WHERE id = ${numTrxId}`;
+        const resInfo = window.db.exec(qInfo);
+        
+        if (!resInfo || resInfo.length === 0) {
+            alert("Oops! Data transaksi tidak ditemukan di Database.");
+            return;
+        }
+        
+        const info = resInfo[0].values[0];
+        const tglMs = info[0];
+        const totalTrx = info[1];
+        const metode = info[2] || 'Tunai';
+        const pId = info[3];
+
+        let namaPelanggan = "Umum";
+        if (pId) {
+            const resP = window.db.exec(`SELECT nama FROM pelanggan WHERE id = '${pId}'`);
+            if (resP.length > 0) namaPelanggan = resP[0].values[0][0];
+        }
+
+        const d = new Date(parseInt(tglMs));
+        document.getElementById('detail-waktu').innerText = d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+        document.getElementById('detail-total').innerText = "Rp " + totalTrx.toLocaleString('id-ID');
+        document.getElementById('detail-pelanggan').innerText = namaPelanggan.toUpperCase();
+
+        const elMetode = document.getElementById('detail-metode');
+        elMetode.innerText = metode;
+        if (metode === 'Hutang') {
+            elMetode.className = "mt-0.5 px-2 py-0.5 rounded text-[8px] font-black uppercase bg-amber-100 text-amber-600 border border-amber-200";
+        } else {
+            elMetode.className = "mt-0.5 px-2 py-0.5 rounded text-[8px] font-black uppercase bg-emerald-100 text-emerald-600 border border-emerald-200";
+        }
+
+        // PERBAIKAN: Langsung gabung numTrxId ke string
+        const resDetail = window.db.exec(`
+            SELECT b.nama, td.qty, td.harga
+            FROM transaksi_detail td
+            LEFT JOIN barang b ON td.barang_id = b.id
+            WHERE td.transaksi_id = ${numTrxId}
+        `);
+
+        const tbody = document.getElementById('detail-trx-body');
+        if (resDetail.length > 0) {
+            tbody.innerHTML = resDetail[0].values.map(row => {
+                const nama = row[0] || "Barang (Dihapus)"; 
+                const qty = row[1];
+                const harga = row[2];
+                return `
+                <tr>
+                    <td class="p-3 pl-4 whitespace-nowrap">
+                        <p class="font-bold text-slate-700 text-[10px] md:text-xs uppercase tracking-tight">${nama}</p>
+                        <p class="text-[8px] md:text-[9px] text-slate-400 font-medium mt-0.5">@ Rp ${harga.toLocaleString('id-ID')}</p>
+                    </td>
+                    <td class="p-3 text-center whitespace-nowrap">
+                        <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[9px] md:text-[10px] font-black">${qty}x</span>
+                    </td>
+                    <td class="p-3 pr-4 text-right font-black text-slate-800 text-[10px] md:text-xs whitespace-nowrap">Rp ${(qty * harga).toLocaleString('id-ID')}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Action Buttons
+        document.getElementById('btn-hapus-trx').onclick = () => window.hapusTransaksi(numTrxId);
+        document.getElementById('btn-print-trx').onclick = () => window.printStruk(numTrxId);
+        document.getElementById('btn-image-trx').onclick = () => {
+            document.getElementById('modal-detail-trx').classList.add('hidden');
+            window.previewNotaImage(numTrxId);
+        };
+
+        document.getElementById('btn-hapus-trx').classList.remove('hidden');
+        document.getElementById('modal-detail-trx').classList.remove('hidden');
+    } catch (e) {
+        console.error("Error Buka Detail:", e);
+        alert("Gagal memuat detail transaksi. Cek Console.");
+    }
+};
+
+window.hapusTransaksi = async (trxId) => {
+    const numTrxId = Number(trxId);
     const alasan = prompt("⚠️ KONFIRMASI HAPUS TRANSAKSI\nMasukkan alasan pembatalan (Misal: Salah input, Barang retur, dll):");
     
-    if (alasan === null) return; // User klik Batal di prompt
+    if (alasan === null) return; 
     if (alasan.trim() === "") return alert("Alasan wajib diisi untuk menghapus transaksi!");
 
     if (!confirm("Stok barang akan otomatis dikembalikan ke gudang dan omzet akan dikurangi. Lanjutkan?")) return;
 
-    // Tutup modal detail jika sedang terbuka
     const modalDetail = document.getElementById('modal-detail-trx');
     if (modalDetail) modalDetail.classList.add('hidden');
 
     try {
-        // 2. Ambil rincian barang untuk kembalikan stok
-        // 2. Ambil rincian barang (Pakai INNER JOIN biar lebih pasti narik namanya)
-const resDetail = window.db.exec(`
-    SELECT td.barang_id, td.qty, b.nama 
-    FROM transaksi_detail td 
-    JOIN barang b ON td.barang_id = b.id 
-    WHERE td.transaksi_id = ?
-`, [trxId]);
+        const resDetail = window.db.exec(`
+            SELECT td.barang_id, td.qty, b.nama 
+            FROM transaksi_detail td 
+            JOIN barang b ON td.barang_id = b.id 
+            WHERE td.transaksi_id = ?
+        `, [numTrxId]);
 
-let itemsToRestore = [];
-let teksRincian = ""; 
+        let itemsToRestore = [];
+        let teksRincian = ""; 
 
-if (resDetail.length > 0) {
-    resDetail[0].values.forEach(row => {
-        const bId = row[0];
-        const q = row[1];
-        const namaB = row[2]; // Ini nama asli dari tabel barang
-        
-        itemsToRestore.push({ id: bId, qty: q });
-        teksRincian += `${q}x ${namaB}, `; 
+        if (resDetail.length > 0) {
+            resDetail[0].values.forEach(row => {
+                const bId = row[0];
+                const q = row[1];
+                const namaB = row[2];
+                
+                itemsToRestore.push({ id: bId, qty: q });
+                teksRincian += `${q}x ${namaB}, `; 
+                window.db.run("UPDATE barang SET stok = stok + ? WHERE id = ?", [q, bId]);
+            });
+            teksRincian = teksRincian.replace(/, $/, ""); 
+        } else {
+            const resFallback = window.db.exec("SELECT qty, barang_id FROM transaksi_detail WHERE transaksi_id = ?", [numTrxId]);
+            if(resFallback.length > 0) {
+                resFallback[0].values.forEach(rf => {
+                    teksRincian += `${rf[0]}x ID:${rf[1]}, `;
+                });
+            }
+        }
 
-        // Kembalikan stok di SQLite lokal
-        window.db.run("UPDATE barang SET stok = stok + ? WHERE id = ?", [q, bId]);
-    });
-    teksRincian = teksRincian.replace(/, $/, ""); 
-} else {
-    // JIKA JOIN GAGAL (Barang mungkin sudah tidak ada di master stok)
-    // Kita ambil data mentah dari transaksi_detail saja
-    const resFallback = window.db.exec("SELECT qty, barang_id FROM transaksi_detail WHERE transaksi_id = ?", [trxId]);
-    if(resFallback.length > 0) {
-        resFallback[0].values.forEach(rf => {
-            teksRincian += `${rf[0]}x ID:${rf[1]}, `;
-        });
-    }
-}
-
-        // 3. Ambil data transaksi lama untuk LOG sebelum dihapus
-        const resTrx = window.db.exec("SELECT total, pelanggan_id FROM transaksi WHERE id = ?", [trxId]);
+        const resTrx = window.db.exec("SELECT total, pelanggan_id FROM transaksi WHERE id = ?", [numTrxId]);
         let totalLama = 0;
         let pId = null;
         if (resTrx.length > 0) {
@@ -2817,28 +2870,21 @@ if (resDetail.length > 0) {
             pId = resTrx[0].values[0][1];
         }
 
-        // 4. Eksekusi Hapus di SQLite Lokal
-        window.db.run("DELETE FROM transaksi_detail WHERE transaksi_id = ?", [trxId]);
-        window.db.run("DELETE FROM transaksi WHERE id = ?", [trxId]);
+        window.db.run("DELETE FROM transaksi_detail WHERE transaksi_id = ?", [numTrxId]);
+        window.db.run("DELETE FROM transaksi WHERE id = ?", [numTrxId]);
+        window.db.run("DELETE FROM hutang WHERE transaksi_id = ?", [numTrxId]);
         
-        // Jika ada hutang terkait, hapus juga dan update saldo pelanggan
-        window.db.run("DELETE FROM hutang WHERE transaksi_id = ?", [trxId]);
         if (pId) {
-            // Logika sederhana: Kurangi saldo hutang pelanggan jika transaksi dihapus
             window.db.run("UPDATE pelanggan SET sisa_hutang = sisa_hutang - ? WHERE id = ?", [totalLama, pId]);
         }
 
-        window.refreshDataUI(); // Segarkan tampilan kasir & stok
+        window.refreshDataUI(); 
 
-        // 5. SINKRONISASI KE CLOUD (Supabase)
         if (navigator.onLine) {
-            // Hapus di Supabase
-            await supabase.from('transaksi_detail').delete().eq('transaksi_id', trxId).eq('user_id', window.currentUid);
-            await supabase.from('transaksi').delete().eq('id', trxId).eq('user_id', window.currentUid);
-
-            // Simpan Log Penghapusan ke tabel baru 'logs_void' (Opsional tapi sangat disarankan)
+            await supabase.from('transaksi_detail').delete().eq('transaksi_id', numTrxId).eq('user_id', window.currentUid);
+            await supabase.from('transaksi').delete().eq('id', numTrxId).eq('user_id', window.currentUid);
             await supabase.from('logs_void').insert({
-                transaksi_id: trxId,
+                transaksi_id: numTrxId,
                 user_id: window.currentUid,
                 total: totalLama,
                 alasan: alasan,
@@ -2846,7 +2892,6 @@ if (resDetail.length > 0) {
                 waktu_hapus: new Date().toISOString()
             });
 
-            // Update stok barang di Supabase
             for (let item of itemsToRestore) {
                 const { data } = await supabase.from('barang').select('stok').eq('id', item.id).eq('user_id', window.currentUid).single();
                 if (data) {
@@ -2854,9 +2899,7 @@ if (resDetail.length > 0) {
                 }
             }
         } else {
-            // Jika Offline, masukkan ke queue untuk diproses nanti
-            window.offlineQueue.hapus_transaksi.push({ id: trxId, alasan: alasan });
-            // Stok juga perlu masuk antrean update
+            window.offlineQueue.hapus_transaksi.push({ id: numTrxId, alasan: alasan });
             itemsToRestore.forEach(item => {
                 const resB = window.db.exec("SELECT nama, stok, harga_jual, modal FROM barang WHERE id=?", [item.id]);
                 if (resB.length > 0) {
@@ -2867,12 +2910,62 @@ if (resDetail.length > 0) {
             window.saveQueue();
         }
 
-        alert(`✅ Sukses!\nTransaksi #${trxId.toString().slice(-6)} telah dihapus dan stok dikembalikan.\nAlasan: ${alasan}`);
+        alert(`✅ Sukses!\nTransaksi #${numTrxId.toString().slice(-6)} telah dihapus dan stok dikembalikan.\nAlasan: ${alasan}`);
 
     } catch (e) {
         console.error("Gagal hapus transaksi:", e);
         alert("Terjadi kesalahan saat menghapus data. Cek koneksi Anda.");
     }
+};
+
+window.printStruk = (trxId) => {
+    const numTrxId = Number(trxId);
+    const resInfo = window.db.exec("SELECT tanggal, total, metode_bayar FROM transaksi WHERE id = ?", [numTrxId]);
+    if (resInfo.length === 0) return;
+    
+    const resDetail = window.db.exec("SELECT b.nama, td.qty, td.harga FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id WHERE td.transaksi_id = ?", [numTrxId]);
+    
+    let userDisplay = document.getElementById('user-email').innerText.split('@')[0].toUpperCase();
+    let dateDisplay = document.getElementById('detail-waktu').innerText;
+    let totalDisplay = document.getElementById('detail-total').innerText.replace('Rp ', '');
+
+    let html = `
+        <div style="text-align:center; font-weight:bold; margin-bottom:5px; font-size:14px;">POSKITA STORE</div>
+        <div style="text-align:center; font-size:10px; margin-bottom:5px;">Kasir: ${userDisplay}</div>
+        <div style="font-size:10px; border-bottom:1px dashed #000; padding-bottom:5px; margin-bottom:5px;">
+            Tgl: ${dateDisplay}<br>
+            Trx: #${numTrxId.toString().slice(-6)}
+        </div>
+        <table style="width:100%; font-size:10px; margin-bottom:5px; border-collapse:collapse;">
+    `;
+    
+    if (resDetail.length > 0) {
+        resDetail[0].values.forEach(row => {
+            let nama = row[0] || 'Barang Terhapus';
+            let qty = row[1];
+            let harga = row[2];
+            let subtotal = qty * harga;
+            html += `
+                <tr><td colspan="2" style="padding:2px 0; font-weight:bold;">${nama.toUpperCase()}</td></tr>
+                <tr>
+                    <td style="padding:2px 0; color:#444;">${qty} x ${harga.toLocaleString('id-ID')}</td>
+                    <td style="text-align:right; padding:2px 0;">${subtotal.toLocaleString('id-ID')}</td>
+                </tr>
+            `;
+        });
+    }
+
+    html += `
+        </table>
+        <div style="border-top:1px dashed #000; padding-top:5px; margin-top:5px; display:flex; justify-content:space-between; font-weight:bold; font-size:12px;">
+            <span>TOTAL</span>
+            <span>Rp ${totalDisplay}</span>
+        </div>
+        <div style="text-align:center; font-size:10px; margin-top:15px; font-style:italic;">-- Terima Kasih --</div>
+    `;
+    
+    document.getElementById('section-struk').innerHTML = html;
+    window.print();
 };
 
 window.bukaLogVoid = async () => {
