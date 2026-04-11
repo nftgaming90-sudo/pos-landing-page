@@ -3049,6 +3049,7 @@ window.hapusTransaksi = async (trxId) => {
     if (modalDetail) modalDetail.classList.add('hidden');
 
     try {
+        // 1. Ambil detail barang untuk balikin stok
         const resDetail = window.db.exec(`
             SELECT td.barang_id, td.qty, b.nama 
             FROM transaksi_detail td 
@@ -3079,27 +3080,54 @@ window.hapusTransaksi = async (trxId) => {
             }
         }
 
-        const resTrx = window.db.exec("SELECT total, pelanggan_id FROM transaksi WHERE id = ?", [numTrxId]);
+        // 2. Cek Data Transaksi & Hutang sebelum dihapus
+        const resTrx = window.db.exec("SELECT total, pelanggan_id, metode_bayar FROM transaksi WHERE id = ?", [numTrxId]);
         let totalLama = 0;
         let pId = null;
+        let metode = "";
+        
         if (resTrx.length > 0) {
             totalLama = resTrx[0].values[0][0];
             pId = resTrx[0].values[0][1];
+            metode = resTrx[0].values[0][2];
         }
 
+        // --- LOGIKA PEMBERSIHAN HUTANG & CICILAN ---
+        let hutangIdTerhapus = null;
+        if (pId) {
+            const resH = window.db.exec("SELECT id, sisa FROM hutang WHERE transaksi_id = ?", [numTrxId]);
+            if (resH.length > 0) {
+                hutangIdTerhapus = resH[0].values[0][0];
+                const sisaHutangNota = resH[0].values[0][1];
+
+                // Kurangi sisa_hutang pelanggan berdasarkan SISA NOTA (bukan total nota awal)
+                window.db.run("UPDATE pelanggan SET sisa_hutang = sisa_hutang - ? WHERE id = ?", [sisaHutangNota, pId]);
+                
+                // Hapus data hutang & cicilan di lokal
+                window.db.run("DELETE FROM cicilan WHERE hutang_id = ?", [hutangIdTerhapus]);
+                window.db.run("DELETE FROM hutang WHERE id = ?", [hutangIdTerhapus]);
+            }
+        }
+
+        // 3. Hapus Data Utama di Lokal
         window.db.run("DELETE FROM transaksi_detail WHERE transaksi_id = ?", [numTrxId]);
         window.db.run("DELETE FROM transaksi WHERE id = ?", [numTrxId]);
-        window.db.run("DELETE FROM hutang WHERE transaksi_id = ?", [numTrxId]);
-        
-        if (pId) {
-            window.db.run("UPDATE pelanggan SET sisa_hutang = sisa_hutang - ? WHERE id = ?", [totalLama, pId]);
-        }
 
         window.refreshDataUI(); 
 
+        // 4. Sinkronisasi ke Cloud
         if (navigator.onLine) {
+            // Hapus Transaksi & Detail
             await supabase.from('transaksi_detail').delete().eq('transaksi_id', numTrxId).eq('user_id', window.currentUid);
             await supabase.from('transaksi').delete().eq('id', numTrxId).eq('user_id', window.currentUid);
+            
+            // Hapus Hutang & Cicilan di Supabase jika ada
+            if (hutangIdTerhapus) {
+                await supabase.from('cicilan').delete().eq('hutang_id', hutangIdTerhapus).eq('user_id', window.currentUid);
+                await supabase.from('hutang').delete().eq('id', hutangIdTerhapus).eq('user_id', window.currentUid);
+            }
+
+            // Catat Log Void
             await supabase.from('logs_void').insert({
                 transaksi_id: numTrxId,
                 user_id: window.currentUid,
@@ -3109,6 +3137,7 @@ window.hapusTransaksi = async (trxId) => {
                 waktu_hapus: new Date().toISOString()
             });
 
+            // Update Stok di Supabase
             for (let item of itemsToRestore) {
                 const { data } = await supabase.from('barang').select('stok').eq('id', item.id).eq('user_id', window.currentUid).single();
                 if (data) {
@@ -3116,18 +3145,28 @@ window.hapusTransaksi = async (trxId) => {
                 }
             }
         } else {
+            // Jika Offline, masukkan ke antrian
             window.offlineQueue.hapus_transaksi.push({ id: numTrxId, alasan: alasan });
+            
+            // Simpan perubahan stok ke antrian barang
             itemsToRestore.forEach(item => {
                 const resB = window.db.exec("SELECT nama, stok, harga_jual, modal FROM barang WHERE id=?", [item.id]);
                 if (resB.length > 0) {
                     const b = resB[0].values[0];
-                    window.offlineQueue.barang.push({ id: item.id, nama: b[0], stok: b[1], harga_jual: b[2], modal: b[3], user_id: window.currentUid });
+                    window.offlineQueue.barang.push({ 
+                        id: item.id, 
+                        nama: b[0], 
+                        stok: b[1], 
+                        harga_jual: b[2], 
+                        modal: b[3], 
+                        user_id: window.currentUid 
+                    });
                 }
             });
             window.saveQueue();
         }
 
-        alert(`✅ Sukses!\nTransaksi #${numTrxId.toString().slice(-6)} telah dihapus dan stok dikembalikan.\nAlasan: ${alasan}`);
+        alert(`✅ Sukses!\nTransaksi #${numTrxId.toString().slice(-6)} telah dihapus, hutang disesuaikan, dan stok dikembalikan.\nAlasan: ${alasan}`);
 
     } catch (e) {
         console.error("Gagal hapus transaksi:", e);
