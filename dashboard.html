@@ -469,7 +469,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
             <div class="bg-blue-600 p-2.5 md:p-3 rounded-xl text-white shadow-md shadow-blue-100">
                 <p class="text-[9px] md:text-[10px] font-black uppercase opacity-80 leading-none mb-1">Total Omzet</p>
                 <p id="stat-omzet" class="text-sm md:text-base font-black tracking-tight">Rp 0</p>
@@ -478,10 +478,16 @@
                 <p class="text-[9px] md:text-[10px] font-black uppercase opacity-80 leading-none mb-1">Laba Bersih</p>
                 <p id="stat-laba" class="text-sm md:text-base font-black tracking-tight">Rp 0</p>
             </div>
-            <div class="bg-amber-500 p-2.5 md:p-3 rounded-xl text-white shadow-md shadow-amber-100 col-span-2 md:col-span-1">
+            <div class="bg-amber-500 p-2.5 md:p-3 rounded-xl text-white shadow-md shadow-amber-100">
                 <div class="flex justify-between items-end md:block">
-                    <p class="text-[9px] md:text-[10px] font-black uppercase opacity-90 leading-none mb-1">Duit Kas (Tunai + Cicil)</p>
+                    <p class="text-[9px] md:text-[10px] font-black uppercase opacity-90 leading-none mb-1">Duit Laci</p>
                     <p id="stat-kas" class="text-sm md:text-base font-black tracking-tight">Rp 0</p>
+                </div>
+            </div>
+            <div class="bg-violet-500 p-2.5 md:p-3 rounded-xl text-white shadow-md shadow-violet-100">
+                <div class="flex justify-between items-end md:block">
+                    <p class="text-[9px] md:text-[10px] font-black uppercase opacity-90 leading-none mb-1">Saldo Digital</p>
+                    <p id="stat-digital" class="text-sm md:text-base font-black tracking-tight">Rp 0</p>
                 </div>
             </div>
         </div>
@@ -503,16 +509,16 @@
                 </div>
 
                 <div class="relative shrink-0 group">
-                    <button type="button" id="btn-filter-custom" 
-                        class="filter-btn flex items-center justify-center gap-2 px-3 py-1.5 md:py-2 rounded-xl bg-white text-slate-600 border border-slate-200 transition-all shadow-sm min-w-[130px]">
-                        <span id="label-filter-custom" class="text-[9px] md:text-[10px] font-black uppercase tracking-wider">📅 Pilih Tgl</span>
-                        <span id="badge-pro-custom" class="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[7px] px-1.5 py-0.5 rounded hidden">PRO</span>
-                    </button>
-                    
-                    <input type="date" id="input-date-custom" 
-                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                        onchange="window.setReportFilter('custom', this.value)">
-                </div>
+    <button type="button" id="btn-filter-custom" onclick="document.getElementById('input-date-custom').showPicker()" 
+        class="filter-btn flex items-center justify-center gap-2 px-3 py-1.5 md:py-2 rounded-xl bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 transition-all shadow-sm min-w-[130px] cursor-pointer">
+        <span id="label-filter-custom" class="text-[9px] md:text-[10px] font-black uppercase tracking-wider">📅 Pilih Tgl</span>
+        <span id="badge-pro-custom" class="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[7px] px-1.5 py-0.5 rounded hidden">PRO</span>
+    </button>
+    
+    <input type="date" id="input-date-custom" 
+        class="absolute bottom-0 right-0 w-0 h-0 opacity-0 pointer-events-none"
+        onchange="window.setReportFilter('custom', this.value)">
+</div>
             </div>
         </div>
     </div>
@@ -667,18 +673,27 @@
             <h2 id="pay-total-display" class="text-3xl font-black text-blue-700">Rp 0</h2>
         </div>
         <div class="p-5 space-y-3">
-            <div class="space-y-1.5 pb-2">
+            
+            <div class="space-y-1.5 pb-1">
                 <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest text-center block">Uang Diterima / DP (Rp)</label>
                 <input type="text" inputmode="numeric" id="input-uang-bayar" placeholder="Kosongkan jika ngutang full" oninput="this.value = window.formatAngka(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-black text-xl text-slate-800 text-center outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner">
             </div>
 
-            <button onclick="window.eksekusiBayar('Tunai')" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-md flex items-center justify-center gap-3 transition-all active:scale-95">
-                <span class="text-lg">💵</span> Tunai / Lunas
+            <div class="space-y-1.5 pb-2">
+                <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest text-center block">Metode Pembayaran</label>
+                <select id="modal-metode-bayar" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-700 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-center text-sm shadow-sm">
+                    <option value="Tunai">💵 Tunai (Cash)</option>
+                    <option value="QRIS">📱 QRIS</option>
+                    <option value="Transfer">🏦 Transfer Bank</option>
+                    <option value="Hutang" id="opt-hutang">📒 Masuk Hutang (Piutang)</option>
+                </select>
+            </div>
+
+            <button onclick="window.eksekusiBayar(document.getElementById('modal-metode-bayar').value)" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-md flex items-center justify-center gap-3 transition-all active:scale-95">
+                PROSES PEMBAYARAN
             </button>
-            <button id="btn-pay-hutang" onclick="window.eksekusiBayar('Hutang')" class="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-md flex items-center justify-center gap-3 transition-all active:scale-95">
-                <span class="text-lg">📒</span> Kasbon / Hutang
-            </button>
-            <button onclick="document.getElementById('modal-pembayaran').classList.add('hidden')" class="w-full py-3 text-slate-400 font-bold text-[10px] uppercase tracking-widest">Batal</button>
+
+            <button onclick="document.getElementById('modal-pembayaran').classList.add('hidden')" class="w-full py-3 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-rose-500 transition-colors">Batal</button>
         </div>
     </div>
 </div>
@@ -2359,7 +2374,7 @@ document.getElementById('barang-kategori').onchange = async (e) => {
     const keyword = searchInput ? searchInput.value.trim() : '';
     let keywordFilter = '';
     if (keyword) {
-        // PERBAIKAN: Gunakan LIKE agar pencarian nota lebih fleksibel
+        // Gunakan LIKE agar pencarian nota lebih fleksibel
         keywordFilter = `AND CAST(t.id AS TEXT) LIKE '%${keyword}%'`;
     }
 
@@ -2379,6 +2394,8 @@ document.getElementById('barang-kategori').onchange = async (e) => {
         const res = window.db.exec(query);
         
         let omzet = 0, laba = 0, countTrx = 0;
+        let totalTunaiHariIni = 0; 
+        let totalDigitalHariIni = 0; // Tambahan penampung untuk QRIS/Transfer
         const hBody = document.getElementById('history-body');
         
         if (res.length > 0 && res[0].values.length > 0) {
@@ -2396,23 +2413,42 @@ document.getElementById('barang-kategori').onchange = async (e) => {
                 omzet += totalBelanja; 
                 laba += profit;
                 
+                // --- LOGIKA PEMISAHAN KAS vs DIGITAL ---
+                if (metode === 'Tunai') {
+                    totalTunaiHariIni += totalBelanja;
+                } else if (metode === 'QRIS' || metode === 'Transfer') {
+                    totalDigitalHariIni += totalBelanja;
+                }
+                
+                // --- DESAIN BADGE METODE BAYAR ---
+                let badgeClass = 'bg-emerald-100 text-emerald-600 border-emerald-200';
+                let iconMetode = '💵 Tunai';
+                
+                if (metode === 'Hutang') {
+                    badgeClass = 'bg-amber-100 text-amber-600 border-amber-200';
+                    iconMetode = '📒 Hutang';
+                } else if (metode === 'QRIS' || metode === 'Transfer') {
+                    badgeClass = 'bg-violet-100 text-violet-600 border-violet-200';
+                    iconMetode = '📱 ' + metode;
+                }
+
                 const d = new Date(parseInt(tglRaw));
                 
                 return `
                 <tr class="tr-item hover:bg-slate-100 cursor-pointer transition-colors border-b border-slate-50" 
-    onclick="window.bukaDetailTransaksi('${trxId}')">
-    <td class="p-3 pl-4 whitespace-nowrap">
-        <div class="flex items-center gap-2 mb-1">
-            <p class="text-slate-800 font-black text-[10px] md:text-xs uppercase">NOTA #${notaStr}</p>
-            <span class="px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-tighter ${metode === 'Hutang' ? 'bg-amber-100 text-amber-600 border border-amber-200' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'}">
-                ${metode === 'Hutang' ? '📒 Hutang' : '💵 Tunai'}
-            </span>
-        </div>
-        <p class="text-[9px] text-blue-600 font-bold uppercase tracking-tighter mb-1">👤 ${namaPelanggan}</p> 
-        <p class="text-[8px] md:text-[9px] text-slate-400 font-medium">
-            ${d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} • ${d.toLocaleDateString('id-ID', {day:'numeric', month:'short'})}
-        </p>
-    </td>
+                    onclick="window.bukaDetailTransaksi('${trxId}')">
+                    <td class="p-3 pl-4 whitespace-nowrap">
+                        <div class="flex items-center gap-2 mb-1">
+                            <p class="text-slate-800 font-black text-[10px] md:text-xs uppercase">NOTA #${notaStr}</p>
+                            <span class="px-1.5 py-0.5 rounded border text-[7px] font-black uppercase tracking-tighter ${badgeClass}">
+                                ${iconMetode}
+                            </span>
+                        </div>
+                        <p class="text-[9px] text-blue-600 font-bold uppercase tracking-tighter mb-1">👤 ${namaPelanggan}</p> 
+                        <p class="text-[8px] md:text-[9px] text-slate-400 font-medium">
+                            ${d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} • ${d.toLocaleDateString('id-ID', {day:'numeric', month:'short'})}
+                        </p>
+                    </td>
                     <td class="p-3 text-center whitespace-nowrap">
                         <span class="bg-blue-50 border border-blue-100 text-blue-600 px-2.5 py-1 rounded-lg text-[9px] md:text-[10px] font-black">${totalItem} Item</span>
                     </td>
@@ -2426,9 +2462,39 @@ document.getElementById('barang-kategori').onchange = async (e) => {
             hBody.innerHTML = `<tr><td colspan="3" class="p-8 md:p-10 text-center text-slate-400 text-[10px] md:text-xs italic font-medium"><div class="text-2xl md:text-3xl mb-2 grayscale opacity-40">📭</div>Tidak ada transaksi.</td></tr>`;
         }
 
+        // Update UI Omzet, Laba, Jumlah Trx
         document.getElementById('stat-omzet').innerText = "Rp " + omzet.toLocaleString('id-ID');
         document.getElementById('stat-laba').innerText = "Rp " + laba.toLocaleString('id-ID');
         document.getElementById('tabel-count-rekap').innerText = countTrx + " Trx";
+
+        // ==========================================
+        // LOGIKA KAS FISIK & DIGITAL
+        // ==========================================
+        let totalKasFisik = totalTunaiHariIni;
+
+        // Ambil Uang Masuk dari Pembayaran Cicilan / DP hari ini (diasumsikan masuk kas fisik/laci)
+        const queryCicilan = `
+            SELECT SUM(jumlah) FROM cicilan 
+            WHERE CAST(tanggal AS UNSIGNED) >= ${startMs} 
+              AND CAST(tanggal AS UNSIGNED) <= ${endMs}
+        `;
+        const resCicilan = window.db.exec(queryCicilan);
+        if (resCicilan.length > 0 && resCicilan[0].values[0][0]) {
+            totalKasFisik += resCicilan[0].values[0][0]; 
+        }
+
+        // Update UI Kotak Kas (Laci)
+        const statKasEl = document.getElementById('stat-kas');
+        if (statKasEl) {
+            statKasEl.innerText = `Rp ${totalKasFisik.toLocaleString('id-ID')}`;
+        }
+
+        // Update UI Kotak Saldo Digital
+        const statDigitalEl = document.getElementById('stat-digital');
+        if (statDigitalEl) {
+            statDigitalEl.innerText = `Rp ${totalDigitalHariIni.toLocaleString('id-ID')}`;
+        }
+        // ==========================================
         
     } catch (e) {
         console.error("Error Load Laporan:", e);
@@ -3630,19 +3696,20 @@ window.hitungSubtotalItem = (item) => {
         
         document.getElementById('pay-total-display').innerText = total;
         
-        // Reset input uang
+        // Reset input uang & kembalikan dropdown ke Tunai
         document.getElementById('input-uang-bayar').value = "";
+        document.getElementById('modal-metode-bayar').value = "Tunai";
         
         document.getElementById('modal-pembayaran').classList.remove('hidden');
         
-        // Matikan tombol hutang jika pelanggan belum dipilih
-        const btnHutang = document.getElementById('btn-pay-hutang');
+        // Matikan opsi "Hutang" di dropdown jika pelanggan belum dipilih
+        const optHutang = document.getElementById('opt-hutang');
         if (!pelangganId) {
-            btnHutang.classList.add('opacity-40', 'grayscale');
-            btnHutang.title = "Pilih pelanggan dulu di keranjang";
+            optHutang.disabled = true;
+            optHutang.innerText = "⛔ Hutang (Pilih Pelanggan Dulu!)";
         } else {
-            btnHutang.classList.remove('opacity-40', 'grayscale');
-            btnHutang.title = "";
+            optHutang.disabled = false;
+            optHutang.innerText = "📒 Masuk Hutang (Piutang)";
         }
 
         // Auto-focus ke inputan uang
