@@ -2274,15 +2274,16 @@ document.getElementById('barang-kategori').onchange = async (e) => {
 
     try {
         const query = `
-            SELECT t.tanggal, t.total, t.laba, t.id, SUM(td.qty) as total_item, t.metode_bayar
-            FROM transaksi t 
-            LEFT JOIN transaksi_detail td ON t.id = td.transaksi_id 
-            WHERE CAST(t.tanggal AS UNSIGNED) >= ${startMs} 
-              AND CAST(t.tanggal AS UNSIGNED) <= ${endMs} 
-              ${keywordFilter}
-            GROUP BY t.id 
-            ORDER BY CAST(t.tanggal AS UNSIGNED) DESC
-        `;
+    SELECT t.tanggal, t.total, t.laba, t.id, SUM(td.qty) as total_item, t.metode_bayar, p.nama
+    FROM transaksi t 
+    LEFT JOIN transaksi_detail td ON t.id = td.transaksi_id 
+    LEFT JOIN pelanggan p ON t.pelanggan_id = p.id
+    WHERE CAST(t.tanggal AS UNSIGNED) >= ${startMs} 
+      AND CAST(t.tanggal AS UNSIGNED) <= ${endMs} 
+      ${keywordFilter}
+    GROUP BY t.id 
+    ORDER BY CAST(t.tanggal AS UNSIGNED) DESC
+`;
         
         const res = window.db.exec(query);
         
@@ -2298,6 +2299,7 @@ document.getElementById('barang-kategori').onchange = async (e) => {
                 const trxId = row[3];
                 const totalItem = row[4] || 0; 
                 const metode = row[5] || 'Tunai';
+                const namaPelanggan = row[6] || 'Umum';
                 const notaStr = trxId.toString().slice(-6); 
 
                 omzet += totalBelanja; 
@@ -2307,18 +2309,19 @@ document.getElementById('barang-kategori').onchange = async (e) => {
                 
                 return `
                 <tr class="tr-item hover:bg-slate-100 cursor-pointer transition-colors border-b border-slate-50" 
-                    onclick="window.bukaDetailTransaksi('${trxId}')">
-                    <td class="p-3 pl-4 whitespace-nowrap">
-                        <div class="flex items-center gap-2 mb-1">
-                            <p class="text-slate-800 font-black text-[10px] md:text-xs uppercase">NOTA #${notaStr}</p>
-                            <span class="px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-tighter ${metode === 'Hutang' ? 'bg-amber-100 text-amber-600 border border-amber-200' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'}">
-                                ${metode === 'Hutang' ? '📒 Hutang' : '💵 Tunai'}
-                            </span>
-                        </div>
-                        <p class="text-[8px] md:text-[9px] text-slate-400 font-medium">
-                            ${d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} • ${d.toLocaleDateString('id-ID', {day:'numeric', month:'short'})}
-                        </p>
-                    </td>
+    onclick="window.bukaDetailTransaksi('${trxId}')">
+    <td class="p-3 pl-4 whitespace-nowrap">
+        <div class="flex items-center gap-2 mb-1">
+            <p class="text-slate-800 font-black text-[10px] md:text-xs uppercase">NOTA #${notaStr}</p>
+            <span class="px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-tighter ${metode === 'Hutang' ? 'bg-amber-100 text-amber-600 border border-amber-200' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'}">
+                ${metode === 'Hutang' ? '📒 Hutang' : '💵 Tunai'}
+            </span>
+        </div>
+        <p class="text-[9px] text-blue-600 font-bold uppercase tracking-tighter mb-1">👤 ${namaPelanggan}</p> 
+        <p class="text-[8px] md:text-[9px] text-slate-400 font-medium">
+            ${d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} • ${d.toLocaleDateString('id-ID', {day:'numeric', month:'short'})}
+        </p>
+    </td>
                     <td class="p-3 text-center whitespace-nowrap">
                         <span class="bg-blue-50 border border-blue-100 text-blue-600 px-2.5 py-1 rounded-lg text-[9px] md:text-[10px] font-black">${totalItem} Item</span>
                     </td>
