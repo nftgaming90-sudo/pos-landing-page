@@ -130,50 +130,24 @@
 
 /* --- PC / TABLET OPTIMIZATION --- */
 @media (min-width: 769px) {
-    /* --- TAMBAHAN BARU: AGAR KERANJANG TIDAK TENGGELAM --- */
-    #menu-kasir.page-active {
-        display: flex !important;
-        height: calc(100vh - 40px) !important; 
-        overflow: hidden !important;
-        align-items: stretch !important;
-    }
-
-    #menu-kasir > div:first-child {
-        height: 100% !important;
-        overflow: hidden !important;
-        display: flex !important;
-        flex-direction: column !important;
-    }
-
-    #cart-section {
-        height: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
-        position: relative !important;
-    }
-
-    #cart-items {
-        flex: 1 !important;
-        overflow-y: auto !important;
-        min-height: 0 !important;
-    }
-    /* --- AKHIR TAMBAHAN --- */
-
-    /* Kode asli Mas tetap di sini */
+    /* Membuat grid laporan lebih rapi di layar lebar */
     #menu-laporan .grid-cols-2 {
         grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     }
 
+    /* Memastikan tabel laporan punya hover effect di PC */
     #history-body tr:hover {
         background-color: #f8fafc !important;
         cursor: pointer;
     }
 
+    /* Navigasi samping/bawah di PC biasanya lebih ramping */
     .nav-btn:hover {
         background: rgba(255, 255, 255, 0.05);
         border-radius: 8px;
     }
 
+    /* Membatasi lebar maksimal konten agar tidak terlalu melebar di monitor UltraWide */
     .page-content {
         max-width: 1400px;
         margin: 0 auto;
@@ -407,41 +381,61 @@
     </div>
 
     <aside id="cart-section" class="w-full md:w-1/3 bg-slate-50 md:bg-slate-50/50 rounded-none md:rounded-2xl shadow-2xl md:shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] flex flex-col overflow-hidden border border-slate-200/70 pb-safe md:pb-0">
-        <div class="p-3 bg-white border-b border-slate-200 flex flex-col gap-2 z-10 shrink-0">
-            <div class="flex justify-between items-center">
-                <h2 class="font-bold text-slate-800 flex items-center gap-2 text-xs uppercase tracking-widest">🛒 Keranjang</h2>
-                <button onclick="window.clearCart()" class="text-[9px] text-rose-500 font-black px-2 py-1 hover:bg-rose-50 rounded-md transition-all">RESET</button>
-            </div>
-            <div class="flex flex-col gap-1">
-    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Pilih Pelanggan</label>
-    <div class="flex gap-2 items-center">
-        <div class="relative flex-1">
-            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs opacity-40">👤</span>
-            <input list="data-pelanggan" id="input-pelanggan-search" 
-                placeholder="Cari/Ketik Nama..." 
-                class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-[11px] font-bold outline-none focus:border-blue-500">
-            
-            
-        </div>
-        <button onclick="document.getElementById('modal-tambah-pelanggan').classList.remove('hidden')" 
-            class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-sm hover:bg-blue-600 hover:text-white transition-all">+</button>
-    </div>
-</div>
+    
+    <div class="p-3 bg-white border-b border-slate-200 flex flex-col gap-2 z-10 shrink-0">
         
-        <div id="cart-items" class="flex-1 overflow-y-auto p-3 space-y-2 relative"></div>
-
-        <div class="p-4 bg-white border-t border-slate-200 space-y-3 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10 shrink-0">
-            <div class="flex justify-between items-center">
-                <p class="text-slate-400 font-black uppercase text-[9px] tracking-widest">Total Belanja</p>
-                <p id="cart-total" class="text-2xl font-black text-blue-700 tracking-tighter">Rp 0</p>
-            </div>
-            <button id="btn-proses-bayar" disabled onclick="window.showPaymentModal()"
-                class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-sm shadow-lg disabled:bg-slate-200 disabled:text-slate-400 transition-all transform active:scale-95 uppercase tracking-widest">
-                BAYAR SEKARANG
-            </button>
-            <button onclick="window.toggleCart()" class="md:hidden w-full py-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest">Kembali</button>
+        <div class="flex justify-between items-center">
+            <h2 class="font-bold text-slate-800 flex items-center gap-2 text-xs uppercase tracking-widest">🛒 Keranjang</h2>
+            <button onclick="window.clearCart()" class="text-[9px] text-rose-500 font-black px-2 py-1 hover:bg-rose-50 rounded-md transition-all">RESET</button>
         </div>
-    </aside>
+
+        <div class="flex gap-2 items-center">
+
+            <!-- 🔥 SEARCH + DROPDOWN -->
+            <div class="relative flex-1">
+
+                <input type="text" id="input-pelanggan"
+                    placeholder="Cari pelanggan..."
+                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[11px] font-bold outline-none focus:border-blue-500">
+
+                <div id="dropdown-pelanggan"
+                    class="absolute top-full left-0 right-0 bg-white border border-slate-200 rounded-lg mt-1 max-h-40 overflow-y-auto hidden z-50 shadow-lg text-[11px]">
+                </div>
+
+                <!-- 🔥 SELECT LAMA (JANGAN DIHAPUS!) -->
+                <select id="select-pelanggan" style="display:none">
+                    <option value="">-- Pelanggan Umum --</option>
+                </select>
+
+            </div>
+
+            <button onclick="document.getElementById('modal-tambah-pelanggan').classList.remove('hidden')" 
+                class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-sm hover:bg-blue-600 hover:text-white transition-all">
+                +
+            </button>
+
+        </div>
+    </div>
+    
+    <div id="cart-items" class="flex-1 overflow-y-auto p-3 space-y-2 relative"></div>
+
+    <div class="p-4 bg-white border-t border-slate-200 space-y-3 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10 shrink-0">
+        <div class="flex justify-between items-center">
+            <p class="text-slate-400 font-black uppercase text-[9px] tracking-widest">Total Belanja</p>
+            <p id="cart-total" class="text-2xl font-black text-blue-700 tracking-tighter">Rp 0</p>
+        </div>
+
+        <button id="btn-proses-bayar" disabled onclick="window.showPaymentModal()"
+            class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-sm shadow-lg disabled:bg-slate-200 disabled:text-slate-400 transition-all transform active:scale-95 uppercase tracking-widest">
+            BAYAR SEKARANG
+        </button>
+
+        <button onclick="window.toggleCart()" class="md:hidden w-full py-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+            Kembali
+        </button>
+    </div>
+
+</aside>
 </section>
 
         <section id="menu-stok" class="page-content flex-col p-2.5 md:p-4">
@@ -888,9 +882,6 @@
             </div>
         </div>
     </div> </div> <div id="section-struk"></div>
-    <datalist id="data-pelanggan">
-                <option value="Pelanggan Umum">
-            </datalist>
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -1018,25 +1009,91 @@
     }
 };
 
-window.filterPelanggan = (val) => {
-    if(!window.db) return;
-    const keyword = val.toLowerCase();
+document.addEventListener("DOMContentLoaded", () => {
+
+    const input = document.getElementById("input-pelanggan");
+    const dropdown = document.getElementById("dropdown-pelanggan");
+    const select = document.getElementById("select-pelanggan");
+
+    let pelangganList = [];
+
+    // 🔥 ambil data dari select lama (AMAN)
+    function syncPelangganDariSelect() {
+    pelangganList = [];
+
+    const options = document.querySelectorAll("#select-pelanggan option");
+
+    options.forEach(opt => {
+        if (opt.value !== "") { // skip "Pelanggan Umum"
+            pelangganList.push({
+                id: opt.value,
+                nama: opt.textContent
+            });
+        }
+    });
+
     
-    // Ambil semua data pelanggan dari SQLite
-    const res = window.db.exec("SELECT id, nama FROM pelanggan ORDER BY nama ASC");
-    const select = document.getElementById('select-pelanggan');
-    
-    let options = '<option value="">-- Pelanggan Umum --</option>';
-    if(res.length > 0) {
-        // Filter data yang hanya mengandung kata kunci yang diketik
-        const filtered = res[0].values.filter(row => row[1].toLowerCase().includes(keyword));
-        
-        filtered.forEach(row => {
-            options += `<option value="${row[0]}">${row[1]}</option>`;
+}
+
+    // tampil dropdown saat klik
+    // 🔥 jalan sekali aja
+input.addEventListener("focus", () => {
+
+    // 🔥 kalau belum ada data, baru ambil
+    if (pelangganList.length === 0) {
+        syncPelangganDariSelect();
+    }
+
+    renderDropdown(pelangganList);
+    dropdown.classList.remove("hidden");
+});
+
+    // filter saat ngetik
+    let timeout;
+
+input.addEventListener("input", () => {
+    clearTimeout(timeout);
+
+    timeout = setTimeout(() => {
+        const keyword = input.value.toLowerCase();
+        const filtered = pelangganList.filter(p =>
+            p.nama.toLowerCase().includes(keyword)
+        );
+        renderDropdown(filtered);
+    }, 100); // delay dikit biar ringan
+});
+
+    function renderDropdown(list) {
+    dropdown.innerHTML = "";
+
+    if (list.length === 0) {
+        dropdown.innerHTML = `<div class="p-2 text-slate-400">Tidak ditemukan</div>`;
+        return;
+    }
+
+    // 🔥 batasi cuma 20 biar ringan
+    list.slice(0, 20).forEach(p => {
+            const item = document.createElement("div");
+            item.className = "p-2 hover:bg-blue-50 cursor-pointer";
+            item.innerText = p.nama;
+
+            item.onclick = () => {
+                input.value = p.nama;
+                select.value = p.id; // 🔥 ini jaga flow lama
+                dropdown.classList.add("hidden");
+            };
+
+            dropdown.appendChild(item);
         });
     }
-    select.innerHTML = options;
-};
+
+    document.addEventListener("click", (e) => {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add("hidden");
+        }
+    });
+
+});
 
     window.renderHutang = (sortBy = 'baru') => {
         if (!window.db) return;
@@ -1318,32 +1375,19 @@ const qCicil = `
     };
 
     window.renderPelangganSelect = () => {
-    if (!window.db) return;
-    try {
-        const res = window.db.exec("SELECT nama FROM pelanggan ORDER BY nama ASC");
-        const list = document.getElementById('data-pelanggan');
-        if (!list) return;
+        if(!window.db) return;
+        const res = window.db.exec("SELECT id, nama FROM pelanggan ORDER BY nama ASC");
+        const select = document.getElementById('select-pelanggan');
+        if(!select) return;
 
-        // Reset isi datalist
-        let options = '<option value="Pelanggan Umum">';
-        if (res.length > 0) {
+        let options = '<option value="">-- Pelanggan Umum --</option>';
+        if(res.length > 0) {
             res[0].values.forEach(row => {
-                options += `<option value="${row[0]}">`;
+                options += `<option value="${row[0]}">${row[1]}</option>`;
             });
         }
-        list.innerHTML = options;
-        console.log("Datalist pelanggan diperbarui");
-    } catch (e) {
-        console.error("Gagal update datalist:", e);
-    }
-};
-
-// Tambahkan ini agar saat input diklik, daftar langsung muncul di HP
-document.getElementById('input-pelanggan-search').addEventListener('focus', function() {
-    this.setAttribute('placeholder', 'Ketik nama...');
-    // Memicu dropdown muncul di beberapa browser mobile
-    window.renderPelangganSelect();
-});
+        select.innerHTML = options;
+    };
 
     window.checkProStatus = async (uid) => {
         try {
@@ -3757,26 +3801,26 @@ window.hitungSubtotalItem = (item) => {
 };
 
     window.showPaymentModal = () => {
-    const total = document.getElementById('cart-total').innerText;
-    const pelangganNama = document.getElementById('input-pelanggan-search').value.trim();
-    
-    document.getElementById('pay-total-display').innerText = total;
-    document.getElementById('input-uang-bayar').value = "";
-    document.getElementById('modal-metode-bayar').value = "Tunai";
-    
-    // Tampilkan modal
-    const modalPay = document.getElementById('modal-pembayaran');
-    modalPay.classList.remove('hidden');
-
-    const optHutang = document.getElementById('opt-hutang');
-    // Jika tidak ada nama pelanggan, hutang tidak bisa dipilih
-    if (!pelangganNama || pelangganNama === "Pelanggan Umum") {
-        optHutang.disabled = true;
-        optHutang.innerText = "⛔ Pilih Pelanggan (Hutang)";
-    } else {
-        optHutang.disabled = false;
-        optHutang.innerText = "📒 Masuk Hutang";
-    }
+        const total = document.getElementById('cart-total').innerText;
+        const pelangganId = document.getElementById('select-pelanggan').value;
+        
+        document.getElementById('pay-total-display').innerText = total;
+        
+        // Reset input uang & kembalikan dropdown ke Tunai
+        document.getElementById('input-uang-bayar').value = "";
+        document.getElementById('modal-metode-bayar').value = "Tunai";
+        
+        document.getElementById('modal-pembayaran').classList.remove('hidden');
+        
+        // Matikan opsi "Hutang" di dropdown jika pelanggan belum dipilih
+        const optHutang = document.getElementById('opt-hutang');
+        if (!pelangganId) {
+            optHutang.disabled = true;
+            optHutang.innerText = "⛔ Hutang (Pilih Pelanggan Dulu!)";
+        } else {
+            optHutang.disabled = false;
+            optHutang.innerText = "📒 Masuk Hutang (Piutang)";
+        }
 
         // Auto-focus ke inputan uang
         setTimeout(() => document.getElementById('input-uang-bayar').focus(), 100);
@@ -3815,120 +3859,107 @@ window.hitungSubtotalItem = (item) => {
     };
 
     window.eksekusiBayar = async (metode) => {
-    // 1. CARI ID PELANGGAN BERDASARKAN NAMA DARI INPUT SEARCH
-    const namaInput = document.getElementById('input-pelanggan-search').value.trim();
-    let pelangganId = null;
-
-    if (namaInput && namaInput !== "" && namaInput !== "Pelanggan Umum") {
-        const resP = window.db.exec("SELECT id FROM pelanggan WHERE nama = ?", [namaInput]);
-        if (resP.length > 0) {
-            pelangganId = resP[0].values[0][0];
-        } else {
-            alert("⚠️ Pelanggan '" + namaInput + "' tidak ditemukan!\nSilakan tambah pelanggan baru atau pilih dari daftar.");
-            return;
-        }
-    }
-
-    // 2. AMBIL NOMINAL UANG & TOTAL BELANJA
-    const valBayar = document.getElementById('input-uang-bayar').value.replace(/\./g, '');
-    const uangBayar = parseInt(valBayar) || 0;
-
-    let totalB = 0, totalL = 0;
-    window.cart.forEach(i => { 
-        const subtotal = window.hitungSubtotalItem(i);
-        totalB += subtotal; 
-        totalL += (subtotal - (i.modal * i.qty)); 
-    });
-
-    // 3. VALIDASI PEMBAYARAN
-    if (metode === 'Tunai' && uangBayar > 0 && uangBayar < totalB) {
-        return alert("⚠️ Uang tunai kurang!");
-    }
-    if (metode === 'Hutang' && uangBayar >= totalB) {
-        return alert("⚠️ Nominal DP tidak boleh melebihi/sama dengan total!");
-    }
-    if (metode === 'Hutang' && !pelangganId) {
-        alert("⚠️ Pilih nama pelanggan dulu kalau mau Hutang!");
-        document.getElementById('modal-pembayaran').classList.add('hidden');
-        return;
-    }
-
-    document.getElementById('modal-pembayaran').classList.add('hidden');
-    const ts = Date.now();
-    
-    // 4. SIMPAN TRANSAKSI KE DB LOKAL
-    window.db.run("INSERT INTO transaksi (id, tanggal, total, laba, metode_bayar, pelanggan_id) VALUES (?,?,?,?,?,?)", 
-                 [ts, ts.toString(), totalB, totalL, metode, pelangganId]);
-    
-    // 5. LOGIKA HUTANG & CICILAN
-    if (metode === 'Hutang') {
-        const hutangId = "H-" + ts;
-        const sisaHutang = totalB - uangBayar;
-
-        window.db.run("INSERT INTO hutang (id, pelanggan_id, transaksi_id, total, sisa, tanggal) VALUES (?,?,?,?,?,?)", 
-                     [hutangId, pelangganId, ts, totalB, sisaHutang, ts.toString()]);
-        window.db.run("UPDATE pelanggan SET total_hutang = total_hutang + ?, sisa_hutang = sisa_hutang + ? WHERE id = ?", 
-                     [totalB, sisaHutang, pelangganId]);
+        const pelangganId = document.getElementById('select-pelanggan').value || null;
         
-        window.offlineQueue.hutang.push({
-            id: hutangId, pelanggan_id: pelangganId, transaksi_id: ts, total: totalB, sisa: sisaHutang, tanggal: ts.toString(), user_id: window.currentUid
+        // 1. Ambil nominal uang yang dimasukkan (Tunai atau DP)
+        const valBayar = document.getElementById('input-uang-bayar').value.replace(/\./g, '');
+        const uangBayar = parseInt(valBayar) || 0;
+
+        let totalB = 0, totalL = 0;
+        window.cart.forEach(i => { 
+            const subtotal = window.hitungSubtotalItem(i);
+            totalB += subtotal; 
+            // Laba = Subtotal (setelah diskon) - (Modal * Qty)
+            totalL += (subtotal - (i.modal * i.qty)); 
         });
 
-        if (uangBayar > 0) {
-            const cicilanId = "C-" + ts + "-DP";
-            window.db.run("INSERT INTO cicilan (id, hutang_id, jumlah, tanggal) VALUES (?,?,?,?)", 
-                         [cicilanId, hutangId, uangBayar, ts.toString()]);
-            window.offlineQueue.cicilan.push({
-                id: cicilanId, hutang_id: hutangId, jumlah: uangBayar, tanggal: ts.toString(), user_id: window.currentUid
-            });
+        // 2. Validasi Cerdas
+        if (metode === 'Tunai' && uangBayar > 0 && uangBayar < totalB) {
+            return alert("⚠️ Uang tunai kurang! Jika bayar sebagian, silakan pilih metode 'Kasbon / Hutang'.");
         }
+        if (metode === 'Hutang' && uangBayar >= totalB) {
+            return alert("⚠️ Uang DP melebihi/sama dengan tagihan! Silakan pilih metode 'Tunai / Lunas'.");
+        }
+        if (metode === 'Hutang' && !pelangganId) {
+            alert("⚠️ Pilih nama pelanggan terlebih dahulu di bagian atas keranjang!");
+            document.getElementById('modal-pembayaran').classList.add('hidden');
+            return;
+        }
+
+        document.getElementById('modal-pembayaran').classList.add('hidden');
+        const ts = Date.now();
         
-        // Push update pelanggan ke queue
-        const resPlg = window.db.exec("SELECT nama, hp, total_hutang, sisa_hutang FROM pelanggan WHERE id=?", [pelangganId]);
-        if(resPlg.length > 0) {
-            const p = resPlg[0].values[0];
-            window.offlineQueue.pelanggan = window.offlineQueue.pelanggan.filter(x => x.id !== pelangganId);
-            window.offlineQueue.pelanggan.push({ id: pelangganId, nama: p[0], hp: p[1], total_hutang: p[2], sisa_hutang: p[3], user_id: window.currentUid });
+        // SIMPAN TRANSAKSI
+        window.db.run("INSERT INTO transaksi (id, tanggal, total, laba, metode_bayar, pelanggan_id) VALUES (?,?,?,?,?,?)", [ts, ts.toString(), totalB, totalL, metode, pelangganId]);
+        
+        // SIMPAN HUTANG JIKA KASBON
+        if (metode === 'Hutang') {
+            const hutangId = "H-" + ts;
+            const sisaHutang = totalB - uangBayar; // Logika: Sisa Hutang = Total - DP
+
+            window.db.run("INSERT INTO hutang (id, pelanggan_id, transaksi_id, total, sisa, tanggal) VALUES (?,?,?,?,?,?)", [hutangId, pelangganId, ts, totalB, sisaHutang, ts.toString()]);
+            window.db.run("UPDATE pelanggan SET total_hutang = total_hutang + ?, sisa_hutang = sisa_hutang + ? WHERE id = ?", [totalB, sisaHutang, pelangganId]);
+            
+            window.offlineQueue.hutang.push({
+                id: hutangId, pelanggan_id: pelangganId, transaksi_id: ts, total: totalB, sisa: sisaHutang, tanggal: ts.toString(), user_id: window.currentUid
+            });
+
+            // JIKA ADA DP: Langsung buatkan history cicilan otomatis di DB!
+            if (uangBayar > 0) {
+                const cicilanId = "C-" + ts + "-DP";
+                window.db.run("INSERT INTO cicilan (id, hutang_id, jumlah, tanggal) VALUES (?,?,?,?)", [cicilanId, hutangId, uangBayar, ts.toString()]);
+                window.offlineQueue.cicilan.push({
+                    id: cicilanId, hutang_id: hutangId, jumlah: uangBayar, tanggal: ts.toString(), user_id: window.currentUid
+                });
+            }
+            
+            const resPlg = window.db.exec("SELECT nama, hp, total_hutang, sisa_hutang FROM pelanggan WHERE id=?", [pelangganId]);
+            if(resPlg.length > 0) {
+                const p = resPlg[0].values[0];
+                window.offlineQueue.pelanggan = window.offlineQueue.pelanggan.filter(x => x.id !== pelangganId);
+                window.offlineQueue.pelanggan.push({
+                    id: pelangganId, nama: p[0], hp: p[1], total_hutang: p[2], sisa_hutang: p[3], user_id: window.currentUid
+                });
+            }
+            window.saveQueue();
         }
-    }
 
-    // 6. UPDATE STOK & DETAIL BARANG
-    let detailIndex = 1;
-    for (let i of window.cart) {
-        window.db.run("UPDATE barang SET stok = stok - ? WHERE id = ?", [i.qty, i.id]);
-        window.db.run("INSERT INTO transaksi_detail (id, transaksi_id, barang_id, qty, harga, modal) VALUES (?,?,?,?,?,?)", 
+        let detailIndex = 1;
+        for (let i of window.cart) {
+            window.db.run("UPDATE barang SET stok = stok - ? WHERE id = ?", [i.qty, i.id]);
+            window.db.run("INSERT INTO transaksi_detail (id, transaksi_id, barang_id, qty, harga, modal) VALUES (?,?,?,?,?,?)", 
                          [ts + detailIndex, ts, i.id, i.qty, i.harga, i.modal]);
-        detailIndex++;
-    }
+            detailIndex++;
+        }
 
-    // 7. SINKRONISASI CLOUD
-    const payload = { ts: ts, totalB: totalB, totalL: totalL, metode: metode, pelanggan_id: pelangganId, uid: window.currentUid, cart: [...window.cart] };
-    window.cart = [];
-    document.getElementById('input-pelanggan-search').value = ""; // Reset nama pelanggan
-    window.renderCart();
-    window.refreshDataUI(); 
-    window.saveQueue();
+        const payload = { ts: ts, totalB: totalB, totalL: totalL, metode: metode, pelanggan_id: pelangganId, uid: window.currentUid, cart: [...window.cart] };
+        
+        window.cart = [];
+        window.renderCart();
+        window.refreshDataUI(); 
+        
+        if(window.innerWidth < 768) window.toggleCart();
 
-    if (navigator.onLine) {
-        try {
-            await window.pushTransaksiToCloud(payload);
-            window.processOfflineQueue(); 
-        } catch(e) {
+        if (navigator.onLine) {
+            try {
+                await window.pushTransaksiToCloud(payload);
+                window.processOfflineQueue(); 
+            } catch(e) {
+                window.offlineQueue.transaksi.push(payload);
+                window.saveQueue();
+            }
+        } else {
             window.offlineQueue.transaksi.push(payload);
             window.saveQueue();
         }
-    } else {
-        window.offlineQueue.transaksi.push(payload);
-        window.saveQueue();
-    }
 
-    // 8. NOTIFIKASI AKHIR
-    if (metode === 'Tunai' && uangBayar > totalB) {
-        alert(`✅ LUNAS!\nKembalian: Rp ${(uangBayar - totalB).toLocaleString('id-ID')}`);
-    } else if (metode === 'Hutang') {
-        alert(`📒 HUTANG TERCATAT!\nSisa Tagihan: Rp ${(totalB - uangBayar).toLocaleString('id-ID')}`);
-    }
-};
+        // Tampilkan notif kembalian atau info DP
+        if (metode === 'Tunai' && uangBayar > totalB) {
+            alert(`✅ LUNAS!\nKembalian: Rp ${(uangBayar - totalB).toLocaleString('id-ID')}`);
+        } else if (metode === 'Hutang' && uangBayar > 0) {
+            alert(`📒 HUTANG + DP TERCATAT!\nTotal: Rp ${totalB.toLocaleString('id-ID')}\nDP Dibayar: Rp ${uangBayar.toLocaleString('id-ID')}\nSisa Tagihan: Rp ${(totalB - uangBayar).toLocaleString('id-ID')}`);
+        }
+    };
 
     // Pastikan kode ini ada di dalam <script type="module">
 const btnKeluar = document.getElementById('btn-logout');
