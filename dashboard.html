@@ -81,7 +81,7 @@
 
     /* --- MOBILE RESPONSIVE OPTIMIZATION --- */
 @media (max-width: 768px) {
-    /* Menu Keranjang melayang penuh di HP */
+    /* Perbaikan Struktur Keranjang di HP */
     #cart-section {
         position: fixed; 
         inset: 0; 
@@ -89,15 +89,43 @@
         transform: translateX(100%); 
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         background: white;
+        /* Tambahkan ini agar layout atas-bawah sempurna */
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100dvh; /* Gunakan dynamic viewport height */
     }
+    
     #cart-section.active { transform: translateX(0); }
 
-    /* Jarak bawah agar konten tidak tertutup navigasi bawah */
-    main { 
-        padding-bottom: 85px !important; 
+    /* Area list barang harus mengambil sisa ruang yang ada */
+    #cart-items {
+        flex: 1 !important; 
+        overflow-y: auto !important;
+        padding-bottom: 20px;
     }
 
-    /* Styling tombol navigasi bawah agar lebih "App-like" */
+    /* Bagian bawah (Total & Tombol Bayar) dipaksa tetap di bawah */
+    #cart-section > div:last-child {
+        margin-top: auto;
+        border-top: 1px solid #e2e8f0;
+        padding: 1rem;
+        padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
+        background: white;
+        box-shadow: 0 -10px 15px -3px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Padding kiri untuk input agar tidak tertutup icon 👤 */
+    #input-pelanggan-search {
+        padding-left: 36px !important;
+        font-size: 16px !important; /* Mencegah auto-zoom iPhone */
+        appearance: none;
+    }
+
+    /* Jarak bawah agar konten main tidak tertutup navigasi bawah */
+    main { 
+        padding-bottom: 90px !important; 
+    }
+
     .nav-btn {
         border-bottom: none !important;
         color: #94a3b8 !important;
@@ -111,17 +139,15 @@
         transform: translateY(-2px);
     }
 
-    /* Floating Button Cart diatur agar nangkring manis di atas Navigasi */
     #floating-cart-btn {
-        bottom: 85px !important; /* Di atas navbar bawah */
+        bottom: 85px !important;
         right: 16px !important;
         left: 16px !important;
         width: auto !important;
         border-radius: 16px !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
     }
 
-    /* Optimalisasi Tabel Laporan di HP agar tidak meluber */
     #history-body td {
         padding: 10px 6px !important;
         font-size: 10px !important;
@@ -392,7 +418,8 @@
         <div class="relative flex-1">
             <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs opacity-40">👤</span>
             <input list="data-pelanggan" id="input-pelanggan-search" 
-                placeholder="Cari/Ketik Nama..." 
+       onfocus="this.value=''" 
+       placeholder="Cari/Ketik Nama..."
                 class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-[11px] font-bold outline-none focus:border-blue-500">
             
             <datalist id="data-pelanggan">
@@ -1291,18 +1318,24 @@ const qCicil = `
     };
 
     window.renderPelangganSelect = () => {
-    if(!window.db) return;
-    const res = window.db.exec("SELECT nama FROM pelanggan ORDER BY nama ASC");
-    const list = document.getElementById('data-pelanggan');
-    if(!list) return;
+    if (!window.db) return;
+    try {
+        const res = window.db.exec("SELECT nama FROM pelanggan ORDER BY nama ASC");
+        const dl = document.getElementById('data-pelanggan');
+        if (!dl) return;
 
-    let options = '<option value="Pelanggan Umum">';
-    if(res.length > 0) {
-        res[0].values.forEach(row => {
-            options += `<option value="${row[0]}">`;
-        });
+        let options = '<option value="Pelanggan Umum">';
+        if (res.length > 0) {
+            res[0].values.forEach(row => {
+                // Gunakan format standar datalist
+                options += `<option value="${row[0]}">`;
+            });
+        }
+        dl.innerHTML = options;
+        console.log("Datalist pelanggan diupdate");
+    } catch (e) {
+        console.error("Gagal render datalist:", e);
     }
-    list.innerHTML = options;
 };
 
     window.checkProStatus = async (uid) => {
