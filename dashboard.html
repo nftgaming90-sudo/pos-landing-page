@@ -3581,6 +3581,28 @@ return `
         window.renderCart();
     };
 
+    window.manualUpdateQty = (index, val) => {
+    const item = window.cart[index];
+    const masterItem = window.masterData.find(x => x[4] === item.id);
+    const maxStok = masterItem ? masterItem[1] : 0;
+    let newQty = parseInt(val) || 0;
+
+    if (newQty <= 0) {
+        if(confirm("Keluarkan item ini dari keranjang?")) {
+            window.cart.splice(index, 1);
+        } else {
+            item.qty = 1; // Balikin ke 1 kalau batal hapus
+        }
+    } else if (newQty > maxStok) {
+        alert("Waduh Mas, stok di gudang cuma ada " + maxStok);
+        item.qty = maxStok; // Set ke maksimal stok yang ada
+    } else {
+        item.qty = newQty;
+    }
+    
+    window.renderCart();
+};
+
     window.updateCartPrice = (index, val) => {
         const num = parseInt(val.toString().replace(/\D/g, ''));
         if(!isNaN(num) && num >= 0) {
@@ -3660,7 +3682,12 @@ return `
             <div class="flex justify-between items-center pl-2 border-t border-slate-50 pt-2">
                 <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
                     <button onclick="window.updateCartQty(${index}, -1)" class="w-6 h-6 flex items-center justify-center text-slate-500 font-black">-</button>
-                    <span class="w-7 text-center text-[10px] font-black text-slate-700">${item.qty}</span>
+                    <input type="number" 
+    value="${item.qty}" 
+    onfocus="this.select()"
+    onblur="window.manualUpdateQty(${index}, this.value)"
+    onkeydown="if(event.key==='Enter') window.manualUpdateQty(${index}, this.value)"
+    class="w-10 text-center text-[11px] font-black text-slate-700 bg-white outline-none border-x border-slate-200">
                     <button onclick="window.updateCartQty(${index}, 1)" class="w-6 h-6 flex items-center justify-center text-slate-500 font-black">+</button>
                 </div>
                 <div class="text-right">
