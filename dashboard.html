@@ -84,6 +84,18 @@
 
     /* --- MOBILE RESPONSIVE OPTIMIZATION --- */
 @media (max-width: 768px) {
+#kulakan-section {
+        position: fixed;
+        inset: 0;
+        z-index: 999; /* Sangat tinggi di HP agar menutupi semuanya */
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 0;
+    }
+    #kulakan-section.active {
+        transform: translateX(0);
+    }
+
     /* Menu Keranjang melayang penuh di HP */
     #cart-section {
         position: fixed; 
@@ -139,6 +151,27 @@
 
 /* --- PC / TABLET OPTIMIZATION --- */
 @media (min-width: 769px) {
+#kulakan-section {
+        transform: none !important;
+        position: relative !important;
+        /* Di PC, turunkan z-index-nya supaya tidak memblokir menu/dropdown */
+        z-index: 10; 
+        display: flex !important;
+        height: 100%; /* Biar nempel dari atas ke bawah */
+    }
+
+    /* Pastikan container utama stok tidak meluap */
+    #menu-stok {
+        display: flex;
+        flex-direction: row;
+        height: calc(100vh - 70px); /* Sesuaikan tinggi header */
+        overflow: hidden;
+    }
+    
+    /* Atur tinggi halaman stok agar tidak scrolling seluruh layar di PC */
+    #menu-stok {
+        height: calc(100vh - 80px); /* Sesuaikan tinggi header Mas */
+    }
     /* Membuat grid laporan lebih rapi di layar lebar */
     #menu-laporan .grid-cols-2 {
         grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
@@ -160,6 +193,7 @@
     .page-content {
         max-width: 1400px;
         margin: 0 auto;
+        display: none;
     }
 }
 
@@ -473,41 +507,106 @@
 </aside>
 </section>
 
-        <section id="menu-stok" class="page-content flex-col p-2.5 md:p-4">
-            <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 flex-1 flex flex-col overflow-hidden">
-                <div class="p-3 md:p-5 border-b border-slate-100 space-y-3 md:space-y-4 bg-slate-50/50 shrink-0">
-                    <div class="flex justify-between items-center">
-                        <div class="flex flex-col">
-                            <h2 class="font-black text-[10px] md:text-xs uppercase text-slate-500 tracking-widest">Manajemen Inventori</h2>
-                            <p id="stok-counter" class="text-[9px] text-slate-400 font-bold mt-0.5">Memuat...</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="window.openAddModal()" class="bg-blue-700 hover:bg-blue-800 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-xl text-[9px] md:text-[10px] font-black shadow-[0_4px_15px_-3px_rgba(29,78,216,0.4)] transition-all whitespace-nowrap">+ BARU</button>
-                        </div>
+        <section id="menu-stok" class="page-content flex flex-col md:flex-row p-2.5 md:p-4 gap-4 h-full overflow-hidden">
+    
+    <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/70 flex-1 flex flex-col overflow-hidden">
+            
+            <div class="p-4 md:p-5 border-b border-slate-100 bg-slate-50/50">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex flex-col">
+                        <h2 class="font-black text-[10px] md:text-xs uppercase text-slate-500 tracking-widest">Stok Gudang</h2>
+                        <p id="stok-counter" class="text-[9px] text-slate-400 font-bold mt-0.5">Memuat...</p>
                     </div>
-                    <div class="relative flex items-center">
-                        <span class="absolute left-3.5 opacity-40 text-sm">🔍</span>
-                        <input type="text" id="search-stok" placeholder="Cari barang di gudang..." 
-                            class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-[16px] md:text-sm outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700">
-                    </div>
-                    <div id="filter-kategori-stok" class="flex gap-2 overflow-x-auto pb-2 hide-scrollbar shrink-0">
-    </div>
+                    <button onclick="window.openAddModal()" class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-xl text-[10px] font-black shadow-lg transition-all uppercase">+ BARU</button>
                 </div>
-                <div class="overflow-auto flex-1 relative pb-10 md:pb-0">
-                    <table class="w-full text-sm text-left min-w-full">
-                        <thead class="sticky top-0 bg-blue-50/95 backdrop-blur-md text-[9px] md:text-[10px] font-black text-blue-800 uppercase tracking-widest border-b border-blue-100 z-10">
-                            <tr>
-                                <th class="p-3 md:p-4 pl-4 md:pl-5 whitespace-nowrap">Nama Produk</th>
-                                <th class="p-3 md:p-4 text-center whitespace-nowrap">Stok</th>
-                                <th class="p-3 md:p-4 text-right whitespace-nowrap hidden sm:table-cell">Modal</th>
-                                <th class="p-3 md:p-4 text-center pr-4 md:pr-5 whitespace-nowrap">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="stok-table-body" class="divide-y divide-slate-100"></tbody>
-                    </table>
+
+                <div class="relative flex items-center">
+                    <span class="absolute left-3.5 opacity-40 text-sm">🔍</span>
+                    <input type="text" id="search-stok" placeholder="Cari nama barang..." 
+                        class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium">
                 </div>
             </div>
-        </section>
+
+            <div class="flex-1 overflow-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="sticky top-0 bg-blue-50 text-[10px] font-black text-blue-800 uppercase border-b border-blue-100 z-10">
+                        <tr>
+                            <th class="p-4">Produk</th>
+                            <th class="p-4 text-center">Stok</th>
+                            <th class="p-4 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stok-table-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <aside id="kulakan-section" class="w-full md:w-[350px] bg-white rounded-2xl md:shadow-sm flex flex-col overflow-hidden border border-slate-200/70 shrink-0">
+        <div class="p-4 bg-orange-50 border-b border-orange-100 flex justify-between items-center">
+            <h2 class="font-black text-orange-800 flex items-center gap-2 text-[10px] uppercase tracking-widest">🛒 Daftar Kulakan</h2>
+            <button onclick="window.bukaRiwayatKulakan()" class="text-[9px] text-blue-600 font-black hover:bg-blue-100 px-2 py-1 rounded">RIWAYAT</button>
+            <button onclick="window.cartKulakan = []; window.renderCartKulakan();" class="text-[9px] text-orange-600 font-black hover:bg-orange-100 px-2 py-1 rounded">RESET</button>
+        </div>
+
+        <div class="p-3 bg-white border-b border-slate-100">
+    <div class="p-3 bg-white border-b border-slate-100">
+    <div class="flex items-center gap-2">
+        <div class="relative flex-grow">
+            <select id="select-supplier" class="w-full p-2.5 pr-8 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-orange-500 appearance-none">
+                <option value="">-- Pilih Supplier --</option>
+                <option value="S-UMUM">Supplier Umum</option>
+            </select>
+            <div class="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-slate-400 text-[9px]">
+                ▼
+            </div>
+        </div>
+
+        <button onclick="window.tambahSupplierBaru()" 
+                title="Tambah Supplier Baru"
+                class="bg-orange-500 hover:bg-orange-600 text-white h-[38px] px-4 rounded-xl transition-all active:scale-95 shadow-sm flex items-center justify-center">
+            <span class="text-xl font-bold leading-none">+</span>
+        </button>
+    </div>
+</div>
+</div>
+
+        <div id="kulakan-items" class="flex-1 overflow-y-auto p-4 space-y-3">
+        </div>
+
+    <div class="p-4 bg-slate-50 border-t flex justify-between items-center">
+        <span class="text-[9px] font-black text-slate-400 uppercase">Estimasi Total:</span>
+        <span id="total-nominal-kulakan" class="text-lg font-black text-orange-600">Rp 0</span>
+    </div>
+
+    <div class="p-4 bg-white border-t border-slate-200 gap-2 flex flex-col">
+        <button onclick="window.eksekusiKulakan('DRAFT')" class="w-full py-3 bg-slate-100 ...">
+            Simpan Jadi Draft
+        </button>
+        <button onclick="window.eksekusiKulakan('COMPLETED')" class="w-full py-4 bg-orange-600 ...">
+            Selesaikan & Update Stok
+        </button>
+
+    <button onclick="window.toggleKulakanDrawer()" class="md:hidden w-full py-2 text-slate-400 font-bold text-[9px] uppercase tracking-widest">
+        Tutup Daftar
+    </button>
+</div>
+    </aside>
+
+</section>
+
+<div id="floating-kulakan-btn" onclick="window.toggleKulakanDrawer()" 
+    class="md:hidden fixed bottom-[75px] left-4 right-4 z-40 hidden bg-orange-600 text-white h-14 rounded-xl shadow-xl flex items-center justify-between px-4 border border-orange-500">
+    <div class="flex items-center gap-3">
+        <span class="text-xl">🛒</span>
+        <div class="flex flex-col">
+            <span id="mobile-kulakan-count" class="text-[9px] font-black uppercase text-orange-200">0 Items</span>
+            <span class="text-sm font-black">Lihat Daftar Kulakan</span>
+        </div>
+    </div>
+    <span class="text-xs">➜</span>
+</div>
 
         <section id="menu-laporan" class="page-content flex flex-col h-screen overflow-hidden p-0 bg-slate-50">
     <div class="p-3 md:p-4 shrink-0 bg-white border-b border-slate-200 shadow-sm space-y-3 md:space-y-4 z-20 relative">
@@ -916,7 +1015,32 @@
                 </button>
             </div>
         </div>
-    </div> </div> <div id="section-struk"></div>
+    </div> </div>
+    <div id="modal-riwayat-kulakan" class="fixed inset-0 z-[150] flex items-center justify-center hidden bg-slate-900/80 backdrop-blur-sm p-4 no-print">
+    <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh]">
+        <div class="p-4 bg-orange-600 text-white flex justify-between items-center">
+            <h3 class="font-black text-[10px] uppercase tracking-widest">Riwayat Kulakan (Stok Masuk)</h3>
+            <button onclick="document.getElementById('modal-riwayat-kulakan').classList.add('hidden')" class="text-2xl">&times;</button>
+        </div>
+        <div class="overflow-y-auto flex-1 bg-white">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 text-[9px] uppercase font-black text-slate-400 sticky top-0 border-b">
+                    <tr>
+                        <th class="p-3">Tanggal & Nota</th>
+                        <th class="p-3 text-right">Total</th>
+                        <th class="p-3 text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="riwayat-kulakan-body" class="divide-y divide-slate-50 text-[11px]">
+                    </tbody>
+            </table>
+        </div>
+        <div class="p-4 bg-slate-50 border-t">
+            <button onclick="document.getElementById('modal-riwayat-kulakan').classList.add('hidden')" class="w-full py-3 bg-white border rounded-xl font-black text-xs uppercase">Tutup</button>
+        </div>
+    </div>
+</div>
+    <div id="section-struk"></div>
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -954,9 +1078,19 @@
     window.shiftAktifId = null; 
 
     window.cart = [];
+    window.cartKulakan = []; // Wadah untuk daftar barang yang mau dikulak
     
     // --- QUEUE UPDATE UNTUK MENDUKUNG TABEL HUTANG/PELANGGAN DARI ANDROID ---
-    window.offlineQueue = { barang: [], transaksi: [], pelanggan: [], hutang: [], cicilan: [], hapus_barang: [], hapus_transaksi: [], shift: [] };
+    window.offlineQueue = JSON.parse(localStorage.getItem('offlineQueue')) || {
+        barang: [],
+        transaksi: [],
+        transaksi_detail: [],
+        pelanggan: [],
+        supplier: [],        // Penting agar tidak error .length
+        pembelian: [],       // Penting agar tidak error .length
+        pembelian_detail: [], // Penting agar tidak error .length
+        sync_log: []
+    };
     
     window.currentReportFilter = 'hari_ini';
     window.currentCustomDate = '';
@@ -985,6 +1119,411 @@
         if(reason) document.getElementById('upgrade-reason').innerText = reason;
         document.getElementById('modal-upgrade').classList.remove('hidden');
     };
+
+    // --- FUNGSI RENDER (Pastikan ini yang terbaru) ---
+window.renderSelectSupplier = () => {
+    const selectSup = document.getElementById('select-supplier');
+    if (!selectSup) return;
+
+    // Ambil data terbaru dari SQLite lokal
+    const res = window.db.exec("SELECT id, nama FROM supplier ORDER BY nama ASC");
+    
+    let html = '<option value="">-- Pilih Supplier --</option>';
+    
+    if (res.length > 0 && res[0].values) {
+        const rows = res[0].values;
+        rows.forEach(row => {
+            // row[0] = id, row[1] = nama
+            html += `<option value="${row[0]}">${row[1]}</option>`;
+        });
+    }
+    
+    selectSup.innerHTML = html;
+    console.log("🔄 Dropdown Supplier di-refresh dari SQLite");
+};
+
+// --- FUNGSI TAMBAH SUPPLIER ---
+window.tambahSupplierBaru = async () => {
+    const nama = prompt("Masukkan Nama Supplier Baru:");
+    if (!nama || nama.trim() === "") return;
+
+    const sId = "SUP-" + Date.now();
+    const hpInput = prompt("Masukkan No. HP / Kontak (Opsional):") || "-"; 
+    const alamat = prompt("Masukkan Alamat (Opsional):") || "-";
+
+    try {
+        // 1. Simpan ke SQLite Lokal (PENTING: Pakai 'kontak' agar tidak error)
+        window.db.run("INSERT INTO supplier (id, nama, kontak, alamat) VALUES (?, ?, ?, ?)", 
+                     [sId, nama.trim(), hpInput, alamat]);
+
+        // 2. Masukkan ke Antrean Sinkronisasi Cloud
+        if (!window.offlineQueue.supplier) window.offlineQueue.supplier = [];
+        window.offlineQueue.supplier.push({
+            id: sId,
+            nama: nama.trim(),
+            hp: hpInput, // Supabase pakai 'hp'
+            alamat: alamat,
+            user_id: window.currentUid
+        });
+
+        // 3. Simpan state & jalankan sinkronisasi
+        if (typeof window.simpanDB === 'function') window.simpanDB();
+        window.saveQueue();
+        
+        if (navigator.onLine && typeof window.processOfflineQueue === 'function') {
+            setTimeout(() => { window.processOfflineQueue(); }, 500);
+        }
+
+        // 4. REFRESH DROPDOWN
+        window.renderSelectSupplier(); // Panggil fungsi di atas
+            
+        // 5. Otomatis pilih supplier yang baru dibuat
+        setTimeout(() => {
+            const selectSup = document.getElementById('select-supplier');
+            if (selectSup) {
+                selectSup.value = sId;
+                selectSup.dispatchEvent(new Event('change'));
+            }
+        }, 300);
+
+        alert(`✅ Supplier "${nama}" berhasil ditambahkan!`);
+
+    } catch (error) {
+        console.error("Gagal tambah supplier:", error);
+        alert("Waduh, gagal simpan: " + error.message);
+    }
+};
+
+    window.editDraftKulakan = async (pembelianId) => {
+    if (!window.db) return;
+
+    // 1. Ambil detail barang dari draft yang dipilih
+    const res = window.db.exec(`
+        SELECT b.id, b.nama, pd.qty, pd.harga_beli 
+        FROM pembelian_detail pd
+        JOIN barang b ON pd.barang_id = b.id
+        WHERE pd.pembelian_id = ?
+    `, [pembelianId]);
+
+    if (res.length > 0 && res[0].values.length > 0) {
+        if (!confirm("Muat draft ini ke keranjang? Keranjang saat ini akan diganti.")) return;
+
+        // 2. Masukkan data ke window.cartKulakan
+        window.cartKulakan = res[0].values.map(row => ({
+            id: row[0],
+            nama: row[1],
+            qty: row[2],
+            hargaBeli: row[3]
+        }));
+
+        // 3. Hapus draft lama di DB & Antrean Cloud agar tidak double
+        try {
+            // Hapus di SQLite Lokal
+            window.db.run("DELETE FROM pembelian WHERE id = ?", [pembelianId]);
+            window.db.run("DELETE FROM pembelian_detail WHERE id = ?", [pembelianId]);
+
+            // Hapus di Cloud Supabase jika sedang online
+            if (navigator.onLine && window.supabase) {
+                await window.supabase.from('pembelian').delete().eq('id', pembelianId);
+                // Detail otomatis terhapus jika Mas pakai ON DELETE CASCADE di DB, 
+                // jika tidak, hapus manual:
+                await window.supabase.from('pembelian_detail').delete().eq('pembelian_id', pembelianId);
+            }
+
+            // Bersihkan juga dari antrean offline (jika ada) supaya tidak terupload ulang
+            window.offlineQueue.pembelian = window.offlineQueue.pembelian.filter(p => p.id !== pembelianId);
+            window.offlineQueue.pembelian_detail = window.offlineQueue.pembelian_detail.filter(pd => pd.pembelian_id !== pembelianId);
+            
+            window.saveQueue();
+        } catch (err) {
+            console.error("Gagal sinkronisasi hapus draft:", err);
+        }
+
+        // 4. Update tampilan & tutup modal
+        window.renderCartKulakan();
+        
+        const modalRiwayat = document.getElementById('modal-riwayat-kulakan');
+        if (modalRiwayat) modalRiwayat.classList.add('hidden');
+        
+        // Pastikan drawer kulakan terbuka agar user langsung bisa edit
+        const drawer = document.getElementById('kulakan-section');
+        if (drawer && drawer.classList.contains('translate-x-full')) {
+            window.toggleKulakanDrawer();
+        }
+        
+        alert("Draft berhasil dimuat! Silakan sesuaikan data lalu klik 'Selesaikan'.");
+    } else {
+        alert("Data draft tidak ditemukan!");
+    }
+};
+
+    window.bukaRiwayatKulakan = () => {
+    if (!window.db) return;
+    
+    // Ambil data dari tabel pembelian join dengan supplier (jika ada)
+    const res = window.db.exec(`
+        SELECT p.id, p.tanggal, p.total, p.status, p.supplier_id 
+        FROM pembelian p 
+        ORDER BY CAST(p.tanggal AS UNSIGNED) DESC
+    `);
+    
+    const tbody = document.getElementById('riwayat-kulakan-body');
+    document.getElementById('modal-riwayat-kulakan').classList.remove('hidden');
+
+    if (res.length > 0) {
+        tbody.innerHTML = res[0].values.map(row => {
+            const [id, tgl, total, status, sId] = row;
+            const d = new Date(parseInt(tgl));
+            const tglStr = d.toLocaleDateString('id-ID', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+            
+            const badgeColor = status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600';
+
+            const tombolEdit = status === 'DRAFT' 
+    ? `<button onclick="window.editDraftKulakan('${id}')" class="mt-2 px-3 py-1 bg-blue-600 text-white text-[8px] font-black rounded-lg">EDIT DRAFT</button>` 
+    : '';
+
+return `
+    <tr class="hover:bg-slate-50">
+        <td class="p-3">
+            <p class="font-black text-slate-700">#${id.slice(-6)}</p>
+            <p class="text-[9px] text-slate-400">${tglStr}</p>
+            ${tombolEdit} 
+        </td>
+        <td class="p-3 text-right font-bold text-slate-600">Rp ${total.toLocaleString('id-ID')}</td>
+        <td class="p-3 text-center">
+            <span class="px-2 py-0.5 rounded-full text-[8px] font-black ${badgeColor}">${status}</span>
+        </td>
+    </tr>
+`;
+        }).join('');
+    } else {
+        tbody.innerHTML = `<tr><td colspan="3" class="p-10 text-center text-slate-400 italic">Belum ada riwayat kulakan.</td></tr>`;
+    }
+};
+
+    window.eksekusiKulakan = async (statusBaru) => {
+    // --- PROTEKSI ANTI-ERROR: Inisialisasi queue jika belum ada ---
+    if (!window.offlineQueue) window.offlineQueue = {};
+    if (!window.offlineQueue.barang) window.offlineQueue.barang = [];
+    if (!window.offlineQueue.pembelian) window.offlineQueue.pembelian = [];
+    if (!window.offlineQueue.pembelian_detail) window.offlineQueue.pembelian_detail = [];
+
+    const sId = document.getElementById('select-supplier')?.value;
+    
+    // 1. Validasi Supplier & Keranjang
+    if (!sId && window.cartKulakan.length > 0) {
+        alert("Pilih supplier dulu, Mas!");
+        return;
+    }
+
+    if (window.cartKulakan.length === 0) {
+        alert("Daftar kulakan masih kosong!");
+        return;
+    }
+
+    const pId = "PO-" + Date.now();
+    const tglSekarang = new Date().toISOString();
+    let grandTotal = 0;
+
+    try {
+        // 2. Loop items di keranjang kulakan
+        for (const item of window.cartKulakan) {
+            const qty = Number(item.qty) || 0;
+            const hargaBeli = Number(item.hargaBeli) || 0;
+            grandTotal += (qty * hargaBeli);
+
+            // --- LOGIKA UPDATE STOK (Hanya jika COMPLETED) ---
+            if (statusBaru === 'COMPLETED') {
+                // Update SQLite Lokal
+                window.db.run("UPDATE barang SET stok = stok + ?, modal = ? WHERE id = ?", [qty, hargaBeli, item.id]);
+
+                // Ambil data terbaru untuk sinkron ke Cloud
+                const res = window.db.exec("SELECT nama, kategori, stok, harga_jual FROM barang WHERE id = ?", [item.id]);
+                if (res.length > 0) {
+                    const b = res[0].values[0];
+                    window.offlineQueue.barang.push({ 
+                        id: item.id, 
+                        nama: b[0], 
+                        kategori: b[1], 
+                        stok: b[2], 
+                        harga_jual: b[3], 
+                        modal: hargaBeli, 
+                        user_id: window.currentUid 
+                    });
+                }
+            }
+            
+            // 3. Simpan rincian ke SQLite Lokal
+            const detailId = "PD-" + Date.now() + Math.random().toString(36).substr(2, 5);
+            window.db.run("INSERT INTO pembelian_detail (id, pembelian_id, barang_id, qty, harga_beli) VALUES (?,?,?,?,?)",
+                         [detailId, pId, item.id, qty, hargaBeli]);
+
+            // 4. Masukkan detail barang ke queue Cloud
+            window.offlineQueue.pembelian_detail.push({
+                id: detailId,
+                pembelian_id: pId,
+                barang_id: item.id,
+                qty: qty,
+                harga_beli: hargaBeli,
+                user_id: window.currentUid
+            });
+        }
+
+        // 5. Simpan nota induk ke SQLite Lokal
+        window.db.run("INSERT INTO pembelian (id, supplier_id, total, tanggal, status) VALUES (?,?,?,?,?)",
+                     [pId, sId, grandTotal, tglSekarang, statusBaru]);
+
+        // 6. Masukkan induk ke Antrean Sinkronisasi Cloud
+        window.offlineQueue.pembelian.push({
+            id: pId,
+            supplier_id: sId,
+            total: grandTotal,
+            tanggal: tglSekarang,
+            status: statusBaru,
+            user_id: window.currentUid
+        });
+
+        // 7. Simpan State & Jalankan Antrean
+        if (typeof window.simpanDB === 'function') window.simpanDB(); 
+        
+        window.saveQueue(); // Simpan antrean ke localStorage agar tidak hilang saat refresh
+        
+        if (navigator.onLine && typeof window.processOfflineQueue === 'function') {
+            window.processOfflineQueue();
+        }
+
+        // Notifikasi ke User
+        if (statusBaru === 'DRAFT') {
+            alert("✅ Draft Berhasil Disimpan!\nStok barang tidak berubah. Bisa cek di Riwayat.");
+        } else {
+            alert(`🚀 Kulakan Selesai!\nTotal: Rp ${grandTotal.toLocaleString('id-ID')}\nStok sudah bertambah.`);
+        }
+        
+        // 8. Bersihkan UI
+        window.cartKulakan = [];
+        if (typeof window.refreshDataUI === 'function') window.refreshDataUI();
+        if (typeof window.renderCartKulakan === 'function') window.renderCartKulakan();
+        
+        if (window.innerWidth < 768 && typeof window.toggleKulakanDrawer === 'function') {
+            window.toggleKulakanDrawer();
+        }
+
+    } catch (error) {
+        console.error("Gagal eksekusi kulakan:", error);
+        alert("Waduh, ada masalah pas simpan data: " + error.message);
+    }
+};
+
+// Fungsi untuk pindah ke mode kulakan
+window.bukaHalamanKulakan = () => {
+    // Sembunyikan tabel stok biasa, tampilkan area kulakan
+    document.getElementById('tabel-stok-utama').classList.add('hidden');
+    document.getElementById('area-kulakan').classList.remove('hidden');
+};
+
+// Fungsi untuk kembali ke tabel stok
+window.tutupKulakan = () => {
+    document.getElementById('area-kulakan').classList.add('hidden');
+    document.getElementById('tabel-stok-utama').classList.remove('hidden');
+    window.cartKulakan = []; // Reset keranjang pas keluar
+};
+
+// Fungsi masukkan barang ke keranjang kulakan
+window.tambahKeKulakan = (id) => {
+    const barang = window.masterData.find(x => x[4] === id);
+    if (!barang) return;
+
+    const existing = window.cartKulakan.find(item => item.id === id);
+    if (existing) {
+        existing.qty++;
+    } else {
+        window.cartKulakan.push({ id, nama: barang[0], qty: 1, hargaBeli: barang[3] || 0 });
+    }
+    
+    window.renderCartKulakan();
+    
+    // Getar dikit pas nambah (Opsional)
+    if(navigator.vibrate) navigator.vibrate(50);
+};
+
+// Fungsi untuk menampilkan daftar barang yang bisa dipilih pas mau kulakan
+window.renderListPilihKulakan = (keyword = "") => {
+    const container = document.getElementById('list-pilih-barang-kulakan');
+    if (!container) return;
+
+    const filterData = window.masterData.filter(item => 
+        item[0].toLowerCase().includes(keyword.toLowerCase())
+    );
+
+    container.innerHTML = filterData.map(item => `
+        <div onclick="window.tambahKeKulakan('${item[4]}')" class="p-3 flex justify-between items-center hover:bg-orange-50 active:bg-orange-100 cursor-pointer transition-colors">
+            <div class="flex flex-col">
+                <span class="text-xs font-bold text-slate-700 uppercase">${item[0]}</span>
+                <span class="text-[10px] text-slate-400 font-medium">Stok saat ini: ${item[1]}</span>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] font-black text-orange-600">+ TAMBAH</span>
+            </div>
+        </div>
+    `).join('');
+};
+
+// Modifikasi fungsi buka halaman kulakan Mas biar daftar barangnya langsung muncul
+window.bukaHalamanKulakan = () => {
+    document.getElementById('tabel-stok-utama').classList.add('hidden');
+    document.getElementById('area-kulakan').classList.remove('hidden');
+    window.renderListPilihKulakan(); // <--- Panggil ini biar list muncul
+};
+
+window.renderCartKulakan = () => {
+    const container = document.getElementById('kulakan-items');
+    const floatBtn = document.getElementById('floating-kulakan-btn');
+    const mobCount = document.getElementById('mobile-kulakan-count');
+
+    if (window.cartKulakan.length === 0) {
+        container.innerHTML = `<div class="py-20 text-center opacity-20 text-[10px] font-black uppercase">Belum ada barang dipilih</div>`;
+        floatBtn?.classList.add('hidden');
+        if (document.getElementById('total-nominal-kulakan')) {
+            document.getElementById('total-nominal-kulakan').innerText = "Rp 0";
+        }
+    } else {
+        floatBtn?.classList.remove('hidden');
+        if(mobCount) mobCount.innerText = `${window.cartKulakan.length} Items`;
+        
+        container.innerHTML = window.cartKulakan.map((item, index) => `
+            <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col gap-2">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-black text-slate-700 uppercase leading-tight">${item.nama}</span>
+                    <button onclick="window.cartKulakan.splice(${index}, 1); window.renderCartKulakan();" class="text-rose-500 text-xs">✕</button>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[8px] font-black text-slate-400 uppercase">Qty Baru</label>
+                        <input type="number" value="${item.qty}" 
+                            onchange="window.cartKulakan[${index}].qty = parseInt(this.value)||1; window.hitungTotalKulakan();"
+                            class="w-full bg-slate-50 border-none rounded-lg p-2 text-[11px] font-black outline-none focus:ring-1 focus:ring-orange-500">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[8px] font-black text-slate-400 uppercase">Harga Modal (Rp)</label>
+                        <input type="text" value="${window.formatAngka(item.hargaBeli)}" 
+                            oninput="this.value=window.formatAngka(this.value); window.cartKulakan[${index}].hargaBeli=parseInt(this.value.replace(/\\./g,''))||0; window.hitungTotalKulakan();"
+                            class="w-full bg-slate-50 border-none rounded-lg p-2 text-[11px] font-black text-right outline-none focus:ring-1 focus:ring-orange-500">
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        // Langsung hitung total setiap kali render
+        window.hitungTotalKulakan();
+    }
+};
+
+// Fungsi pembantu biar rapi
+window.hitungTotalKulakan = () => {
+    const total = window.cartKulakan.reduce((sum, item) => sum + (item.qty * item.hargaBeli), 0);
+    const el = document.getElementById('total-nominal-kulakan');
+    if (el) el.innerText = "Rp " + window.formatAngka(total.toString());
+};
 
     window.simpanPelangganBaru = async () => {
     // 1. CEK APAKAH DATABASE SIAP
@@ -1502,65 +2041,51 @@ const qCicil = `
     };
 
     window.switchPage = (pageId, btn) => {
-        // 1. Cek status kasir
-        if (pageId === 'kasir' && !window.kasirAktif) {
-            document.getElementById('input-modal-kasir').value = "10.000"; 
-            document.getElementById('modal-buka-kasir').classList.remove('hidden');
-            return; 
-        }
+    // 1. Cek status kasir
+    if (pageId === 'kasir' && !window.kasirAktif) {
+        document.getElementById('modal-buka-kasir').classList.remove('hidden');
+        return; 
+    }
 
-        // 2. Sembunyikan semua halaman, tampilkan yang dipilih
-        document.querySelectorAll('.page-content').forEach(p => p.classList.remove('page-active'));
-        document.getElementById('menu-' + pageId).classList.add('page-active');
-        
-        // 3. Reset warna semua tombol navigasi
-        document.querySelectorAll('.nav-btn').forEach(b => {
-            b.classList.remove('nav-active', 'text-white', 'border-white');
-            b.classList.add('text-blue-300', 'border-transparent');
-        });
-        
-        // 4. Aktifkan warna tombol navigasi yang diklik
-        if(!btn) btn = document.getElementById('nav-' + pageId);
-        if(btn) {
-            btn.classList.remove('text-blue-300', 'border-transparent');
-            btn.classList.add('nav-active', 'text-white', 'border-white');
-        }
-        
-        // 5. LOGIKA SMART FOCUS (Mencegah keyboard HP muncul otomatis)
-        const isMobile = window.innerWidth < 768;
+    // 2. BERSIHKAN SEMUA HALAMAN (Paling Penting)
+    // 2. Paksa manipulasi style inline (Jalan pintas paling ampuh)
+document.querySelectorAll('.page-content').forEach(p => {
+    p.style.setProperty('display', 'none', 'important');
+    p.classList.remove('page-active');
+});
 
-        if (!isMobile) { 
-            if (pageId === 'kasir') {
-                setTimeout(() => {
-                    const searchBarang = document.getElementById('search-barang');
-                    if(searchBarang) searchBarang.focus();
-                }, 300);
-            } else if (pageId === 'stok') {
-                setTimeout(() => {
-                    const searchStok = document.getElementById('search-stok');
-                    if(searchStok) searchStok.focus();
-                }, 300);
-            }
-        }
-        
-        // 6. LOGIKA FLOATING BAR KERANJANG
-        const floatBtn = document.getElementById('floating-cart-btn');
-        if (floatBtn) {
-            // Hanya tampilkan di menu kasir DAN jika ada isi keranjang
-            if (pageId === 'kasir' && window.cart && window.cart.length > 0) {
-                floatBtn.classList.remove('hidden');
-            } else {
-                floatBtn.classList.add('hidden');
-            }
-        }
+// 3. Tampilkan yang dipilih
+const target = document.getElementById('menu-' + pageId);
+if (target) {
+    target.style.setProperty('display', 'flex', 'important');
+    target.classList.add('page-active');
+}
+    
+    // 4. Update warna tombol navigasi
+    document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.remove('nav-active', 'text-white', 'border-white');
+        b.classList.add('text-blue-300', 'border-transparent');
+    });
+    
+    if(!btn) btn = document.getElementById('nav-' + pageId);
+    if(btn) {
+        btn.classList.add('nav-active', 'text-white', 'border-white');
+    }
 
-        // 7. RENDER DATA SESUAI MENU YANG DIBUKA
-        if(pageId === 'stok') window.renderStokTable(window.masterData);
-        if(pageId === 'laporan') {
-            window.setReportFilter(window.currentReportFilter);
-        }
-        if(pageId === 'pelanggan') window.renderHutang();
-    };
+    // 5. TUTUP DRAWER STOK (Khusus PC agar tidak menutupi laporan)
+    if (pageId !== 'stok') {
+        const kulakan = document.getElementById('kulakan-section');
+        if(kulakan) kulakan.classList.remove('active');
+    }
+
+    // 6. TRIGER DATA
+    if(pageId === 'stok') window.renderStokTable(window.masterData);
+    if(pageId === 'laporan') {
+        window.updateReports(); 
+        window.setReportFilter(window.currentReportFilter);
+    }
+    if(pageId === 'pelanggan') window.renderHutang();
+};
 
     window.bukaRiwayatShift = () => {
         if(!window.db) return;
@@ -1865,86 +2390,138 @@ const qCicil = `
     });
 
     window.processOfflineQueue = async () => {
-        if (!navigator.onLine) return;
-        const btn = document.getElementById('btn-download');
-        btn.innerText = "UPLOADING...";
+    if (!navigator.onLine) return;
+    
+    const btn = document.getElementById('btn-download');
+    if (btn) btn.innerText = "UPLOADING...";
 
-        try {
-            if (window.offlineQueue.hapus_barang.length > 0) {
-                for (let id of [...window.offlineQueue.hapus_barang]) {
-                    try {
-                        await supabase.from('barang').delete().eq('id', id).eq('user_id', window.currentUid);
-                        window.offlineQueue.hapus_barang = window.offlineQueue.hapus_barang.filter(i => i !== id);
-                    } catch(e) {}
-                }
-            }
+    // Pastikan objek offlineQueue ada agar tidak error .length
+    if (!window.offlineQueue) return;
 
-            if (window.offlineQueue.hapus_transaksi.length > 0) {
-                for (let id of [...window.offlineQueue.hapus_transaksi]) {
-                    try {
-                        await supabase.from('transaksi_detail').delete().eq('transaksi_id', id).eq('user_id', window.currentUid);
-                        await supabase.from('transaksi').delete().eq('id', id).eq('user_id', window.currentUid);
-                        window.offlineQueue.hapus_transaksi = window.offlineQueue.hapus_transaksi.filter(i => i !== id);
-                    } catch(e) {}
-                }
+    try {
+        // --- 1. PROSES PENGHAPUSAN (DELETE) ---
+        if (window.offlineQueue.hapus_barang?.length > 0) {
+            for (let id of [...window.offlineQueue.hapus_barang]) {
+                try {
+                    const { error } = await supabase.from('barang').delete().eq('id', id).eq('user_id', window.currentUid);
+                    if (!error) window.offlineQueue.hapus_barang = window.offlineQueue.hapus_barang.filter(i => i !== id);
+                } catch(e) { console.error("Gagal hapus barang cloud:", e); }
             }
+        }
 
-            if (window.offlineQueue.barang.length > 0) {
-                const { error } = await supabase.from('barang').upsert(window.offlineQueue.barang);
-                if (!error) window.offlineQueue.barang = []; 
+        if (window.offlineQueue.hapus_transaksi?.length > 0) {
+            for (let id of [...window.offlineQueue.hapus_transaksi]) {
+                try {
+                    await supabase.from('transaksi_detail').delete().eq('transaksi_id', id).eq('user_id', window.currentUid);
+                    const { error } = await supabase.from('transaksi').delete().eq('id', id).eq('user_id', window.currentUid);
+                    if (!error) window.offlineQueue.hapus_transaksi = window.offlineQueue.hapus_transaksi.filter(i => i !== id);
+                } catch(e) { console.error("Gagal hapus transaksi cloud:", e); }
             }
+        }
 
-            if (window.offlineQueue.pelanggan && window.offlineQueue.pelanggan.length > 0) {
-                const { error } = await supabase.from('pelanggan').upsert(window.offlineQueue.pelanggan);
-                if (!error) {
-                    window.offlineQueue.pelanggan = []; 
-                } else {
-                    console.error("Supabase Error (Tabel Pelanggan):", error); 
-                }
-            }
-            if (window.offlineQueue.hutang && window.offlineQueue.hutang.length > 0) {
-                const { error } = await supabase.from('hutang').upsert(window.offlineQueue.hutang);
-                if (!error) window.offlineQueue.hutang = []; 
-            }
-            if (window.offlineQueue.cicilan && window.offlineQueue.cicilan.length > 0) {
-    // Kita pastikan semua kolom terkirim, termasuk user_id
-    const dataToPush = window.offlineQueue.cicilan.map(item => ({
-        id: item.id,
-        hutang_id: item.hutang_id,
-        jumlah: item.jumlah,
-        tanggal: item.tanggal,
-        user_id: window.currentUid // Tambahkan ini agar tidak ditolak kebijakan Supabase (RLS)
+        // --- 2. PROSES UPDATE/INSERT (UPSERT) ---
+
+       // Supplier (SINKRONISASI LEBIH AMAN)
+if (window.offlineQueue.supplier?.length > 0) {
+    // Mapping data untuk memastikan tidak ada field yang rusak/kosong
+    const finalData = window.offlineQueue.supplier.map(s => ({
+        id: String(s.id), 
+        nama: s.nama || '',
+        hp: s.hp || '',
+        alamat: s.alamat || '',
+        user_id: "51yX4BW2PKWA8cc1kujAr4Dm2bo1" // Pastikan ID ini string
     }));
 
-    const { error } = await supabase.from('cicilan').upsert(dataToPush);
+    const { error } = await supabase
+        .from('supplier')
+        .upsert(finalData, { onConflict: 'id' });
+
     if (!error) {
-        console.log("✅ Cicilan DP/Cicil sinkron ke Cloud");
-        window.offlineQueue.cicilan = []; 
+        console.log("✅ Supplier berhasil disinkronkan ke Cloud");
+        window.offlineQueue.supplier = [];
+        // Jangan lupa simpan perubahan queue ke storage
+        localStorage.setItem('offlineQueue', JSON.stringify(window.offlineQueue));
     } else {
-        console.error("❌ Gagal sinkron cicilan:", error.message);
+        console.error("❌ Masih Error:", error.message);
     }
 }
 
-            if (window.offlineQueue.shift && window.offlineQueue.shift.length > 0) {
-                const { error } = await supabase.from('shift_kasir').upsert(window.offlineQueue.shift);
-                if (!error) window.offlineQueue.shift = [];
-            }
+        // Barang
+        if (window.offlineQueue.barang?.length > 0) {
+            const { error } = await supabase.from('barang').upsert(window.offlineQueue.barang);
+            if (!error) window.offlineQueue.barang = []; 
+        }
 
+        // Pembelian (Induk)
+        if (window.offlineQueue.pembelian?.length > 0) {
+            const { error } = await supabase.from('pembelian').upsert(window.offlineQueue.pembelian);
+            if (!error) window.offlineQueue.pembelian = [];
+        }
+
+        // Pembelian Detail
+        if (window.offlineQueue.pembelian_detail?.length > 0) {
+            const { error } = await supabase.from('pembelian_detail').upsert(window.offlineQueue.pembelian_detail);
+            if (!error) window.offlineQueue.pembelian_detail = [];
+        }
+
+        // Pelanggan
+        if (window.offlineQueue.pelanggan?.length > 0) {
+            const { error } = await supabase.from('pelanggan').upsert(window.offlineQueue.pelanggan);
+            if (!error) window.offlineQueue.pelanggan = []; 
+        }
+
+        // Hutang
+        if (window.offlineQueue.hutang?.length > 0) {
+            const { error } = await supabase.from('hutang').upsert(window.offlineQueue.hutang);
+            if (!error) window.offlineQueue.hutang = []; 
+        }
+
+        // Cicilan
+        if (window.offlineQueue.cicilan?.length > 0) {
+            const dataToPush = window.offlineQueue.cicilan.map(item => ({
+                id: item.id,
+                hutang_id: item.hutang_id,
+                jumlah: item.jumlah,
+                tanggal: item.tanggal,
+                user_id: window.currentUid 
+            }));
+            const { error } = await supabase.from('cicilan').upsert(dataToPush);
+            if (!error) window.offlineQueue.cicilan = []; 
+        }
+
+        // Shift Kasir
+        if (window.offlineQueue.shift?.length > 0) {
+            const { error } = await supabase.from('shift_kasir').upsert(window.offlineQueue.shift);
+            if (!error) window.offlineQueue.shift = [];
+        }
+
+        // Transaksi Penjualan (Iterasi Satu per Satu via pushTransaksiToCloud)
+        if (window.offlineQueue.transaksi?.length > 0) {
             let pendingTrx = [];
             for (let payload of window.offlineQueue.transaksi) {
                 try {
                     await window.pushTransaksiToCloud(payload);
-                } catch(e) { pendingTrx.push(payload); }
+                } catch(e) { 
+                    pendingTrx.push(payload); 
+                }
             }
             window.offlineQueue.transaksi = pendingTrx;
-
-            window.saveQueue();
-        } catch(e) {
-            console.error("Gagal sinkronisasi background", e);
-        } finally {
-            window.updateSyncUI();
         }
-    };
+
+        // --- 3. FINISH ---
+        window.saveQueue(); // Simpan sisa antrean (jika ada yang gagal) ke LocalStorage
+        console.log("🚀 Background Sync Selesai");
+
+    } catch(e) {
+        console.error("Gagal sinkronisasi background:", e);
+    } finally {
+        if (typeof window.updateSyncUI === 'function') {
+            window.updateSyncUI();
+        } else if (btn) {
+            btn.innerText = "ONLINE"; // Fallback jika fungsi UI tidak ada
+        }
+    }
+};
 
     window.startAutoSync = async () => {
     const btn = document.getElementById('btn-download');
@@ -1967,7 +2544,23 @@ const qCicil = `
                 CREATE TABLE IF NOT EXISTS hutang (id TEXT PRIMARY KEY, pelanggan_id TEXT, transaksi_id BIGINT, total NUMERIC, sisa NUMERIC, tanggal TEXT);
                 CREATE TABLE IF NOT EXISTS cicilan (id TEXT PRIMARY KEY, hutang_id TEXT, jumlah NUMERIC, tanggal TEXT);
                 CREATE TABLE IF NOT EXISTS kategori (id TEXT PRIMARY KEY, nama TEXT);
+                
+                -- Tabel Supplier & Pembelian --
+                CREATE TABLE IF NOT EXISTS supplier (id TEXT PRIMARY KEY, nama TEXT, kontak TEXT); 
+                CREATE TABLE IF NOT EXISTS pembelian (id TEXT PRIMARY KEY, supplier_id TEXT, total NUMERIC, tanggal TEXT, status TEXT);
+                CREATE TABLE IF NOT EXISTS pembelian_detail (id TEXT PRIMARY KEY, pembelian_id TEXT, barang_id TEXT, qty INTEGER, harga_beli NUMERIC);
             `);
+
+            // --- 2. PATCH KOLOM (Untuk user lama yang tabelnya sudah terlanjur ada) ---
+            
+            // Cek apakah kolom 'kontak' ada, kalau nggak ada (masih pakai kolom 'hp'), kita tambahkan
+            try {
+                window.db.run("ALTER TABLE supplier ADD COLUMN kontak TEXT DEFAULT '-'");
+            } catch (e) { /* sudah ada */ }
+
+            try {
+                window.db.run("ALTER TABLE supplier ADD COLUMN alamat TEXT DEFAULT '-'");
+            } catch (e) { /* sudah ada */ }
         }
 
         // --- 2. LOGIKA FETCH PENGATURAN ---
@@ -2052,6 +2645,24 @@ const qCicil = `
                     [s.id, s.waktu_buka, s.waktu_tutup, s.modal_awal, s.omzet, s.laba]);
                 });
             }
+
+            // Pull Supplier (Jembatan antara 'hp' di Cloud dan 'kontak' di Lokal)
+const { data: supplierData } = await supabase.from('supplier').select('*').eq('user_id', window.currentUid);
+if (supplierData) {
+    supplierData.forEach(sup => {
+        // Ambil 'sup.hp' dari Supabase, masukkan ke kolom 'kontak' di SQLite
+        window.db.run("INSERT OR REPLACE INTO supplier (id, nama, kontak, alamat) VALUES (?,?,?,?)", 
+        [sup.id, sup.nama, sup.hp, sup.alamat]);
+    });
+    
+    // Simpan perubahan ke database lokal
+    if (typeof window.simpanDB === 'function') window.simpanDB();
+    
+    // Update tampilan dropdown supplier
+    if (typeof window.renderSelectSupplier === 'function') {
+        window.renderSelectSupplier();
+    }
+}
         }
 
         window.refreshDataUI();
@@ -2368,47 +2979,38 @@ document.getElementById('barang-kategori').onchange = async (e) => {
             </tr>`).join('');
     };
 
-    window.renderStokTable = (dataArray) => {
-    const counterEl = document.getElementById('stok-counter');
-    if (counterEl) {
-        const totalItem = dataArray.length;
-        if (window.isPro) {
-            counterEl.innerHTML = `<span class="text-blue-600 font-black">🏆 ${totalItem} Item (Unlimited Pro)</span>`;
-        } else {
-            counterEl.innerHTML = `<span class="text-slate-500 font-black">📦 ${totalItem}/${FREE_ITEM_LIMIT} Item (Free)</span>`;
-        }
-    }
+    window.toggleKulakanDrawer = () => {
+    const el = document.getElementById('kulakan-section');
+    const isActive = el.classList.toggle('active');
+    if (isActive) history.pushState({ kulakanOpen: true }, "");
+};
 
+// Handle tombol Back HP
+window.addEventListener('popstate', (e) => {
+    document.getElementById('kulakan-section')?.classList.remove('active');
+});
+
+   window.renderStokTable = (dataArray) => {
     const tbody = document.getElementById('stok-table-body');
-    tbody.innerHTML = dataArray.map(row => {
-        const nama = row[0];
-        const stok = row[1];
-        const harga = row[2];
-        const modal = row[3];
-        const id = row[4];
-        const kat = row[5] || 'Umum'; // Ambil kolom kategori
-
-        return `
-            <tr class="tr-item border-b border-slate-50">
-                <td class="p-3 md:p-4 pl-4 md:pl-5">
-                    <div class="flex flex-col text-left">
-                        <span class="text-[7px] font-black text-blue-500 uppercase tracking-[0.2em] mb-0.5">${kat}</span>
-                        <p class="font-bold text-slate-800 text-xs md:text-sm capitalize">${nama}</p>
-                        <p class="text-[9px] md:text-[10px] text-slate-400 font-bold mt-0.5">Jual: Rp ${harga.toLocaleString('id-ID')}</p>
-                    </div>
-                </td>
-                <td class="p-3 md:p-4 text-center font-black text-slate-600">${stok}</td>
-                <td class="p-3 md:p-4 text-right hidden sm:table-cell">Rp ${modal.toLocaleString('id-ID')}</td>
-                <td class="p-3 md:p-4 text-center">
-                    <div class="flex justify-end gap-2">
-                        <button onclick="window.openEditModal('${id}', '${nama.replace(/'/g, "\\'")}', ${stok}, ${harga}, ${modal}, '${kat.replace(/'/g, "\\'")}')" 
-                            class="p-2 bg-blue-50 text-blue-600 rounded-lg active:scale-90 transition-all">✏️</button>
-                        <button onclick="window.hapusBarang('${id}', '${nama.replace(/'/g, "\\'")}')" 
-                            class="p-2 bg-rose-50 text-rose-600 rounded-lg active:scale-90 transition-all">🗑️</button>
-                    </div>
-                </td>
-            </tr>`;
-    }).join('');
+    tbody.innerHTML = dataArray.map(row => `
+        <tr class="tr-item border-b border-slate-50 hover:bg-slate-50">
+            <td class="p-3 pl-4">
+                <div class="flex flex-col">
+                    <span class="text-[7px] font-black text-blue-500 uppercase tracking-widest">${row[5] || 'Umum'}</span>
+                    <p class="font-bold text-slate-800 text-xs md:text-sm capitalize">${row[0]}</p>
+                    <p class="text-[10px] text-slate-400 font-bold">Harga: Rp ${row[2].toLocaleString('id-ID')}</p>
+                </div>
+            </td>
+            <td class="p-3 text-center font-black text-slate-600 text-xs">${row[1]}</td>
+            <td class="p-3 pr-4 text-right">
+                <div class="flex justify-end gap-2">
+                    <button onclick="window.tambahKeKulakan('${row[4]}')" class="bg-orange-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase shadow-sm active:scale-90 transition-all">
+                        + KULAK
+                    </button>
+                    <button onclick="window.openEditModal('${row[4]}','${row[0]}',${row[1]},${row[2]},${row[3]},'${row[5]}')" class="p-1.5 bg-slate-100 text-slate-500 rounded-lg">✏️</button>
+                </div>
+            </td>
+        </tr>`).join('');
 };
 
     window.hapusBarang = async (id, nama) => {
@@ -3719,6 +4321,43 @@ return `
             }
         }
     };
+
+    window.sinkronSupplierDariCloud = async () => {
+    console.log("🔄 Memulai sinkronisasi supplier dari Supabase...");
+    
+    try {
+        // 1. Ambil data dari tabel 'supplier' di Supabase
+        const { data, error } = await supabase
+            .from('supplier')
+            .select('*')
+            .eq('user_id', window.currentUid); // Filter berdasarkan user yang login
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+            // 2. Masukkan ke SQLite lokal
+            data.forEach(s => {
+                // Gunakan INSERT OR REPLACE agar tidak dobel jika ID sudah ada
+                window.db.run(
+                    "INSERT OR REPLACE INTO supplier (id, nama, kontak, alamat) VALUES (?, ?, ?, ?)", 
+                    [s.id, s.nama, s.hp || s.kontak, s.alamat]
+                );
+            });
+
+            // 3. Simpan state DB agar permanen di memori HP
+            if (typeof window.simpanDB === 'function') window.simpanDB();
+
+            // 4. Refresh tampilan dropdown supplier
+            if (typeof window.renderSelectSupplier === 'function') {
+                window.renderSelectSupplier();
+            }
+            
+            console.log(`✅ ${data.length} Supplier berhasil disinkronkan ke HP.`);
+        }
+    } catch (err) {
+        console.error("❌ Gagal sinkron supplier:", err.message);
+    }
+};
 
     // Letakkan di mana saja di dalam script module
 // Letakkan di bagian bawah script, pastikan tidak ada duplikat nama fungsi ini lagi
