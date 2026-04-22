@@ -159,8 +159,8 @@
 </section>
 
         <section id="menu-kasir" class="page-content flex-col md:flex-row p-2 md:p-4 gap-3 md:gap-4">
-    <div class="w-full md:w-2/3 flex-1 flex flex-col gap-3 overflow-hidden">
-        <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 flex flex-col flex-1 overflow-hidden">
+    <div class="w-full md:w-2/3 flex-1 flex flex-col gap-3">
+        <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 flex flex-col flex-1">
             
             <div class="bg-emerald-50 border-b border-emerald-100 px-3 py-2 flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-2">
@@ -187,7 +187,7 @@
                     </div>
             </div>
 
-            <div class="overflow-y-auto overflow-x-auto flex-1 bg-white relative pb-24 md:pb-0">
+            <div class="overflow-x-auto" bg-white relative pb-24 md:pb-0">
                 <table class="w-full text-left min-w-full">
                     <thead class="sticky top-0 bg-blue-50/95 backdrop-blur-md border-b border-blue-100 text-blue-800 text-[10px] uppercase font-black tracking-widest z-10">
                         <tr>
@@ -260,11 +260,13 @@
 </aside>
 </section>
 
-        <section id="menu-stok" class="page-content flex flex-col md:flex-row p-2.5 md:p-4 gap-4 h-full overflow-hidden">
+        <section id="menu-stok" class="page-content flex flex-col md:flex-row p-2.5 md:p-4 gap-4 h-full">
     
-    <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/70 flex-1 flex flex-col overflow-hidden">
+    <!-- KIRI -->
+    <div class="flex-1 flex flex-col min-w-0 h-full">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/70 flex-1 flex flex-col">
             
+            <!-- HEADER -->
             <div class="p-4 md:p-5 border-b border-slate-100 bg-slate-50/50">
                 <div class="flex justify-between items-center mb-4">
                     <div class="flex flex-col">
@@ -281,69 +283,78 @@
                 </div>
             </div>
 
-            <div class="flex-1 overflow-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="sticky top-0 bg-blue-50 text-[10px] font-black text-blue-800 uppercase border-b border-blue-100 z-10">
-                        <tr>
-                            <th class="p-4">Produk</th>
-                            <th class="p-4 text-center">Stok</th>
-                            <th class="p-4 text-right">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="stok-table-body" class="divide-y divide-slate-100"></tbody>
-                </table>
+            <!-- TABLE -->
+            <div class="flex-1">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="sticky top-0 bg-blue-50 text-[10px] font-black text-blue-800 uppercase border-b border-blue-100 z-10">
+                            <tr>
+                                <th class="p-4">Produk</th>
+                                <th class="p-4 text-center">Stok</th>
+                                <th class="p-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stok-table-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
             </div>
+
         </div>
     </div>
 
-    <aside id="kulakan-section" class="w-full md:w-[350px] bg-white rounded-2xl md:shadow-sm flex flex-col overflow-hidden border border-slate-200/70 shrink-0">
+    <!-- KANAN (KULAKAN) -->
+    <aside id="kulakan-section" class="w-full md:w-[350px] bg-white rounded-2xl md:shadow-sm flex flex-col border border-slate-200/70 shrink-0">
+        
         <div class="p-4 bg-orange-50 border-b border-orange-100 flex justify-between items-center">
             <h2 class="font-black text-orange-800 flex items-center gap-2 text-[10px] uppercase tracking-widest">🛒 Daftar Kulakan</h2>
             <button onclick="window.bukaRiwayatKulakan()" class="text-[9px] text-blue-600 font-black hover:bg-blue-100 px-2 py-1 rounded">RIWAYAT</button>
             <button onclick="window.cartKulakan = []; window.renderCartKulakan();" class="text-[9px] text-orange-600 font-black hover:bg-orange-100 px-2 py-1 rounded">RESET</button>
         </div>
 
-    <div class="p-3 bg-white border-b border-slate-100">
-    <div class="flex items-center gap-2">
-        <div class="relative flex-grow">
-            <select id="select-supplier" class="w-full p-2.5 pr-8 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-orange-500 appearance-none">
-                <option value="">-- Pilih Supplier --</option>
-                <option value="S-UMUM">Supplier Umum</option>
-            </select>
-            <div class="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-slate-400 text-[9px]">
-                ▼
+        <div class="p-3 bg-white border-b border-slate-100">
+            <div class="flex items-center gap-2">
+                <div class="relative flex-grow">
+                    <select id="select-supplier" class="w-full p-2.5 pr-8 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-orange-500 appearance-none">
+                        <option value="">-- Pilih Supplier --</option>
+                        <option value="S-UMUM">Supplier Umum</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-slate-400 text-[9px]">
+                        ▼
+                    </div>
+                </div>
+
+                <button onclick="window.tambahSupplierBaru()" 
+                        title="Tambah Supplier Baru"
+                        class="bg-orange-500 hover:bg-orange-600 text-white h-[38px] px-4 rounded-xl transition-all active:scale-95 shadow-sm flex items-center justify-center">
+                    <span class="text-xl font-bold leading-none">+</span>
+                </button>
             </div>
         </div>
 
-        <button onclick="window.tambahSupplierBaru()" 
-                title="Tambah Supplier Baru"
-                class="bg-orange-500 hover:bg-orange-600 text-white h-[38px] px-4 rounded-xl transition-all active:scale-95 shadow-sm flex items-center justify-center">
-            <span class="text-xl font-bold leading-none">+</span>
-        </button>
-    </div>
-</div>
-</div>
-
-        <div id="kulakan-items" class="flex-1 overflow-y-auto p-4 space-y-3">
+        <!-- LIST KULAKAN -->
+        <div id="kulakan-items" class="flex-1 p-4 space-y-3">
         </div>
 
-    <div class="p-4 bg-slate-50 border-t flex justify-between items-center">
-        <span class="text-[9px] font-black text-slate-400 uppercase">Estimasi Total:</span>
-        <span id="total-nominal-kulakan" class="text-lg font-black text-orange-600">Rp 0</span>
-    </div>
+        <!-- TOTAL -->
+        <div class="p-4 bg-slate-50 border-t flex justify-between items-center">
+            <span class="text-[9px] font-black text-slate-400 uppercase">Estimasi Total:</span>
+            <span id="total-nominal-kulakan" class="text-lg font-black text-orange-600">Rp 0</span>
+        </div>
 
-    <div class="p-4 bg-white border-t border-slate-200 gap-2 flex flex-col">
-        <button onclick="window.eksekusiKulakan('DRAFT')" class="w-full py-3 bg-slate-100 ...">
-            Simpan Jadi Draft
-        </button>
-        <button onclick="window.eksekusiKulakan('COMPLETED')" class="w-full py-4 bg-orange-600 ...">
-            Selesaikan & Update Stok
-        </button>
+        <!-- ACTION -->
+        <div class="p-4 bg-white border-t border-slate-200 gap-2 flex flex-col">
+            <button onclick="window.eksekusiKulakan('DRAFT')" class="w-full py-3 bg-slate-100">
+                Simpan Jadi Draft
+            </button>
+            <button onclick="window.eksekusiKulakan('COMPLETED')" class="w-full py-4 bg-orange-600">
+                Selesaikan & Update Stok
+            </button>
 
-    <button onclick="window.toggleKulakanDrawer()" class="md:hidden w-full py-2 text-slate-400 font-bold text-[9px] uppercase tracking-widest">
-        Tutup Daftar
-    </button>
-</div>
+            <button onclick="window.toggleKulakanDrawer()" class="md:hidden w-full py-2 text-slate-400 font-bold text-[9px] uppercase tracking-widest">
+                Tutup Daftar
+            </button>
+        </div>
+
     </aside>
 
 </section>
@@ -360,7 +371,7 @@
     <span class="text-xs">➜</span>
 </div>
 
-        <section id="menu-laporan" class="page-content flex flex-col h-screen overflow-hidden p-0 bg-slate-50">
+        <section id="menu-laporan" class="page-content flex flex-col h-full p-0 bg-slate-50">
     <div class="p-3 md:p-4 shrink-0 bg-white border-b border-slate-200 shadow-sm space-y-3 md:space-y-4 z-20 relative">
         
         <div class="flex items-center justify-between">
@@ -433,8 +444,8 @@
         </div>
     </div>
 
-    <div class="flex-1 overflow-hidden flex flex-col p-2 md:p-4 md:pt-2">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
+    <div class="flex-1 flex flex-col p-2 md:p-4 md:pt-2">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full">
             <div class="p-3 bg-slate-800 text-white flex justify-between items-center shrink-0">
                 <span id="tabel-judul-rekap" class="text-[9px] font-black uppercase tracking-widest text-slate-300">History Transaksi</span>
                 <span id="tabel-count-rekap" class="text-[9px] font-bold text-blue-300 bg-white/10 px-2 py-0.5 rounded">0 Trx</span>
