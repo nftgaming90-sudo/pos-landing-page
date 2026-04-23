@@ -173,6 +173,13 @@ window.refreshDataUI = () => {
         window.renderPelangganSelect();
         window.renderCategoryTabs();
         window.renderKategoriSelect(); // Pastikan ini dipanggil agar dropdown kategori terisi
+
+        // 🔥 UPDATE COUNTER STOK
+const stokCounter = document.getElementById('stok-counter');
+if (stokCounter) {
+    const totalItem = window.masterData.length;
+    stokCounter.innerText = `${totalItem} Item Barang`;
+}
     } catch (e) {
         console.error("Gagal refresh UI:", e);
     }

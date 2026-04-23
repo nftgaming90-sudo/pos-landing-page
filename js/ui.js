@@ -25,10 +25,15 @@ const updateTime = () => {
 
  window.switchPage = (pageId, btn) => {
     // 1. Cek status kasir
-    if (pageId === 'kasir' && !window.kasirAktif) {
-        document.getElementById('modal-buka-kasir').classList.remove('hidden');
-        return; 
-    }
+    // 🔥 AUTO HIDE FLOATING SAAT PINDAH PAGE
+const floatingCart = document.getElementById('floating-cart-btn');
+const floatingKulakan = document.getElementById('floating-kulakan-btn');
+
+// 🔥 trigger ulang floating sesuai halaman
+setTimeout(() => {
+    window.renderCart?.();
+    window.renderCartKulakan?.();
+}, 50);
 
     // 2. BERSIHKAN SEMUA HALAMAN (Paling Penting)
     // 2. Paksa manipulasi style inline (Jalan pintas paling ampuh)
@@ -203,7 +208,13 @@ window.renderCartKulakan = () => {
             document.getElementById('total-nominal-kulakan').innerText = "Rp 0";
         }
     } else {
-        floatBtn?.classList.remove('hidden');
+        const currentPage = document.querySelector('.page-active')?.id;
+
+if (window.cartKulakan.length > 0 && currentPage === 'menu-stok') {
+    floatBtn?.classList.remove('hidden');
+} else {
+    floatBtn?.classList.add('hidden');
+}
         if(mobCount) mobCount.innerText = `${window.cartKulakan.length} Items`;
         
         container.innerHTML = window.cartKulakan.map((item, index) => `
