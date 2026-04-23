@@ -150,37 +150,61 @@ if (supplierData) {
 };
 
 window.refreshDataUI = () => {
-    if(!window.db) return;
+    if (!window.db) {
+        console.warn("Database belum siap, refresh UI dibatalkan.");
+        return;
+    }
     
     try {
-        // Ambil 6 kolom: nama(0), stok(1), harga_jual(2), modal(3), id(4), kategori(5)
+        // 1. Ambil data terbaru dari SQLite
         const res = window.db.exec("SELECT nama, stok, harga_jual, modal, id, kategori FROM barang ORDER BY nama ASC");
         
-        if (res.length > 0) { 
+        if (res && res.length > 0) { 
             window.masterData = res[0].values; 
         } else {
             window.masterData = [];
         }
 
-        // Reset filter ke "Semua" saat data di-refresh total
-    window.currentCategoryFilter = "Semua";
-        
-        // Update cache dan render semua tabel
-        localStorage.setItem(`poskita_master_cache_${window.currentUid}`, JSON.stringify(window.masterData));
-        window.renderTable(window.masterData); 
-        window.renderStokTable(window.masterData); 
-        window.updateReports();
-        window.renderPelangganSelect();
-        window.renderCategoryTabs();
-        window.renderKategoriSelect(); // Pastikan ini dipanggil agar dropdown kategori terisi
+        // 2. Simpan ke Cache agar saat offline data tetap aman
+        if (window.currentUid) {
+            localStorage.setItem(`poskita_master_cache_${window.currentUid}`, JSON.stringify(window.masterData));
+        }
 
-        // 🔥 UPDATE COUNTER STOK
-const stokCounter = document.getElementById('stok-counter');
-if (stokCounter) {
-    const totalItem = window.masterData.length;
-    stokCounter.innerText = `${totalItem} Item Barang`;
-}
+        // 3. Pastikan Filter Kategori tidak hilang
+        if (!window.currentCategoryFilter) {
+            window.currentCategoryFilter = "Semua";
+        }
+
+        // 4. Update Counter Stok (Teks jumlah barang)
+        const stokCounter = document.getElementById('stok-counter');
+        if (stokCounter) {
+            stokCounter.innerText = `${window.masterData.length} Item Barang`;
+        }
+
+        // 5. EKSEKUSI RENDER UI
+        // Kita gunakan data yang sudah difilter kategori agar tampilan konsisten
+        const dataToRender = window.currentCategoryFilter === "Semua" 
+            ? window.masterData 
+            : window.masterData.filter(item => item[5] === window.currentCategoryFilter);
+
+        window.renderTable?.(dataToRender);     // Tabel Kasir
+        window.renderStokTable?.(dataToRender); // Tabel Stok
+        window.updateReports?.();               // Laporan Laba/Rugi
+        window.renderPelangganSelect?.();       // Dropdown Pelanggan
+        window.renderCategoryTabs?.();          // Tab Kategori (Atas)
+        window.renderKategoriSelect?.();        // Dropdown Kategori di Modal
+
+        // 6. FORCE RENDER REKOMENDASI KULAKAN (Kunci Utamanya di sini)
+        // Kita kasih delay sedikit agar DOM 'menu-stok' sudah siap/dirender browser
+        setTimeout(() => {
+            if (typeof window.renderRekomendasiKulakan === 'function') {
+                window.renderRekomendasiKulakan();
+            } else {
+                console.warn("Fungsi window.renderRekomendasiKulakan tidak ditemukan.");
+            }
+        }, 150);
+
     } catch (e) {
-        console.error("Gagal refresh UI:", e);
+        console.error("Gagal refresh UI LabaGo:", e);
     }
 };

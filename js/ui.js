@@ -1,3 +1,4 @@
+window.isKritisMode = false; // Defaultnya mode normal
 const updateTime = () => {
         const now = new Date();
         const dateOpts = { day: 'numeric', month: 'short', year: 'numeric' };
@@ -67,7 +68,14 @@ if (target) {
     }
 
     // 6. TRIGER DATA
-    if(pageId === 'stok') window.renderStokTable(window.masterData);
+    if (pageId === 'stok') {
+    if (window.isKritisMode) {
+        window.filterStokKritis(); // Kalau lagi mode kritis, panggil filternya
+    } else {
+        window.renderStokTable(window.masterData);
+        setTimeout(() => { window.renderRekomendasiKulakan?.(); }, 150);
+    }
+}
     if(pageId === 'laporan') {
         window.updateReports(); 
         window.setReportFilter(window.currentReportFilter);
@@ -519,25 +527,61 @@ const qCicil = `
 
 window.renderStokTable = (dataArray) => {
     const tbody = document.getElementById('stok-table-body');
-    tbody.innerHTML = dataArray.map(row => `
-        <tr class="tr-item border-b border-slate-50 hover:bg-slate-50">
+
+    tbody.innerHTML = dataArray.map(row => {
+
+        const stok = parseInt(row[1]) || 0;
+
+        // 🔥 LOGIC INDIKATOR
+        let badgeClass = "bg-emerald-50 text-emerald-600";
+        let label = stok;
+
+        if (stok === 0) {
+            badgeClass = "bg-rose-100 text-rose-600";
+            label = "Habis";
+        } else if (stok <= 5) {
+            badgeClass = "bg-amber-100 text-amber-600";
+            label = stok + " ⚠";
+        }
+
+        // 🔥 OPTIONAL: highlight baris
+        const rowClass = stok === 0 
+            ? "bg-rose-50" 
+            : stok <= 5 
+            ? "bg-amber-50" 
+            : "";
+
+        return `
+        <tr class="tr-item border-b border-slate-50 hover:bg-slate-50 ${rowClass}">
             <td class="p-3 pl-4">
                 <div class="flex flex-col">
                     <span class="text-[7px] font-black text-blue-500 uppercase tracking-widest">${row[5] || 'Umum'}</span>
                     <p class="font-bold text-slate-800 text-xs md:text-sm capitalize">${row[0]}</p>
-                    <p class="text-[10px] text-slate-400 font-bold">Harga: Rp ${row[2].toLocaleString('id-ID')}</p>
+                    <p class="text-[10px] text-slate-400 font-bold">Harga: Rp ${parseInt(row[2] || 0).toLocaleString('id-ID')}</p>
                 </div>
             </td>
-            <td class="p-3 text-center font-black text-slate-600 text-xs">${row[1]}</td>
+
+            <!-- 🔥 INDIKATOR STOK -->
+            <td class="p-3 text-center">
+                <span class="px-2 py-1 rounded-full text-[9px] font-black ${badgeClass}">
+                    ${label}
+                </span>
+            </td>
+
             <td class="p-3 pr-4 text-right">
                 <div class="flex justify-end gap-2">
                     <button onclick="window.tambahKeKulakan('${row[4]}')" class="bg-orange-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase shadow-sm active:scale-90 transition-all">
                         + KULAK
                     </button>
-                    <button onclick="window.openEditModal('${row[4]}','${row[0]}',${row[1]},${row[2]},${row[3]},'${row[5]}')" class="p-1.5 bg-slate-100 text-slate-500 rounded-lg">✏️</button>
+                    <button onclick="window.openEditModal('${row[4]}','${row[0]}',${row[1]},${row[2]},${row[3]},'${row[5]}')" class="p-1.5 bg-slate-100 text-slate-500 rounded-lg">
+                        ✏️
+                    </button>
                 </div>
             </td>
-        </tr>`).join('');
+        </tr>
+        `;
+
+    }).join('');
 };
 
 window.renderKategoriSelect = () => {
@@ -919,3 +963,89 @@ input.addEventListener("input", () => {
 window.currentReportFilter = 'hari_ini';
     window.currentCustomDate = '';
 window.currentCategoryFilter = "Semua";
+
+window.getRekomendasiKulakan = () => {
+    // Pastikan masterData ada isinya
+    if (!window.masterData || window.masterData.length === 0) return [];
+
+    return window.masterData
+        .map(item => {
+            const stok = parseInt(item[1]) || 0;
+            let prioritas = "aman";
+            
+            // LOGIKANYA KITA PERKETAT:
+            if (stok === 0) prioritas = "habis";
+            else if (stok <= 2) prioritas = "urgent";
+            else if (stok <= 5) prioritas = "menipis"; // Kita naikin ke 5 buat ngetes
+
+            return { nama: item[0], stok, prioritas };
+        })
+        .filter(item => item.prioritas !== "aman")
+        .sort((a, b) => a.stok - b.stok);
+};
+
+window.renderRekomendasiKulakan = () => {
+    const el = document.getElementById('rekomendasi-kulakan');
+    if (!el) return;
+
+    const rekom = window.getRekomendasiKulakan();
+
+    if (rekom.length === 0) {
+        el.classList.add('hidden');
+    } else {
+        el.classList.remove('hidden');
+        // Tambahkan cursor-pointer dan hover agar user tahu ini bisa diklik
+        el.className = "mt-3 px-3 py-2 rounded-xl bg-orange-50 text-orange-700 text-[10px] font-bold border border-orange-200 shadow-sm cursor-pointer hover:bg-orange-100 transition-all";
+        el.innerHTML = `
+            <div class="flex justify-between items-center" onclick="window.filterStokKritis()">
+                <div class="flex items-center gap-2">
+                    <span class="animate-bounce">⚠️</span>
+                    <span>Ada <b>${rekom.length}</b> barang kritis. Klik untuk lihat detail.</span>
+                </div>
+                <span class="text-[8px] bg-orange-200 px-1.5 py-0.5 rounded">LIHAT</span>
+            </div>
+        `;
+    }
+};
+
+window.filterStokKritis = () => {
+    // 1. Ambil data yang stoknya cuma 0 sampai 5
+    const dataKritis = window.masterData.filter(item => (parseInt(item[1]) || 0) <= 5);
+    
+    // 2. Render ke tabel stok
+    window.renderStokTable(dataKritis);
+
+    // 3. Ubah teks counter biar user gak bingung
+    const stokCounter = document.getElementById('stok-counter');
+    if (stokCounter) {
+        stokCounter.innerHTML = `
+            <div class="flex items-center gap-2">
+                <span class="text-rose-600">Menampilkan ${dataKritis.length} Barang Kritis</span>
+                <button onclick="window.refreshDataUI()" class="text-[8px] bg-slate-200 px-2 py-0.5 rounded text-slate-600 uppercase font-black">Reset</button>
+            </div>
+        `;
+    }
+};
+
+window.filterStokKritis = () => {
+    window.isKritisMode = true; // Aktifkan mode filter
+    
+    const dataKritis = window.masterData.filter(item => (parseInt(item[1]) || 0) <= 5);
+    window.renderStokTable(dataKritis);
+
+    const stokCounter = document.getElementById('stok-counter');
+    if (stokCounter) {
+        stokCounter.innerHTML = `
+            <div class="flex items-center gap-2">
+                <span class="text-rose-600 font-bold">Mode Kulakan (${dataKritis.length} Item)</span>
+                <button onclick="window.resetFilterStok()" class="text-[9px] bg-slate-800 px-2 py-1 rounded text-white font-black shadow-sm">KEMBALI</button>
+            </div>
+        `;
+    }
+};
+
+// Fungsi khusus buat balikin ke normal
+window.resetFilterStok = () => {
+    window.isKritisMode = false; // Matikan mode filter
+    window.refreshDataUI();      // Refresh tampilan ke semula
+};
