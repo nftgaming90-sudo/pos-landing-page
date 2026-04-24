@@ -1,45 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&display=swap');
 
 body { 
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-tap-highlight-color: transparent;
+    overflow: hidden; 
 }
 
 /* --- PRINT LOGIC --- */
 @media screen { #section-struk { display: none !important; } }
 @media print {
-    html, body { 
-        height: auto !important; 
-        overflow: visible !important; 
-        background-color: white !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
+    html, body { height: auto !important; overflow: visible !important; background-color: white !important; margin: 0 !important; padding: 0 !important; }
     body > *:not(#section-struk) { display: none !important; }
-    #section-struk { 
-        display: block !important; 
-        position: static !important; 
-        width: 58mm; 
-        padding: 0;
-        margin: 0;
-        font-family: 'Courier New', Courier, monospace; 
-        font-size: 11px; 
-        color: #000;
-        overflow: visible !important;
-    }
+    #section-struk { display: block !important; position: static !important; width: 58mm; font-family: 'Courier New', Courier, monospace; font-size: 11px; color: #000; }
     .no-print { display: none !important; }
-    @page { 
-        margin: 0; 
-        size: 58mm auto; 
-    }
-}
-
-/* --- UI --- */
-select#select-pelanggan {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat; 
-    background-position: right 0.5rem center; 
-    background-size: 1em;
+    @page { margin: 0; size: 58mm auto; }
 }
 
 /* --- SCROLLBAR --- */
@@ -47,92 +21,95 @@ select#select-pelanggan {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-/* --- INPUT --- */
-input[type="number"]::-webkit-inner-spin-button, 
-input[type="number"]::-webkit-outer-spin-button { 
-    -webkit-appearance: none; 
-}
-input[type="number"] { -moz-appearance: textfield; }
+/* --- PAGE BASE --- */
+.page-content { display: none; height: 100%; overflow: hidden; }
+.page-active { display: flex !important; }
 
 /* ========================= */
-/* 🔥 PAGE BASE */
-/* ========================= */
-.page-content { 
-    display: none; 
-    height: 100%; 
-    overflow: hidden; /* 🔥 default NO scroll */
-}
-
-.page-active { 
-    display: flex !important; 
-}
-
-/* ========================= */
-/* 📱 MOBILE SCROLL */
+/* 📱 MOBILE (HP) */
 /* ========================= */
 @media (max-width: 768px) {
-
-    .page-content,
-    .page-active {
-        overflow-y: auto !important;  /* 🔥 scroll aktif hanya HP */
+    .page-content, .page-active {
+        overflow-y: auto !important; 
         -webkit-overflow-scrolling: touch;
     }
-
-    #kulakan-section {
-        position: fixed;
-        inset: 0;
-        z-index: 999; 
-        transform: translateX(100%);
-        transition: transform 0.3s ease;
-    }
-
-    #kulakan-section.active { transform: translateX(0); }
-
-    #cart-section {
-        position: fixed; 
-        inset: 0; 
-        z-index: 60;
+    #kulakan-section, #cart-section {
+        position: fixed; inset: 0; z-index: 999; 
         transform: translateX(100%);
         transition: transform 0.3s ease;
         background: white;
     }
-
-    #cart-section.active { transform: translateX(0); }
-
+    #kulakan-section.active, #cart-section.active { transform: translateX(0); }
     main { padding-bottom: 85px !important; }
-
-    .nav-btn { color: #94a3b8 !important; }
+    
+    /* Warna Navigasi HP */
+    .nav-btn { color: #94a3b8 !important; border: none !important; }
     .nav-active { 
         color: #ffffff !important; 
-        background: rgba(255,255,255,0.15); 
+        background: rgba(255,255,255,0.15) !important; 
         border-radius: 12px; 
     }
 }
 
 /* ========================= */
-/* 💻 PC (TIDAK DIUBAH) */
+/* 💻 PC LAYOUT */
 /* ========================= */
 @media (min-width: 769px) {
-
-    .page-content {
-        overflow: hidden !important; /* 🔥 tetap seperti flow lama */
-        max-width: 1400px;
-        margin: 0 auto;
-    }
-
-    #menu-stok {
-        display: flex;
-        flex-direction: row;
-        height: calc(100vh - 80px);
-        overflow: hidden;
-    }
-
-    #kulakan-section { 
+    /* 1. Paksa Warna Background Bar Biru Tua */
+    nav {
+        background: #1e3a8a !important; /* Biru Navy Solid */
+        height: 65px !important;
         position: relative !important;
         display: flex !important;
-        height: 100%;
+        padding-top: 0 !important;
+        border: none !important;
+    }
+
+    /* 2. Tombol Navigasi PC */
+    .nav-btn {
+        color: #93c5fd !important; /* Biru muda */
+        background: transparent !important;
+        border-bottom: 4px solid transparent !important;
+        height: 100% !important;
+        opacity: 0.8;
+        border-radius: 0 !important; /* Hilangkan rounded dari mobile */
+    }
+
+    /* 3. Menu Aktif PC */
+    .nav-active {
+        color: #ffffff !important;
+        border-bottom: 4px solid #ffffff !important; /* Garis bawah putih */
+        background: rgba(255, 255, 255, 0.1) !important;
+        opacity: 1 !important;
+    }
+
+    /* 4. Scroll Area */
+    .overflow-x-auto {
+        flex: 1;
+        overflow-y: auto !important;
+        max-height: calc(100vh - 160px);
+    }
+
+    #menu-kasir, #menu-stok {
+        display: flex;
+        flex-direction: row;
+        height: calc(100vh - 110px);
+        gap: 15px;
+    }
+
+    #cart-section, #kulakan-section { 
+        position: relative !important;
+        display: flex !important;
+        height: 100% !important;
+        width: 380px !important;
+    }
+    
+    #menu-home, #menu-laporan, #menu-pelanggan {
+        overflow-y: auto !important;
     }
 }
 
-/* --- SAFE AREA --- */
+/* Utilities */
 .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+.hide-scrollbar { scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
