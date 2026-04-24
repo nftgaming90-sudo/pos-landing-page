@@ -6,14 +6,36 @@ body {
     overflow: hidden; 
 }
 
-/* --- PRINT LOGIC --- */
-@media screen { #section-struk { display: none !important; } }
+/* --- PRINT & CAPTURE LOGIC --- */
+/* Kondisi default: SEMBUNYI agar tidak menumpuk di halaman */
+#section-struk { 
+    display: none; 
+}
+
+/* Kondisi saat mode gambar aktif: MUNCUL */
+#section-struk.show-capture {
+    display: flex !important; 
+    position: fixed !important;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,0.85); /* Gelapkan sedikit biar fokus */
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+}
+
 @media print {
     html, body { height: auto !important; overflow: visible !important; background-color: white !important; margin: 0 !important; padding: 0 !important; }
     body > *:not(#section-struk) { display: none !important; }
-    #section-struk { display: block !important; position: static !important; width: 58mm; font-family: 'Courier New', Courier, monospace; font-size: 11px; color: #000; }
-    .no-print { display: none !important; }
-    @page { margin: 0; size: 58mm auto; }
+    #section-struk { 
+        display: block !important; 
+        position: static !important; 
+        width: 58mm; 
+        font-family: 'Courier New', Courier, monospace; 
+        font-size: 11px; 
+        color: #000; 
+    }
 }
 
 /* --- SCROLLBAR --- */

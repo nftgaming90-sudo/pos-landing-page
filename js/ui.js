@@ -1041,8 +1041,118 @@ window.filterStokKritis = () => {
     }
 };
 
-// Fungsi khusus buat balikin ke normal
-window.resetFilterStok = () => {
-    window.isKritisMode = false; // Matikan mode filter
-    window.refreshDataUI();      // Refresh tampilan ke semula
+// --- FUNGSI GLOBAL UNTUK TUTUP PREVIEW (PENTING!) ---
+window.tutupPreview = () => {
+    const area = document.getElementById('section-struk');
+    if (area) {
+        area.classList.remove('show-capture');
+        area.innerHTML = '';
+        area.style.display = 'none';
+    }
+};
+
+// --- FUNGSI JADIKAN GAMBAR HUTANG ---
+window.previewHutangImage = (hutangId) => {
+    if (!window.db) return;
+
+    // 1. Ambil Data Hutang & Pelanggan
+    const resH = window.db.exec(`
+        SELECT h.transaksi_id, h.total, h.sisa, h.tanggal, p.nama, p.hp 
+        FROM hutang h 
+        JOIN pelanggan p ON h.pelanggan_id = p.id 
+        WHERE h.id = ?`, [hutangId]);
+
+    if (resH.length === 0) return alert("Data tidak ditemukan!");
+    const [tId, hTotal, hSisa, hTglMs, pNama, pHp] = resH[0].values[0];
+
+    // 2. Ambil Rincian Barang
+    const resDet = window.db.exec(`SELECT b.nama, td.qty, td.harga FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id WHERE td.transaksi_id = ?`, [tId]);
+    const resCicil = window.db.exec(`SELECT jumlah, tanggal FROM cicilan WHERE hutang_id = ? ORDER BY CAST(tanggal AS UNSIGNED) ASC`, [hutangId]);
+
+    let itemsHtml = '';
+    if (resDet.length > 0) {
+        resDet[0].values.forEach(row => {
+            itemsHtml += `
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:11px;">
+                    <span style="flex:1; text-align:left;">${row[1]}x ${(row[0] || "Barang").toUpperCase()}</span>
+                    <span style="width:75px; text-align:right;">${(row[1]*row[2]).toLocaleString('id-ID')}</span>
+                </div>`;
+        });
+    }
+
+    let cicilHtml = '';
+    if (resCicil.length > 0) {
+        resCicil[0].values.forEach(c => {
+            const tglC = new Date(parseInt(c[1])).toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit'});
+            cicilHtml += `
+                <div style="display:flex; justify-content:space-between; font-size:10px; color:#444;">
+                    <span>- Bayar (${tglC})</span>
+                    <span>-${c[0].toLocaleString('id-ID')}</span>
+                </div>`;
+        });
+    }
+
+    const tglPinjam = new Date(parseInt(hTglMs)).toLocaleString('id-ID', {dateStyle:'medium'});
+
+    let htmlContent = `
+        <div id="wrapper-preview-rekap" class="flex flex-col items-center gap-4 w-full max-w-[320px] mx-auto p-4">
+            <div id="struk-hutang-capture" style="width:300px; background:#fff; padding:25px; color:#000; font-family:monospace; border-radius:8px;">
+                <div style="text-align:center; font-weight:900; font-size:16px;">${window.namaToko || 'POSKITA STORE'}</div>
+                <div style="text-align:center; font-size:10px; margin-bottom:10px;">TAGIHAN HUTANG #${tId.toString().slice(-6)}</div>
+                
+                <div style="font-size:9px; margin-bottom:2px;">Pelanggan: ${pNama.toUpperCase()}</div>
+                <div style="font-size:9px; margin-bottom:10px;">Tgl Pinjam: ${tglPinjam}</div>
+                
+                <div style="border-bottom:2px dashed #000; margin:10px 0;"></div>
+                ${itemsHtml}
+                <div style="text-align:right; font-size:10px; font-weight:bold; margin-top:5px;">Total Awal: Rp ${hTotal.toLocaleString('id-ID')}</div>
+                
+                <div style="border-top:1px dashed #000; margin:10px 0; padding-top:10px;"></div>
+                <div style="font-size:9px; font-weight:bold; margin-bottom:5px;">RIWAYAT BAYAR:</div>
+                ${cicilHtml || '<div style="font-size:9px; font-style:italic; color:#888;">Belum ada cicilan</div>'}
+                
+                <div style="border-top:2px dashed #000; margin:10px 0; padding-top:10px;"></div>
+                <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:900; color:#e11d48;">
+                    <span>SISA HUTANG:</span>
+                    <span>Rp ${hSisa.toLocaleString('id-ID')}</span>
+                </div>
+                <div style="text-align:center; font-size:9px; margin-top:20px; font-style:italic;">-- Mohon Segera Dilunasi --</div>
+            </div>
+
+            <div class="flex flex-col gap-2 w-full px-4 no-capture">
+                <button id="btn-share-hutang" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg flex items-center justify-center gap-2">
+                    <span>📲</span> Kirim Gambar ke WA
+                </button>
+                <button onclick="window.tutupPreview()" class="w-full py-2 bg-slate-100 text-slate-500 rounded-xl font-black text-[9px] uppercase">Tutup</button>
+            </div>
+        </div>
+    `;
+
+    const printArea = document.getElementById('section-struk');
+    printArea.innerHTML = htmlContent;
+    printArea.classList.add('show-capture');
+
+    document.getElementById('btn-share-hutang').onclick = async () => {
+        const btn = document.getElementById('btn-share-hutang');
+        btn.innerText = "MENYIAPKAN...";
+        try {
+            const area = document.getElementById('struk-hutang-capture');
+            const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#ffffff" });
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], `Tagihan-${pNama}.png`, { type: "image/png" });
+                if (navigator.share) {
+                    await navigator.share({ files: [file], title: 'Tagihan Hutang', text: `Halo ${pNama}, ini rincian tagihan hutang Anda.` });
+                } else {
+                    const link = document.createElement('a');
+                    link.download = `Tagihan-${pNama}.png`; 
+                    link.href = canvas.toDataURL(); 
+                    link.click();
+                }
+                btn.innerText = "Kirim Gambar ke WA";
+            });
+        } catch (err) {
+            btn.innerText = "Kirim Gambar ke WA";
+            alert("Gagal memproses gambar.");
+        }
+    };
 };
