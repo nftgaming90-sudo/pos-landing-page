@@ -144,33 +144,50 @@ window.formatDiskonLive = (el, index) => {
     };
 
 window.showPaymentModal = () => {
-        const total = document.getElementById('cart-total').innerText;
-        const pelangganId = document.getElementById('select-pelanggan').value;
-        
-        document.getElementById('pay-total-display').innerText = total;
-        
-        // Reset input uang & kembalikan dropdown ke Tunai
-        document.getElementById('input-uang-bayar').value = "";
-        document.getElementById('modal-metode-bayar').value = "Tunai";
-        
-        document.getElementById('modal-pembayaran').classList.remove('hidden');
-        
-        // Matikan opsi "Hutang" di dropdown jika pelanggan belum dipilih
-        const optHutang = document.getElementById('opt-hutang');
-        if (!pelangganId) {
-            optHutang.disabled = true;
-            optHutang.innerText = "⛔ Hutang (Pilih Pelanggan Dulu!)";
-        } else {
-            optHutang.disabled = false;
-            optHutang.innerText = "📒 Masuk Hutang (Piutang)";
-        }
+    const total = document.getElementById('cart-total').innerText;
+    const pelangganId = document.getElementById('select-pelanggan').value;
+    
+    // Langsung tembak modalnya muncul
+    document.getElementById('pay-total-display').innerText = total;
+    document.getElementById('input-uang-bayar').value = "";
+    document.getElementById('modal-metode-bayar').value = "Tunai";
+    document.getElementById('modal-pembayaran').classList.remove('hidden');
 
-        // Auto-focus ke inputan uang
-        setTimeout(() => document.getElementById('input-uang-bayar').focus(), 100);
-    };
+    // Fokus input
+    setTimeout(() => document.getElementById('input-uang-bayar').focus(), 100);
+
+    // Cek tombol hutang
+    const optHutang = document.getElementById('opt-hutang');
+    if (!pelangganId) {
+        optHutang.disabled = true;
+        optHutang.innerText = "⛔ Hutang (Pilih Pelanggan!)";
+    } else {
+        optHutang.disabled = false;
+        optHutang.innerText = "📒 Masuk Hutang (Piutang)";
+    }
+};
 
     window.eksekusiBayar = async (metode) => {
     try {
+
+        // --- 🔥 LOGIKA TANGGAL BARU ---
+        const inputBackdate = document.getElementById('cart-backdate')?.value;
+        const sekarang = new Date();
+        let ts; 
+
+        if (inputBackdate) {
+            // Kalau user pilih tanggal mundur
+            const tglPilihan = new Date(inputBackdate);
+            // Tetap kasih jam menit detik sekarang biar urutan laporan rapi
+            tglPilihan.setHours(sekarang.getHours(), sekarang.getMinutes(), sekarang.getSeconds());
+            ts = tglPilihan.getTime();
+        } else {
+            // Kalau kosong, ya normal pakai detik ini
+            ts = sekarang.getTime();
+        }
+        
+        const tsStr = ts.toString(); // Buat kolom tanggal di DB
+
         // 1. IDENTIFIKASI PELANGGAN (Kunci agar tidak jadi "Umum")
         const inputPlg = document.getElementById('input-pelanggan'); 
         const pelangganNama = inputPlg ? inputPlg.value.trim() : "";
@@ -205,9 +222,7 @@ window.showPaymentModal = () => {
             return alert("⚠️ Transaksi Hutang wajib memilih Pelanggan terdaftar!");
         }
 
-        // --- MULAI PROSES SIMPAN ---
-        const ts = Date.now();
-        const tsStr = ts.toString();
+        
 
         // 3. SIMPAN TRANSAKSI KE SQLITE LOKAL
         window.db.run("INSERT INTO transaksi (id, tanggal, total, laba, metode_bayar, pelanggan_id) VALUES (?,?,?,?,?,?)", 
@@ -292,17 +307,29 @@ window.showPaymentModal = () => {
 
         // 8. RESET UI
         window.cart = [];
+
+        if (window.innerWidth < 768 && typeof window.toggleCart === 'function') {
+            const cartSection = document.getElementById('cart-section');
+            if (cartSection && cartSection.classList.contains('active')) {
+                cartSection.classList.remove('active');
+            }
+        }
+
         document.getElementById('input-pelanggan').value = ""; 
         document.getElementById('select-pelanggan').value = ""; 
         document.getElementById('modal-pembayaran').classList.add('hidden');
         
         window.renderCart();
         window.refreshDataUI(); 
+
+        if(document.getElementById('cart-backdate')) {
+             document.getElementById('cart-backdate').value = ""; 
+        }
         
         // Render ulang menu hutang agar data terbaru muncul di tab Pelanggan
         if (typeof window.renderHutang === 'function') window.renderHutang();
         
-        if (window.innerWidth < 768 && typeof window.toggleCart === 'function') window.toggleCart();
+        
 
         // 9. SINKRONISASI CLOUD
         if (navigator.onLine && window.currentUid) {

@@ -6,36 +6,54 @@ body {
     overflow: hidden; 
 }
 
-/* --- PRINT & CAPTURE LOGIC --- */
-/* Kondisi default: SEMBUNYI agar tidak menumpuk di halaman */
+/* ========================================= */
+/* --- PRINT & CAPTURE LOGIC (FIXED) --- */
+/* ========================================= */
+
+/* 1. Kondisi Normal di Layar: SEMBUNYI TOTAL */
 #section-struk { 
-    display: none; 
+    position: fixed;
+    z-index: -1; /* Di belakang semua elemen */
+    opacity: 0;
+    pointer-events: none;
+    display: block !important; 
+    background: white;
 }
 
-/* Kondisi saat mode gambar aktif: MUNCUL */
+/* Kondisi Preview Gambar (📸): Muncul ke Depan */
 #section-struk.show-capture {
-    display: flex !important; 
-    position: fixed !important;
+    z-index: 9999; /* Maju ke paling depan */
+    opacity: 1;
     inset: 0;
-    z-index: 9999;
-    background: rgba(0,0,0,0.85); /* Gelapkan sedikit biar fokus */
-    backdrop-filter: blur(4px);
+    display: flex !important; 
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(8px);
     align-items: center;
     justify-content: center;
     overflow-y: auto;
+    pointer-events: auto;
 }
 
 @media print {
-    html, body { height: auto !important; overflow: visible !important; background-color: white !important; margin: 0 !important; padding: 0 !important; }
-    body > *:not(#section-struk) { display: none !important; }
+    /* Paksa Muncul Saat Print */
     #section-struk { 
-        display: block !important; 
-        position: static !important; 
-        width: 58mm; 
-        font-family: 'Courier New', Courier, monospace; 
-        font-size: 11px; 
-        color: #000; 
+        position: static !important;
+        z-index: 9999 !important;
+        opacity: 1 !important;
+        display: block !important;
+        width: 58mm !important;
+        padding: 2mm !important;
     }
+
+    /* Sembunyikan Dashboard */
+    body > *:not(#section-struk) { 
+        display: none !important; 
+    }
+
+    @page { size: 58mm auto; margin: 0; }
+
+    /* Hilangkan sampah browser */
+    header, footer { display: none !important; }
 }
 
 /* --- SCROLLBAR --- */
@@ -129,6 +147,21 @@ body {
     #menu-home, #menu-laporan, #menu-pelanggan {
         overflow-y: auto !important;
     }
+}
+
+/* Pastikan Modal Pembayaran kastanya paling tinggi */
+#modal-pembayaran {
+    z-index: 10000 !important; /* Di atas segalanya */
+}
+
+/* Pastikan overlay/background gelap modal juga ikut naik */
+.fixed.inset-0 {
+    z-index: 9999;
+}
+
+/* Keranjang kita biarkan di angka 999 atau 60 agar dia di bawah modal */
+#cart-section {
+    z-index: 60; 
 }
 
 /* Utilities */

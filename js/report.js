@@ -44,26 +44,31 @@
     if (!window.db) return;
     
     let startMs = 0;
-    let endMs = Date.now() + 86400000; 
+    // JANGAN pakai Date.now() + 86400000 sebagai default
+    let endMs = new Date().getTime() + 86400000; 
     const now = new Date();
     let labelTabel = "History Transaksi";
     
     if (window.currentReportFilter === 'hari_ini') {
-        // Set ke jam 00:00:00 hari ini
-        startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-        // Set ke jam 23:59:59 hari ini
+        // Awal hari ini 00:00:00
+        const startDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startMs = startDay.getTime();
+        // Akhir hari ini 23:59:59
         endMs = startMs + 86399999;
         labelTabel = "Transaksi Hari Ini";
     } 
     else if (window.currentReportFilter === 'kemarin') {
+        // Awal kemarin 00:00:00
         const kemarin = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
         startMs = kemarin.getTime();
+        // Akhir kemarin 23:59:59
         endMs = startMs + 86399999;
         labelTabel = "Transaksi Kemarin";
     } 
     else if (window.currentReportFilter === 'custom' && window.currentCustomDate) {
         const [y, m, d] = window.currentCustomDate.split('-');
-        startMs = new Date(y, m - 1, d).getTime();
+        const targetDate = new Date(y, m - 1, d);
+        startMs = targetDate.getTime();
         endMs = startMs + 86399999;
         labelTabel = `Transaksi tgl ${d}/${m}/${y}`;
     }
@@ -319,11 +324,20 @@ if (mode === 'print') {
 
     const printArea = document.getElementById('section-struk');
     printArea.innerHTML = strukContent;
+
+    // Tambahkan class khusus ke body biar elemen lain ngumpet
+    document.body.classList.add('is-printing'); 
     
-    // Kasih jeda sedikit biar browser selesai render HTML baru panggil print
+    // Kasih jeda lebih lama buat HP (500ms) biar render struknya selesai
     setTimeout(() => {
         window.print();
-    }, 250);
+        
+        // Jeda setelah jendela print ditutup untuk bersih-bersih
+        setTimeout(() => {
+            printArea.innerHTML = ''; // HAPUS isi struk biar gak nempel di bawah
+            document.body.classList.remove('is-printing');
+        }, 500);
+    }, 500); 
     return;
 }
 

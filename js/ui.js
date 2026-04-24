@@ -25,32 +25,28 @@ const updateTime = () => {
     };
 
  window.switchPage = (pageId, btn) => {
-    // 1. Cek status kasir
-    // 🔥 AUTO HIDE FLOATING SAAT PINDAH PAGE
-const floatingCart = document.getElementById('floating-cart-btn');
-const floatingKulakan = document.getElementById('floating-kulakan-btn');
-
-// 🔥 trigger ulang floating sesuai halaman
-setTimeout(() => {
-    window.renderCart?.();
-    window.renderCartKulakan?.();
-}, 50);
-
-    // 2. BERSIHKAN SEMUA HALAMAN (Paling Penting)
-    // 2. Paksa manipulasi style inline (Jalan pintas paling ampuh)
-document.querySelectorAll('.page-content').forEach(p => {
-    p.style.setProperty('display', 'none', 'important');
-    p.classList.remove('page-active');
-});
-
-// 3. Tampilkan yang dipilih
-const target = document.getElementById('menu-' + pageId);
-if (target) {
-    target.style.setProperty('display', 'flex', 'important');
-    target.classList.add('page-active');
-}
+    // 1. 🔥 PAKSA SEMBUNYI FLOATING BAR (Anti-Gentayangan)
+    // Langsung sembunyikan dulu tanpa kompromi saat pindah halaman
+    const floatingCart = document.getElementById('floating-cart-btn');
+    const floatingKulakan = document.getElementById('floating-kulakan-btn');
     
-    // 4. Update warna tombol navigasi
+    if (floatingCart) floatingCart.classList.add('hidden');
+    if (floatingKulakan) floatingKulakan.classList.add('hidden');
+
+    // 2. BERSIHKAN SEMUA HALAMAN
+    document.querySelectorAll('.page-content').forEach(p => {
+        p.style.setProperty('display', 'none', 'important');
+        p.classList.remove('page-active');
+    });
+
+    // 3. TAMPILKAN HALAMAN YANG DIPILIH
+    const target = document.getElementById('menu-' + pageId);
+    if (target) {
+        target.style.setProperty('display', 'flex', 'important');
+        target.classList.add('page-active');
+    }
+    
+    // 4. UPDATE WARNA TOMBOL NAVIGASI
     document.querySelectorAll('.nav-btn').forEach(b => {
         b.classList.remove('nav-active', 'text-white', 'border-white');
         b.classList.add('text-blue-300', 'border-transparent');
@@ -67,19 +63,29 @@ if (target) {
         if(kulakan) kulakan.classList.remove('active');
     }
 
-    // 6. TRIGER DATA
+    // 6. TRIGGER ULANG RENDER (Kasih jeda dikit biar DOM page-active sudah terbaca)
+    setTimeout(() => {
+        // Hanya akan muncul kembali jika logic di dalam render masing-masing terpenuhi
+        // (Misal: Harus di halaman Kasir DAN keranjang > 0)
+        window.renderCart?.(); 
+        window.renderCartKulakan?.();
+    }, 50);
+
+    // 7. TRIGGER DATA PER HALAMAN
     if (pageId === 'stok') {
-    if (window.isKritisMode) {
-        window.filterStokKritis(); // Kalau lagi mode kritis, panggil filternya
-    } else {
-        window.renderStokTable(window.masterData);
-        setTimeout(() => { window.renderRekomendasiKulakan?.(); }, 150);
+        if (window.isKritisMode) {
+            window.filterStokKritis();
+        } else {
+            window.renderStokTable(window.masterData);
+            setTimeout(() => { window.renderRekomendasiKulakan?.(); }, 150);
+        }
     }
-}
+    
     if(pageId === 'laporan') {
         window.updateReports(); 
         window.setReportFilter(window.currentReportFilter);
     }
+    
     if(pageId === 'pelanggan') window.renderHutang();
 };
 
@@ -771,12 +777,25 @@ window.renderCart = () => {
 
         // Logika Pintar: Hanya munculkan Floating Bar jika di halaman KASIR dan keranjang ada isinya
         if (floatingBar) {
-            if (count > 0 && document.querySelector('.page-active')?.id === 'menu-kasir') {
-                floatingBar.classList.remove('hidden');
-            } else {
-                floatingBar.classList.add('hidden');
-            }
+    // 1. Hitung jumlah item asli (pastikan beneran kosong)
+    const itemCount = window.cart.length; 
+    
+    // 2. Cek apakah halaman yang sedang aktif BENERAN menu kasir
+    const activePage = document.querySelector('.page-active');
+    const isKasirPage = activePage && activePage.id === 'menu-kasir';
+
+    // 3. Syarat mutlak: Item harus > 0 DAN harus di halaman kasir
+    if (itemCount > 0 && isKasirPage) {
+        floatingBar.classList.remove('hidden');
+        // Update teks angkanya sekalian
+        if(document.getElementById('mobile-cart-count')) {
+            document.getElementById('mobile-cart-count').innerText = window.cart.reduce((s, i) => s + i.qty, 0);
         }
+    } else {
+        // Kalau salah satu syarat gak terpenuhi, WAJIB sembunyi
+        floatingBar.classList.add('hidden');
+    }
+}
     };
 
 // --- LOGIC PENCARIAN KASIR ---
@@ -890,6 +909,16 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     });
+
+    // 🔥 LOAD DATA KERANJANG SAAT REFRESH
+if (window.currentUid) {
+    const savedCart = localStorage.getItem(`poskita_cart_${window.currentUid}`);
+    if (savedCart) {
+        window.cart = JSON.parse(savedCart);
+        // Langsung panggil render agar Floating Bar & Badge muncul jika ada isinya
+        setTimeout(() => window.renderCart(), 500); 
+    }
+}
 
     
 }
@@ -1047,8 +1076,63 @@ window.tutupPreview = () => {
     if (area) {
         area.classList.remove('show-capture');
         area.innerHTML = '';
-        area.style.display = 'none';
+        // -- area.style.display = 'none';
     }
+};
+
+window.printStrukHutangPerNota = (hutangId) => {
+    const area = document.getElementById('section-struk');
+    
+    // Ambil data
+    const resH = window.db.exec(`
+        SELECT h.transaksi_id, h.total, h.sisa, h.tanggal, p.nama, p.hp 
+        FROM hutang h 
+        JOIN pelanggan p ON h.pelanggan_id = p.id 
+        WHERE h.id = ?`, [hutangId]);
+
+    if (resH.length === 0) return;
+    const [tId, hTotal, hSisa, hTglMs, pNama, pHp] = resH[0].values[0];
+    const tglPinjam = new Date(parseInt(hTglMs)).toLocaleString('id-ID', {dateStyle:'medium'});
+
+    // Buat HTML
+    let htmlStruk = `
+        <div style="width: 58mm; padding: 5px; background: white; color: black; font-family: monospace;">
+            <div style="text-align:center; font-weight:bold;">${window.namaToko || 'POSKITA STORE'}</div>
+            <div style="text-align:center; font-size:10px;">TAGIHAN #${tId.toString().slice(-6)}</div>
+            <div style="border-bottom:1px dashed #000; margin:5px 0;"></div>
+            <div style="font-size:10px;">Pelanggan: ${pNama.toUpperCase()}</div>
+            <div style="font-size:10px;">Tanggal: ${tglPinjam}</div>
+            <div style="border-bottom:1px dashed #000; margin:5px 0;"></div>
+            <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                <span>TOTAL:</span>
+                <span>${hTotal.toLocaleString('id-ID')}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-weight:bold; color:red;">
+                <span>SISA:</span>
+                <span>${hSisa.toLocaleString('id-ID')}</span>
+            </div>
+            <div style="text-align:center; margin-top:10px;">--- TERIMA KASIH ---</div>
+        </div>
+    `;
+
+    area.innerHTML = htmlStruk;
+    
+    // 🔥 TRICK HP: Kasih waktu browser untuk memproses konten ke layar 'belakang'
+    setTimeout(() => {
+        try {
+            window.print();
+        } catch (e) {
+            console.error("Print error:", e);
+            alert("Gagal memanggil fungsi print. Pastikan izin browser aktif.");
+        }
+        
+        // Bersihkan setelah selesai
+        setTimeout(() => { 
+            if (!area.classList.contains('show-capture')) {
+                area.innerHTML = ''; 
+            }
+        }, 1500);
+    }, 600); // 600ms sudah cukup ideal untuk HP menengah kebawah
 };
 
 // --- FUNGSI JADIKAN GAMBAR HUTANG ---
