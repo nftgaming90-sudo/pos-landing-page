@@ -276,66 +276,63 @@ window.renderPelangganSelect = () => {
     };
 
 window.renderHutang = (sortBy = 'baru') => {
-        if (!window.db) return;
-        
-        let query = `
-            SELECT p.id, p.nama, p.hp, p.sisa_hutang, MIN(CAST(h.tanggal AS UNSIGNED)) as tgl_lama 
-            FROM pelanggan p 
-            LEFT JOIN hutang h ON p.id = h.pelanggan_id AND h.sisa > 0
-            WHERE p.sisa_hutang > 0 
-            GROUP BY p.id
-        `;
-
-        if (sortBy === 'terbanyak') query += ` ORDER BY p.sisa_hutang DESC`;
-        else if (sortBy === 'terlama') query += ` ORDER BY tgl_lama ASC`;
-        else query += ` ORDER BY tgl_lama DESC`;
-
-        try {
-            const res = window.db.exec(query);
-            const container = document.getElementById('list-hutang');
-            let totalSemua = 0;
-
-            if (res.length > 0) {
-                container.innerHTML = res[0].values.map(row => {
-                    const [id, nama, hp, sisa, tgl_lama] = row;
-                    totalSemua += sisa;
-                    const d = tgl_lama ? new Date(tgl_lama).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-';
-                    
-                    return `
-<div class="w-full bg-white rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden mb-1">
-    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500 z-10"></div>
+    if (!window.db) return;
     
-    <div class="p-4 pl-6 cursor-pointer hover:bg-slate-50 flex justify-between items-center" onclick="window.toggleDetailHutang('${id}')">
-        <div class="flex-1 min-w-0 pr-2">
-            <h3 class="font-black text-slate-800 text-sm uppercase tracking-tight flex items-center gap-2">
-                <span class="truncate">${nama}</span> 
-                <span id="icon-pelanggan-${id}" class="text-[9px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded transition-transform shrink-0">▼</span>
-            </h3>
-            <p class="text-[10px] font-bold text-slate-400 mt-0.5 uppercase tracking-wider">📞 ${hp || '-'}</p>
-        </div>
-        <div class="text-right shrink-0">
-            <p class="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Sisa Hutang</p>
-            <p class="font-black text-rose-600 text-base">Rp ${sisa.toLocaleString('id-ID')}</p>
-        </div>
-    </div>
+    // Query diperbaiki untuk memastikan sinkronisasi data sisa_hutang pelanggan
+    let query = `
+        SELECT p.id, p.nama, p.hp, p.sisa_hutang, 
+               (SELECT MAX(CAST(tanggal AS UNSIGNED)) FROM hutang WHERE pelanggan_id = p.id AND sisa > 0) as tgl_lama
+        FROM pelanggan p 
+        WHERE p.sisa_hutang > 0 
+    `;
 
-    <div id="detail-hutang-${id}" class="hidden bg-slate-50/50 border-t border-slate-100">
-        <div id="isi-hutang-${id}" class="p-4 pt-2">
-            </div>
-    </div>
+    if (sortBy === 'terbanyak') query += ` ORDER BY p.sisa_hutang DESC`;
+    else if (sortBy === 'terlama') query += ` ORDER BY tgl_lama ASC`;
+    else query += ` ORDER BY tgl_lama DESC`;
 
-    <div class="flex justify-between items-center px-4 py-3 bg-slate-50/30 border-t border-slate-100 border-dashed">
-        <span class="text-[9px] text-slate-400 font-bold">Hutang Sejak: ${d}</span>
-        <button onclick="window.bukaModalCicilan('${id}', 'ALL', ${sisa}, '${nama.replace(/'/g, "\\'")}')" class="bg-rose-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md active:scale-95">Bayar Semua</button>
-    </div>
-</div>`;
-                }).join('');
-            } else {
-                container.innerHTML = `<div class="col-span-full py-16 flex flex-col items-center justify-center opacity-40"><div class="text-6xl mb-4 grayscale">🎉</div><p class="text-xs font-black uppercase tracking-widest text-slate-500">Bebas Hutang! Tidak ada tagihan.</p></div>`;
-            }
-            document.getElementById('total-semua-hutang').innerText = `Total Piutang: Rp ${totalSemua.toLocaleString('id-ID')}`;
-        } catch (e) { console.error("Gagal load hutang:", e); }
-    };
+    try {
+        const res = window.db.exec(query);
+        const container = document.getElementById('list-hutang');
+        let totalSemua = 0;
+
+        if (res.length > 0 && res[0].values) {
+            container.innerHTML = res[0].values.map(row => {
+                const [id, nama, hp, sisa, tgl_lama] = row;
+                totalSemua += sisa;
+                const d = tgl_lama ? new Date(parseInt(tgl_lama)).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-';
+                
+                return `
+                <div class="w-full bg-white rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden mb-1">
+                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500"></div>
+                    <div class="p-4 pl-6 cursor-pointer hover:bg-slate-50 flex justify-between items-center" onclick="window.toggleDetailHutang('${id}')">
+                        <div class="flex-1 min-w-0 pr-2">
+                            <h3 class="font-black text-slate-800 text-sm uppercase flex items-center gap-2">
+                                <span class="truncate">${nama}</span> 
+                                <span id="icon-pelanggan-${id}" class="text-[9px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded transition-transform">▼</span>
+                            </h3>
+                            <p class="text-[10px] font-bold text-slate-400 mt-0.5 uppercase">📞 ${hp || '-'}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[8px] font-black uppercase text-slate-400 mb-0.5">Sisa Hutang</p>
+                            <p class="font-black text-rose-600 text-base">Rp ${sisa.toLocaleString('id-ID')}</p>
+                        </div>
+                    </div>
+                    <div id="detail-hutang-${id}" class="hidden bg-slate-50/50 border-t border-slate-100">
+                        <div id="isi-hutang-${id}" class="p-4 pt-2"></div>
+                    </div>
+                    <div class="flex justify-between items-center px-4 py-3 bg-slate-50/30 border-t border-slate-100 border-dashed">
+                        <span class="text-[9px] text-slate-400 font-bold">Terakhir: ${d}</span>
+                        <button onclick="window.bukaModalCicilan('${id}', 'ALL', ${sisa}, '${nama.replace(/'/g, "\\'")}')" 
+                                class="bg-rose-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-md active:scale-95">Bayar Semua</button>
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            container.innerHTML = `<div class="py-16 text-center opacity-40"><div class="text-6xl mb-4">🎉</div><p class="text-xs font-black uppercase text-slate-500">Bebas Hutang!</p></div>`;
+        }
+        document.getElementById('total-semua-hutang').innerText = `Total Piutang: Rp ${totalSemua.toLocaleString('id-ID')}`;
+    } catch (e) { console.error("Gagal load hutang:", e); }
+};
 
 window.toggleDetailHutang = (pId) => {
         const targetEl = document.getElementById(`detail-hutang-${pId}`);

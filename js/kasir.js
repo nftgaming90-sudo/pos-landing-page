@@ -170,126 +170,170 @@ window.showPaymentModal = () => {
     };
 
     window.eksekusiBayar = async (metode) => {
-    // 1. PERBAIKAN: Sesuaikan ID dengan HTML (ID-nya 'input-pelanggan', bukan 'input-pelanggan-search')
-    const inputPlg = document.getElementById('input-pelanggan'); 
-    const pelangganNama = inputPlg ? inputPlg.value.trim() : "";
-    
-    // Ambil ID pelanggan dari select-pelanggan (karena sistem Mas sudah otomatis sinkron ke situ)
-    let pelangganId = document.getElementById('select-pelanggan').value || null;
+    try {
+        // 1. IDENTIFIKASI PELANGGAN (Kunci agar tidak jadi "Umum")
+        const inputPlg = document.getElementById('input-pelanggan'); 
+        const pelangganNama = inputPlg ? inputPlg.value.trim() : "";
+        let pelangganId = document.getElementById('select-pelanggan').value || null;
 
-    // Jika di input ada nama tapi di select kosong (mungkin user ngetik tapi gak klik dropdown)
-    if (pelangganNama && !pelangganId) {
-        const resId = window.db.exec("SELECT id FROM pelanggan WHERE nama = ?", [pelangganNama]);
-        if (resId.length > 0) pelangganId = resId[0].values[0][0];
-    }
+        // Jika user ngetik nama tapi gak klik dropdown, paksa cari ID-nya di DB lokal
+        if (pelangganNama && !pelangganId) {
+            const resId = window.db.exec("SELECT id FROM pelanggan WHERE nama = ?", [pelangganNama]);
+            if (resId && resId.length > 0) {
+                pelangganId = resId[0].values[0][0];
+            }
+        }
 
-    // Ambil nominal uang (Tunai atau DP)
-    const valBayar = document.getElementById('input-uang-bayar').value.replace(/\./g, '');
-    const uangBayar = parseInt(valBayar) || 0;
+        // Ambil nominal uang (Tunai atau DP)
+        const valBayar = document.getElementById('input-uang-bayar').value.replace(/\./g, '');
+        const uangBayar = parseInt(valBayar) || 0;
 
-    // 2. PERBAIKAN LOGIKA DISKON & LABA
-    let totalB = 0, totalL = 0;
-    window.cart.forEach(i => { 
-        // Subtotal sudah menghitung (Harga * Qty) - DiskonNominal
-        const subtotal = window.hitungSubtotalItem(i); 
-        const totalModal = i.modal * i.qty;
-        
-        totalB += subtotal; 
-        // Laba = Total Penjualan Bersih - Total Modal
-        totalL += (subtotal - totalModal); 
-    });
-
-    // Validasi Cerdas
-    if (metode === 'Tunai' && uangBayar > 0 && uangBayar < totalB) {
-        return alert("⚠️ Uang tunai kurang! Jika bayar sebagian, silakan pilih metode 'Kasbon / Hutang'.");
-    }
-    if (metode === 'Hutang' && uangBayar >= totalB) {
-        return alert("⚠️ Uang DP melebihi/sama dengan tagihan! Silakan pilih metode 'Tunai / Lunas'.");
-    }
-    if (metode === 'Hutang' && !pelangganId) {
-        return alert("⚠️ Pilih nama pelanggan terdaftar terlebih dahulu untuk transaksi Hutang!");
-    }
-
-    // --- TAMBAHKAN INI UNTUK RESET ---
-    document.getElementById('input-pelanggan').value = ""; // Kosongkan input pencarian
-    document.getElementById('select-pelanggan').value = ""; // Kosongkan ID pelanggan
-
-    document.getElementById('modal-pembayaran').classList.add('hidden');
-    const ts = Date.now();
-    
-    // SIMPAN TRANSAKSI
-    window.db.run("INSERT INTO transaksi (id, tanggal, total, laba, metode_bayar, pelanggan_id) VALUES (?,?,?,?,?,?)", 
-        [ts, ts.toString(), totalB, totalL, metode, pelangganId]);
-    
-    // SIMPAN HUTANG JIKA KASBON
-    if (metode === 'Hutang') {
-        const hutangId = "H-" + ts;
-        const sisaHutang = totalB - uangBayar;
-
-        window.db.run("INSERT INTO hutang (id, pelanggan_id, transaksi_id, total, sisa, tanggal) VALUES (?,?,?,?,?,?)", 
-            [hutangId, pelangganId, ts, totalB, sisaHutang, ts.toString()]);
-        window.db.run("UPDATE pelanggan SET total_hutang = total_hutang + ?, sisa_hutang = sisa_hutang + ? WHERE id = ?", 
-            [totalB, sisaHutang, pelangganId]);
-        
-        window.offlineQueue.hutang.push({
-            id: hutangId, pelanggan_id: pelangganId, transaksi_id: ts, total: totalB, sisa: sisaHutang, tanggal: ts.toString(), user_id: window.currentUid
+        // 2. HITUNG TOTAL & LABA
+        let totalB = 0, totalL = 0;
+        window.cart.forEach(i => { 
+            const subtotal = window.hitungSubtotalItem(i); 
+            const totalModal = (Number(i.modal) || 0) * i.qty;
+            totalB += subtotal; 
+            totalL += (subtotal - totalModal); 
         });
 
-        if (uangBayar > 0) {
-            const cicilanId = "C-" + ts + "-DP";
-            window.db.run("INSERT INTO cicilan (id, hutang_id, jumlah, tanggal) VALUES (?,?,?,?)", [cicilanId, hutangId, uangBayar, ts.toString()]);
-            window.offlineQueue.cicilan.push({
-                id: cicilanId, hutang_id: hutangId, jumlah: uangBayar, tanggal: ts.toString(), user_id: window.currentUid
-            });
+        // Validasi Dasar
+        if (metode === 'Tunai' && uangBayar > 0 && uangBayar < totalB) {
+            return alert("⚠️ Uang tunai kurang! Gunakan metode 'Hutang' jika bayar sebagian.");
         }
-        window.saveQueue();
-    }
+        if (metode === 'Hutang' && !pelangganId) {
+            return alert("⚠️ Transaksi Hutang wajib memilih Pelanggan terdaftar!");
+        }
 
-    // SIMPAN DETAIL & UPDATE STOK
-    // --- BAGIAN SIMPAN DETAIL & UPDATE STOK ---
-        let detailIndex = 1; // <--- PASTIKAN BARIS INI ADA!
-        
+        // --- MULAI PROSES SIMPAN ---
+        const ts = Date.now();
+        const tsStr = ts.toString();
+
+        // 3. SIMPAN TRANSAKSI KE SQLITE LOKAL
+        window.db.run("INSERT INTO transaksi (id, tanggal, total, laba, metode_bayar, pelanggan_id) VALUES (?,?,?,?,?,?)", 
+            [ts, tsStr, totalB, totalL, metode, pelangganId]);
+
+        // 4. LOGIKA KHUSUS HUTANG
+        if (metode === 'Hutang') {
+            const hutangId = "H-" + ts;
+            
+            // 🔥 PAKSA JADI ANGKA: Pastikan sisaHutang bersih dari teks/titik
+            const murniTotal = Number(totalB);
+            const murniBayar = Number(uangBayar);
+            const sisaHutang = murniTotal - murniBayar;
+
+            // 1. Simpan ke tabel hutang lokal
+            window.db.run("INSERT INTO hutang (id, pelanggan_id, transaksi_id, total, sisa, tanggal) VALUES (?,?,?,?,?,?)", 
+                [hutangId, pelangganId, ts, murniTotal, sisaHutang, tsStr]);
+            
+            // 2. Update saldo hutang di tabel pelanggan (Gunakan IFNULL agar tidak NULL)
+            window.db.run(`
+                UPDATE pelanggan 
+                SET total_hutang = IFNULL(total_hutang, 0) + ?, 
+                    sisa_hutang = IFNULL(sisa_hutang, 0) + ? 
+                WHERE id = ?`, 
+                [murniTotal, sisaHutang, pelangganId]
+            );
+            
+            // 3. Masukkan ke antrean Cloud Hutang (Gunakan Number() agar Supabase tidak anggap 0)
+            if (!window.offlineQueue.hutang) window.offlineQueue.hutang = [];
+            window.offlineQueue.hutang.push({
+                id: hutangId, 
+                pelanggan_id: pelangganId, 
+                transaksi_id: ts, 
+                total: Number(murniTotal), 
+                sisa: Number(sisaHutang), // <--- INI KUNCINYA MAS
+                tanggal: tsStr, 
+                user_id: window.currentUid
+            });
+
+            // 4. Jika ada DP, catat sebagai cicilan pertama
+            if (murniBayar > 0) {
+                const cicilanId = "C-" + ts + "-DP";
+                window.db.run("INSERT INTO cicilan (id, hutang_id, jumlah, tanggal) VALUES (?,?,?,?)", [cicilanId, hutangId, murniBayar, tsStr]);
+                
+                if (!window.offlineQueue.cicilan) window.offlineQueue.cicilan = [];
+                window.offlineQueue.cicilan.push({
+                    id: cicilanId, 
+                    hutang_id: hutangId, 
+                    jumlah: Number(murniBayar), // <--- PAKSA ANGKA
+                    tanggal: tsStr, 
+                    user_id: window.currentUid
+                });
+            }
+            
+            // 🔥 Tambahkan log singkat di console biar Mas bisa pantau pas testing
+            console.log(`Hutang tercatat: Total=${murniTotal}, DP=${murniBayar}, Sisa=${sisaHutang}`);
+        }
+
+        // 5. SIMPAN DETAIL & POTONG STOK
+        let detailIndex = 1;
         for (let i of window.cart) {
-            // Hitung harga bersih per item untuk laporan
             const subPerItem = window.hitungSubtotalItem(i); 
-            
-            // 1. Update stok di SQLite lokal
             window.db.run("UPDATE barang SET stok = stok - ? WHERE id = ?", [i.qty, i.id]);
-            
-            // 2. Simpan ke detail transaksi (Harga disimpan adalah harga rata-rata setelah diskon)
             window.db.run("INSERT INTO transaksi_detail (id, transaksi_id, barang_id, qty, harga, modal) VALUES (?,?,?,?,?,?)", 
                          [ts + detailIndex, ts, i.id, i.qty, (subPerItem / i.qty), i.modal]);
-            
-            detailIndex++; // <--- Baris ini yang tadi bikin error kalau variabelnya gak ada
+            detailIndex++;
         }
 
-    const payload = { ts: ts, totalB: totalB, totalL: totalL, metode: metode, pelanggan_id: pelangganId, uid: window.currentUid, cart: [...window.cart] };
-    
-    window.cart = [];
-    window.renderCart();
-    window.refreshDataUI(); 
-    
-    if(window.innerWidth < 768) window.toggleCart();
+        // 6. PERSISTENCE (Kunci data ke LocalStorage sebelum proses sinkron)
+        if (typeof window.simpanDB === 'function') window.simpanDB();
 
-    // Sync Cloud
-    if (navigator.onLine) {
-        try {
-            await window.pushTransaksiToCloud(payload);
-            window.processOfflineQueue(); 
-        } catch(e) {
+        // 7. PREPARE PAYLOAD UNTUK CLOUD
+        const payload = { 
+            ts: ts, 
+            totalB: totalB, 
+            totalL: totalL, 
+            metode: metode, 
+            pelanggan_id: pelangganId, 
+            uid: window.currentUid, 
+            cart: [...window.cart] 
+        };
+
+        // 8. RESET UI
+        window.cart = [];
+        document.getElementById('input-pelanggan').value = ""; 
+        document.getElementById('select-pelanggan').value = ""; 
+        document.getElementById('modal-pembayaran').classList.add('hidden');
+        
+        window.renderCart();
+        window.refreshDataUI(); 
+        
+        // Render ulang menu hutang agar data terbaru muncul di tab Pelanggan
+        if (typeof window.renderHutang === 'function') window.renderHutang();
+        
+        if (window.innerWidth < 768 && typeof window.toggleCart === 'function') window.toggleCart();
+
+        // 9. SINKRONISASI CLOUD
+        if (navigator.onLine && window.currentUid) {
+            try {
+                await window.pushTransaksiToCloud(payload);
+                if (typeof window.processOfflineQueue === 'function') await window.processOfflineQueue(); 
+            } catch(e) {
+                console.error("Gagal Sync, masuk queue:", e);
+                window.offlineQueue.transaksi.push(payload);
+            }
+        } else {
             window.offlineQueue.transaksi.push(payload);
-            window.saveQueue();
         }
-    } else {
-        window.offlineQueue.transaksi.push(payload);
-        window.saveQueue();
-    }
+        
+        window.saveQueue(); // Simpan sisa antrean ke LocalStorage
 
-    // Notifikasi
-    if (metode === 'Tunai' && uangBayar > totalB) {
-        alert(`✅ LUNAS!\nKembalian: Rp ${(uangBayar - totalB).toLocaleString('id-ID')}`);
-    } else if (metode === 'Hutang') {
-        alert(`📒 HUTANG TERCATAT!\nTotal: Rp ${totalB.toLocaleString('id-ID')}\nDP: Rp ${uangBayar.toLocaleString('id-ID')}\nSisa: Rp ${(totalB - uangBayar).toLocaleString('id-ID')}`);
+        // 10. NOTIFIKASI AKHIR
+        if (metode === 'Hutang') {
+            alert(`📒 HUTANG DICATAT!\nPelanggan: ${pelangganNama}\nSisa: Rp ${(totalB - uangBayar).toLocaleString('id-ID')}`);
+        } else {
+            const kembalian = uangBayar - totalB;
+            if (kembalian > 0) {
+                alert(`✅ LUNAS!\nKembalian: Rp ${kembalian.toLocaleString('id-ID')}`);
+            } else {
+                alert("✅ TRANSAKSI BERHASIL!");
+            }
+        }
+
+    } catch (error) {
+        console.error("Bug Eksekusi Bayar:", error);
+        alert("Terjadi kesalahan sistem: " + error.message);
     }
 };
 

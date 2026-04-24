@@ -1,15 +1,16 @@
 window.updateSyncUI = () => {
-    // Gunakan tanda ?. dan || [] supaya kalau undefined tidak crash
-    const barangCount = (window.offlineQueue?.barang || []).length;
-    const trxCount = (window.offlineQueue?.transaksi || []).length;
-    const delBarangCount = (window.offlineQueue?.hapus_barang || []).length;
-    const delTrxCount = (window.offlineQueue?.hapus_transaksi || []).length;
-    const shiftCount = (window.offlineQueue?.shift || []).length;
-    const plgCount = (window.offlineQueue?.pelanggan || []).length;
-    const hutangCount = (window.offlineQueue?.hutang || []).length;
-    const cicilanCount = (window.offlineQueue?.cicilan || []).length;
+    const q = window.offlineQueue || {};
+    const barangCount = (q.barang || []).length;
+    const trxCount = (q.transaksi || []).length;
+    const delBarangCount = (q.hapus_barang || []).length;
+    const delTrxCount = (q.hapus_transaksi || []).length;
+    const shiftCount = (q.shift || []).length;
+    const plgCount = (q.pelanggan || []).length;
+    const hutangCount = (q.hutang || []).length;
+    const cicilanCount = (q.cicilan || []).length;
+    const supCount = (q.supplier || []).length;
 
-    const totalCount = barangCount + trxCount + delBarangCount + delTrxCount + shiftCount + plgCount + hutangCount + cicilanCount;
+    const totalCount = barangCount + trxCount + delBarangCount + delTrxCount + shiftCount + plgCount + hutangCount + cicilanCount + supCount;
     
     const btn = document.getElementById('btn-download');
     if (!btn) return;
@@ -24,124 +25,134 @@ window.updateSyncUI = () => {
 };
 
 window.saveQueue = () => {
-        if(window.currentUid) {
-            localStorage.setItem(`poskita_offline_queue_${window.currentUid}`, JSON.stringify(window.offlineQueue));
-        }
-        window.updateSyncUI();
-    };
+    if(window.currentUid) {
+        localStorage.setItem(`poskita_offline_queue_${window.currentUid}`, JSON.stringify(window.offlineQueue));
+    }
+    window.updateSyncUI();
+};
 
 window.processOfflineQueue = async () => {
-    if (!navigator.onLine) return;
+    if (!navigator.onLine || !window.offlineQueue) return;
     
     const btn = document.getElementById('btn-download');
     if (btn) btn.innerText = "UPLOADING...";
 
-    // Pastikan objek offlineQueue ada agar tidak error .length
-    if (!window.offlineQueue) return;
-
     try {
-        // --- 1. PROSES PENGHAPUSAN (DELETE) ---
+        const uid = window.currentUid;
+
+        // --- 1. PROSES DELETE (Barang & Transaksi) ---
         if (window.offlineQueue.hapus_barang?.length > 0) {
             for (let id of [...window.offlineQueue.hapus_barang]) {
-                try {
-                    const { error } = await supabase.from('barang').delete().eq('id', id).eq('user_id', window.currentUid);
-                    if (!error) window.offlineQueue.hapus_barang = window.offlineQueue.hapus_barang.filter(i => i !== id);
-                } catch(e) { console.error("Gagal hapus barang cloud:", e); }
+                const { error } = await supabase.from('barang').delete().eq('id', id).eq('user_id', uid);
+                if (!error) window.offlineQueue.hapus_barang = window.offlineQueue.hapus_barang.filter(i => i !== id);
             }
         }
-
         if (window.offlineQueue.hapus_transaksi?.length > 0) {
             for (let id of [...window.offlineQueue.hapus_transaksi]) {
-                try {
-                    await supabase.from('transaksi_detail').delete().eq('transaksi_id', id).eq('user_id', window.currentUid);
-                    const { error } = await supabase.from('transaksi').delete().eq('id', id).eq('user_id', window.currentUid);
-                    if (!error) window.offlineQueue.hapus_transaksi = window.offlineQueue.hapus_transaksi.filter(i => i !== id);
-                } catch(e) { console.error("Gagal hapus transaksi cloud:", e); }
+                await supabase.from('transaksi_detail').delete().eq('transaksi_id', id).eq('user_id', uid);
+                const { error } = await supabase.from('transaksi').delete().eq('id', id).eq('user_id', uid);
+                if (!error) window.offlineQueue.hapus_transaksi = window.offlineQueue.hapus_transaksi.filter(i => i !== id);
             }
         }
 
-        // --- 2. PROSES UPDATE/INSERT (UPSERT) ---
+        // --- 2. PROSES UPSERT (Urutan Sangat Penting) ---
 
-       // Supplier (SINKRONISASI LEBIH AMAN)
-if (window.offlineQueue.supplier?.length > 0) {
-    // Mapping data untuk memastikan tidak ada field yang rusak/kosong
-    const finalData = window.offlineQueue.supplier.map(s => ({
-        id: String(s.id), 
-        nama: s.nama || '',
-        hp: s.hp || '',
-        alamat: s.alamat || '',
-        user_id: "51yX4BW2PKWA8cc1kujAr4Dm2bo1" // Pastikan ID ini string
-    }));
-
-    const { error } = await supabase
-        .from('supplier')
-        .upsert(finalData, { onConflict: 'id' });
-
-    if (!error) {
-        console.log("✅ Supplier berhasil disinkronkan ke Cloud");
-        window.offlineQueue.supplier = [];
-        // Jangan lupa simpan perubahan queue ke storage
-        localStorage.setItem('offlineQueue', JSON.stringify(window.offlineQueue));
-    } else {
-        console.error("❌ Masih Error:", error.message);
-    }
-}
-
-        // Barang
-        if (window.offlineQueue.barang?.length > 0) {
-            const { error } = await supabase.from('barang').upsert(window.offlineQueue.barang);
-            if (!error) window.offlineQueue.barang = []; 
-        }
-
-        // Pembelian (Induk)
-        if (window.offlineQueue.pembelian?.length > 0) {
-            const { error } = await supabase.from('pembelian').upsert(window.offlineQueue.pembelian);
-            if (!error) window.offlineQueue.pembelian = [];
-        }
-
-        // Pembelian Detail
-        if (window.offlineQueue.pembelian_detail?.length > 0) {
-            const { error } = await supabase.from('pembelian_detail').upsert(window.offlineQueue.pembelian_detail);
-            if (!error) window.offlineQueue.pembelian_detail = [];
-        }
-
-        // Pelanggan
+        // A. Pelanggan (Wajib Pertama)
+        // A. Pelanggan
         if (window.offlineQueue.pelanggan?.length > 0) {
-            const { error } = await supabase.from('pelanggan').upsert(window.offlineQueue.pelanggan);
+            const data = window.offlineQueue.pelanggan.map(p => ({ ...p, user_id: uid }));
+            const { error } = await supabase.from('pelanggan').upsert(data);
             if (!error) window.offlineQueue.pelanggan = []; 
         }
 
-        // Hutang
+        // B. Hutang (Kunci utama sinkronisasi sisa hutang)
         if (window.offlineQueue.hutang?.length > 0) {
-            const { error } = await supabase.from('hutang').upsert(window.offlineQueue.hutang);
+            const data = window.offlineQueue.hutang.map(h => ({
+                id: String(h.id),
+                pelanggan_id: String(h.pelanggan_id),
+                transaksi_id: Number(h.transaksi_id),
+                total: Number(h.total) || 0,
+                sisa: Number(h.sisa) || 0,
+                tanggal: String(h.tanggal),
+                user_id: uid
+            }));
+            const { error } = await supabase.from('hutang').upsert(data);
             if (!error) window.offlineQueue.hutang = []; 
         }
 
-        // Cicilan
+        // C. Cicilan
         if (window.offlineQueue.cicilan?.length > 0) {
-            const dataToPush = window.offlineQueue.cicilan.map(item => ({
-                id: item.id,
-                hutang_id: item.hutang_id,
-                jumlah: item.jumlah,
-                tanggal: item.tanggal,
-                user_id: window.currentUid 
+            const data = window.offlineQueue.cicilan.map(c => ({
+                id: String(c.id),
+                hutang_id: String(c.hutang_id),
+                jumlah: Number(c.jumlah) || 0,
+                tanggal: String(c.tanggal),
+                user_id: uid
             }));
-            const { error } = await supabase.from('cicilan').upsert(dataToPush);
+            const { error } = await supabase.from('cicilan').upsert(data);
             if (!error) window.offlineQueue.cicilan = []; 
         }
 
-        // Shift Kasir
-        if (window.offlineQueue.shift?.length > 0) {
-            const { error } = await supabase.from('shift_kasir').upsert(window.offlineQueue.shift);
-            if (!error) window.offlineQueue.shift = [];
+        // D. Supplier & Barang
+        if (window.offlineQueue.supplier?.length > 0) {
+            const data = window.offlineQueue.supplier.map(s => ({ ...s, user_id: uid }));
+            const { error } = await supabase.from('supplier').upsert(data);
+            if (!error) window.offlineQueue.supplier = [];
+        }
+        if (window.offlineQueue.barang?.length > 0) {
+            const data = window.offlineQueue.barang.map(b => ({ ...b, user_id: uid }));
+            const { error } = await supabase.from('barang').upsert(data);
+            if (!error) window.offlineQueue.barang = []; 
         }
 
-        // Transaksi Penjualan (Iterasi Satu per Satu via pushTransaksiToCloud)
+        // E. Kulakan (Pembelian)
+        if (window.offlineQueue.pembelian?.length > 0) {
+            await supabase.from('pembelian').upsert(window.offlineQueue.pembelian);
+            window.offlineQueue.pembelian = [];
+        }
+        if (window.offlineQueue.pembelian_detail?.length > 0) {
+            await supabase.from('pembelian_detail').upsert(window.offlineQueue.pembelian_detail);
+            window.offlineQueue.pembelian_detail = [];
+        }
+
+        // F. Shift
+        if (window.offlineQueue.shift?.length > 0) {
+            await supabase.from('shift_kasir').upsert(window.offlineQueue.shift);
+            window.offlineQueue.shift = [];
+        }
+
+        // G. Transaksi Penjualan (Terakhir)
         if (window.offlineQueue.transaksi?.length > 0) {
             let pendingTrx = [];
             for (let payload of window.offlineQueue.transaksi) {
                 try {
-                    await window.pushTransaksiToCloud(payload);
+                    // Buat fungsi push versi ringan khusus offline queue
+                    // agar tidak mengulangi update stok/hutang yang sudah diproses di bagian B & D
+                    const { error: trxErr } = await supabase.from('transaksi').upsert({
+                        id: payload.ts, 
+                        tanggal: payload.ts.toString(), 
+                        total: payload.totalB, 
+                        laba: payload.totalL, 
+                        metode_bayar: payload.metode,
+                        pelanggan_id: payload.pelanggan_id || null, 
+                        user_id: uid 
+                    });
+
+                    if (trxErr) throw trxErr;
+
+                    // Upload detailnya saja
+                    if (payload.cart?.length > 0) {
+                        const detailData = payload.cart.map((i, index) => ({
+                            id: (payload.ts + (index + 1)).toString(),
+                            transaksi_id: payload.ts, 
+                            barang_id: i.id, 
+                            qty: i.qty, 
+                            harga: Math.round(window.hitungSubtotalItem(i) / i.qty), 
+                            modal: i.modal, 
+                            user_id: uid 
+                        }));
+                        await supabase.from('transaksi_detail').upsert(detailData);
+                    }
                 } catch(e) { 
                     pendingTrx.push(payload); 
                 }
@@ -149,40 +160,92 @@ if (window.offlineQueue.supplier?.length > 0) {
             window.offlineQueue.transaksi = pendingTrx;
         }
 
-        // --- 3. FINISH ---
-        window.saveQueue(); // Simpan sisa antrean (jika ada yang gagal) ke LocalStorage
-        console.log("🚀 Background Sync Selesai");
+        window.saveQueue();
+        console.log("✅ Sinkronisasi Cloud Berhasil");
 
     } catch(e) {
-        console.error("Gagal sinkronisasi background:", e);
+        console.error("❌ Gagal total sinkronisasi:", e);
     } finally {
-        if (typeof window.updateSyncUI === 'function') {
-            window.updateSyncUI();
-        } else if (btn) {
-            btn.innerText = "ONLINE"; // Fallback jika fungsi UI tidak ada
-        }
+        if (typeof window.updateSyncUI === 'function') window.updateSyncUI();
+        if (btn) btn.innerText = "SINKRON";
     }
 };
 
 window.pushTransaksiToCloud = async (payload) => {
+    try {
+        const uid = payload.uid || window.currentUid;
+        
+        // 1. INDUK TRANSAKSI
         const { error: trxError } = await supabase.from('transaksi').upsert({
-            id: payload.ts, tanggal: payload.ts.toString(), total: payload.totalB, laba: payload.totalL, metode_bayar: payload.metode, user_id: payload.uid 
+            id: payload.ts, 
+            tanggal: payload.ts.toString(), 
+            total: payload.totalB, 
+            laba: payload.totalL, 
+            metode_bayar: payload.metode,
+            pelanggan_id: payload.pelanggan_id || null, 
+            user_id: uid 
         });
-        if(trxError) throw trxError;
+        if (trxError) throw trxError;
 
-        const detailData = payload.cart.map((i, index) => ({
-            id: payload.ts + index + 1, transaksi_id: payload.ts, barang_id: i.id, qty: i.qty, harga: i.harga, modal: i.modal, user_id: payload.uid 
-        }));
-        const { error: detError } = await supabase.from('transaksi_detail').upsert(detailData);
-        if(detError) throw detError;
+        // 2. LOGIKA HUTANG (INI YANG TADI HILANG!)
+        if (payload.metode === 'Hutang' && payload.pelanggan_id) {
+            // Kita ambil data hutang dari offlineQueue atau hitung ulang dari payload
+            const sisaHutang = payload.totalB - (window.uangBayarDiModal || 0); 
+            
+            // Simpan ke tabel Hutang di Cloud
+            const { error: hError } = await supabase.from('hutang').upsert({
+                id: "H-" + payload.ts,
+                pelanggan_id: payload.pelanggan_id,
+                transaksi_id: payload.ts,
+                total: payload.totalB,
+                sisa: sisaHutang,
+                tanggal: payload.ts.toString(),
+                user_id: uid
+            });
+            if (hError) throw hError;
 
-        for (let i of payload.cart) {
-            const {data: currentData} = await supabase.from('barang').select('stok').eq('id', i.id).eq('user_id', payload.uid).single();
-            if(currentData) {
-                await supabase.from('barang').update({stok: currentData.stok - i.qty}).eq('id', i.id).eq('user_id', payload.uid);
+            // Update saldo di tabel Pelanggan Cloud agar sinkron
+            const { data: pData } = await supabase.from('pelanggan').select('total_hutang, sisa_hutang').eq('id', payload.pelanggan_id).single();
+            if (pData) {
+                await supabase.from('pelanggan').update({
+                    total_hutang: (pData.total_hutang || 0) + payload.totalB,
+                    sisa_hutang: (pData.sisa_hutang || 0) + sisaHutang
+                }).eq('id', payload.pelanggan_id);
             }
         }
-    };
+
+        // 3. DETAIL TRANSAKSI
+        if (payload.cart && payload.cart.length > 0) {
+            const detailData = payload.cart.map((i, index) => {
+                const sub = window.hitungSubtotalItem(i);
+                return {
+                    id: (payload.ts + (index + 1)).toString(),
+                    transaksi_id: payload.ts, 
+                    barang_id: i.id, 
+                    qty: i.qty, 
+                    harga: Math.round(sub / i.qty), 
+                    modal: i.modal, 
+                    user_id: uid 
+                };
+            });
+            const { error: detError } = await supabase.from('transaksi_detail').upsert(detailData);
+            if (detError) throw detError;
+        }
+
+        // 4. UPDATE STOK CLOUD
+        for (let i of payload.cart) {
+            const { data } = await supabase.from('barang').select('stok').eq('id', i.id).eq('user_id', uid).single();
+            if (data) {
+                await supabase.from('barang').update({ stok: data.stok - i.qty }).eq('id', i.id).eq('user_id', uid);
+            }
+        }
+        
+        console.log("✅ Push Transaksi & Hutang ke Cloud Sukses!");
+    } catch (error) {
+        console.error("Gagal pushTransaksiToCloud:", error.message);
+        throw error;
+    }
+};
 
 window.sinkronSupplierDariCloud = async () => {
     console.log("🔄 Memulai sinkronisasi supplier dari Supabase...");
