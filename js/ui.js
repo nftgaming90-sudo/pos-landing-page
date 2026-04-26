@@ -1,4 +1,5 @@
 window.isKritisMode = false; // Defaultnya mode normal
+window.pelangganList = [];
 const updateTime = () => {
         const now = new Date();
         const dateOpts = { day: 'numeric', month: 'short', year: 'numeric' };
@@ -267,19 +268,28 @@ window.hitungTotalKulakan = () => {
 };
 
 window.renderPelangganSelect = () => {
-        if(!window.db) return;
-        const res = window.db.exec("SELECT id, nama FROM pelanggan ORDER BY nama ASC");
-        const select = document.getElementById('select-pelanggan');
-        if(!select) return;
+    if (!window.db) return;
+    
+    // Ambil data terbaru dari DB
+    const res = window.db.exec("SELECT id, nama FROM pelanggan ORDER BY nama ASC");
+    const select = document.getElementById('select-pelanggan');
+    if (!select) return;
 
-        let options = '<option value="">-- Pelanggan Umum --</option>';
-        if(res.length > 0) {
-            res[0].values.forEach(row => {
-                options += `<option value="${row[0]}">${row[1]}</option>`;
-            });
-        }
-        select.innerHTML = options;
-    };
+    let options = '<option value="">-- Pelanggan Umum --</option>';
+    if (res.length > 0) {
+        res[0].values.forEach(row => {
+            options += `<option value="${row[0]}">${row[1]}</option>`;
+        });
+    }
+    select.innerHTML = options;
+    
+    // 🔥 PENTING: Setelah <select> diupdate, langsung paksa sync ke list dropdown
+    if (typeof window.syncPelangganDariSelect === 'function') {
+        window.syncPelangganDariSelect();
+    }
+    
+    console.log("✅ Select & List Pelanggan Berhasil Disinkronkan");
+};
 
 window.renderHutang = (sortBy = 'baru') => {
     if (!window.db) return;
@@ -502,40 +512,51 @@ const qCicil = `
 
         tbody.innerHTML = dataArray.map(row => `
             <tr class="tr-item border-b border-slate-50 last:border-0 hover:bg-slate-50">
-                <td class="p-3 md:p-4 pl-4 md:pl-5 min-w-[120px]">
-                    <p class="font-bold text-slate-700 text-xs md:text-sm capitalize whitespace-normal break-words line-clamp-2 leading-tight">
-                        ${row[0]}
-                    </p>
-                    <p class="text-[10px] md:text-xs text-blue-600 font-bold mt-1">Rp ${row[2].toLocaleString('id-ID')}</p>
-                </td>
+                <td class="p-3 md:p-4 pl-4 md:pl-5" style="width: 50%;">
+    <p class="font-bold text-slate-700 text-xs md:text-sm capitalize break-words leading-tight" 
+       style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
+        ${row[0]}
+    </p>
+    <p class="text-[10px] md:text-xs text-blue-600 font-bold mt-1">Rp ${row[2].toLocaleString('id-ID')}</p>
+</td>
                 <td class="p-3 md:p-4 text-center whitespace-nowrap">
                     <span class="px-2.5 md:px-3 py-1 rounded-full text-[9px] md:text-[10px] font-black shadow-sm border ${row[1] < 5 ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}">
                         ${row[1]}
                     </span>
                 </td>
-                <td class="p-3 md:p-4 pr-3 md:pr-4 text-right whitespace-nowrap">
-                    <div class="flex items-center justify-end gap-1.5 md:gap-2">
-                        <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
-                            <button onclick="window.minQty('qty-${row[4]}')" class="w-7 h-7 md:w-8 md:h-8 bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 font-black">-</button>
-                            <input id="qty-${row[4]}" type="number" value="1" min="1" max="${row[1]}" class="w-8 md:w-10 h-7 md:h-8 text-center text-[10px] md:text-xs font-black outline-none text-slate-700 bg-white">
-                            <button onclick="window.plusQty('qty-${row[4]}', ${row[1]})" class="w-7 h-7 md:w-8 md:h-8 bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 font-black">+</button>
-                        </div>
-                        <button onclick="window.addQtyToCart('${row[4]}', '${row[0].replace(/'/g, "\\'")}', ${row[2]}, ${row[1]}, ${row[3]}, 'qty-${row[4]}')" class="w-8 h-8 md:w-9 md:h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center shadow-sm transition-transform active:scale-90 border border-blue-700">
-                            <span class="text-xs md:text-sm">🛒</span>
-                        </button>
-                    </div>
-                </td>
+                <td class="p-2 text-right" style="width: 33%;">
+    <div class="flex items-center justify-end gap-1.5" style="height: 32px;">
+        
+        <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm" style="height: 32px;">
+            <button onclick="window.minQty('qty-${row[4]}')" 
+                    class="w-8 h-full flex items-center justify-center text-slate-500 font-black active:bg-slate-100">-</button>
+            
+            <input id="qty-${row[4]}" type="number" value="1" readonly
+                   class="w-7 h-full text-center text-[11px] font-extrabold outline-none border-x border-slate-50 text-slate-700 bg-slate-50/30">
+            
+            <button onclick="window.plusQty('qty-${row[4]}', ${row[1]})" 
+                    class="w-8 h-full flex items-center justify-center text-slate-500 font-black active:bg-slate-100">+</button>
+        </div>
+
+        <button onclick="window.addQtyToCart('${row[4]}', '${row[0].replace(/'/g, "\\'")}', ${row[2]}, ${row[1]}, ${row[3]}, 'qty-${row[4]}')" 
+                class="bg-blue-600 text-white rounded-xl flex items-center justify-center shadow-md active:scale-90 transition-transform"
+                style="width: 32px; height: 32px; min-width: 32px; border: none;">
+            <span style="font-weight: 800; font-size: 20px; line-height: 1;">+</span>
+        </button>
+        
+    </div>
+</td>
             </tr>`).join('');
     };
 
 window.renderStokTable = (dataArray) => {
     const tbody = document.getElementById('stok-table-body');
+    if (!tbody) return;
 
     tbody.innerHTML = dataArray.map(row => {
-
         const stok = parseInt(row[1]) || 0;
 
-        // 🔥 LOGIC INDIKATOR
+        // 🔥 LOGIC INDIKATOR (Punya Mas tetap utuh)
         let badgeClass = "bg-emerald-50 text-emerald-600";
         let label = stok;
 
@@ -564,7 +585,6 @@ window.renderStokTable = (dataArray) => {
                 </div>
             </td>
 
-            <!-- 🔥 INDIKATOR STOK -->
             <td class="p-3 text-center">
                 <span class="px-2 py-1 rounded-full text-[9px] font-black ${badgeClass}">
                     ${label}
@@ -573,18 +593,26 @@ window.renderStokTable = (dataArray) => {
 
             <td class="p-3 pr-4 text-right">
                 <div class="flex justify-end gap-2">
-                    <button onclick="window.tambahKeKulakan('${row[4]}')" class="bg-orange-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase shadow-sm active:scale-90 transition-all">
-                        + KULAK
-                    </button>
-                    <button onclick="window.openEditModal('${row[4]}','${row[0]}',${row[1]},${row[2]},${row[3]},'${row[5]}')" class="p-1.5 bg-slate-100 text-slate-500 rounded-lg">
+                    ${window.isKritisMode ? `
+                        <button onclick="window.tambahKeKulakan('${row[4]}')" 
+                                class="bg-orange-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase shadow-sm active:scale-90 transition-all">
+                            + KULAK
+                        </button>
+                    ` : ''}
+                    
+                    <button onclick="window.openEditModal('${row[4]}','${row[0]}',${row[1]},${row[2]},${row[3]},'${row[5]}')" 
+                            class="p-1.5 bg-slate-100 text-slate-500 rounded-lg">
                         ✏️
                     </button>
                 </div>
             </td>
         </tr>
         `;
-
     }).join('');
+
+    // Update counter text (Opsional biar tetep sinkron)
+    const counter = document.getElementById('stok-counter');
+    if (counter) counter.innerText = `${dataArray.length} Item Tersedia`;
 };
 
 window.renderKategoriSelect = () => {
@@ -629,37 +657,35 @@ window.renderCategoryTabs = () => {
     if (!window.db) return;
     
     try {
-        // Ambil kategori UNIK yang benar-benar ada di tabel barang
         const resBarang = window.db.exec("SELECT DISTINCT kategori FROM barang WHERE kategori IS NOT NULL AND kategori != ''");
-        
-        // Mulai dengan kategori default
         let kategoriList = ["Semua"];
         
         if (resBarang.length > 0) {
             resBarang[0].values.forEach(row => {
-                if (row[0] !== "Semua") {
-                    kategoriList.push(row[0]);
-                }
+                if (row[0] !== "Semua") kategoriList.push(row[0]);
             });
         }
 
-        // Render ke dua tempat (Kasir & Stok)
         const containers = ['filter-kategori-kasir', 'filter-kategori-stok'];
         containers.forEach(containerId => {
             const el = document.getElementById(containerId);
             if (!el) return;
 
+            // 🔥 Kita pastikan overflow-x-auto ada biar BISA DIGESER
+            // 🔥 Kita kasih px-4 biar tombol paling kiri & kanan ada jarak (nggak kepotong)
+            el.className = "flex gap-2 overflow-x-auto hide-scrollbar py-2 px-4 items-center";
+
             el.innerHTML = kategoriList.map(kat => {
                 const isActive = window.currentCategoryFilter === kat;
                 return `
-                    <button onclick="window.applyCategoryFilter('${kat.replace(/'/g, "\\'")}')" 
-                        class="shrink-0 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all border
-                        ${isActive 
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-md scale-105' 
-                            : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50 shadow-sm'}">
-                        ${kat}
-                    </button>
-                `;
+    <button onclick="window.applyCategoryFilter('${kat.replace(/'/g, "\\'")}')" 
+        class="shrink-0 px-4 py-0 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all
+        ${isActive 
+            ? 'bg-blue-600 text-white border-blue-600 shadow-md' 
+            : 'bg-white text-slate-500 border-slate-200'}">
+        ${kat}
+    </button>
+`;
             }).join('');
         });
     } catch (e) {
@@ -888,102 +914,87 @@ if (inputStok) {
     });
 
 document.addEventListener("DOMContentLoaded", () => {
-
     const input = document.getElementById("input-pelanggan");
     const dropdown = document.getElementById("dropdown-pelanggan");
     const select = document.getElementById("select-pelanggan");
 
-    let pelangganList = [];
+    // 1. Fungsi Sinkronisasi (Jadikan Global agar bisa dipanggil fungsi simpan)
+    window.syncPelangganDariSelect = () => {
+        window.pelangganList = [];
+        const options = document.querySelectorAll("#select-pelanggan option");
+        options.forEach(opt => {
+            if (opt.value !== "") {
+                window.pelangganList.push({
+                    id: opt.value,
+                    nama: opt.textContent
+                });
+            }
+        });
+        console.log("🔄 List Pelanggan Berhasil Diperbarui");
+    };
 
-    // 🔥 ambil data dari select lama (AMAN)
-    function syncPelangganDariSelect() {
-    pelangganList = [];
-
-    const options = document.querySelectorAll("#select-pelanggan option");
-
-    options.forEach(opt => {
-        if (opt.value !== "") { // skip "Pelanggan Umum"
-            pelangganList.push({
-                id: opt.value,
-                nama: opt.textContent
-            });
+    // 2. Load Keranjang saat Refresh
+    if (window.currentUid) {
+        const savedCart = localStorage.getItem(`poskita_cart_${window.currentUid}`);
+        if (savedCart) {
+            window.cart = JSON.parse(savedCart);
+            setTimeout(() => window.renderCart(), 500); 
         }
+    }
+
+    // 3. Event Focus Input
+    input.addEventListener("focus", () => {
+        input.value = ""; 
+        select.value = ""; 
+
+        // 🔥 KUNCINYA: Jika list kosong (habis simpan baru atau baru refresh), tarik data
+        if (window.pelangganList.length === 0) {
+            window.syncPelangganDariSelect();
+        }
+
+        renderDropdown(window.pelangganList);
+        dropdown.classList.remove("hidden");
     });
 
-    // 🔥 LOAD DATA KERANJANG SAAT REFRESH
-if (window.currentUid) {
-    const savedCart = localStorage.getItem(`poskita_cart_${window.currentUid}`);
-    if (savedCart) {
-        window.cart = JSON.parse(savedCart);
-        // Langsung panggil render agar Floating Bar & Badge muncul jika ada isinya
-        setTimeout(() => window.renderCart(), 500); 
-    }
-}
-
-    
-}
-
-    // tampil dropdown saat klik
-    // 🔥 jalan sekali aja
-input.addEventListener("focus", () => {
-
-input.value = ""; // <--- TAMBAHKAN INI: Begitu diklik langsung kosong
-        select.value = ""; // Reset juga ID-nya biar aman
-
-    // 🔥 kalau belum ada data, baru ambil
-    if (pelangganList.length === 0) {
-        syncPelangganDariSelect();
-    }
-
-    renderDropdown(pelangganList);
-    dropdown.classList.remove("hidden");
-});
-
-    // filter saat ngetik
+    // 4. Filter Input (Masih pakai logic Mas, sudah oke)
     let timeout;
+    input.addEventListener("input", () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            const keyword = input.value.toLowerCase();
+            const filtered = window.pelangganList.filter(p =>
+                p.nama.toLowerCase().includes(keyword)
+            );
+            renderDropdown(filtered);
+        }, 100);
+    });
 
-input.addEventListener("input", () => {
-    clearTimeout(timeout);
-
-    timeout = setTimeout(() => {
-        const keyword = input.value.toLowerCase();
-        const filtered = pelangganList.filter(p =>
-            p.nama.toLowerCase().includes(keyword)
-        );
-        renderDropdown(filtered);
-    }, 100); // delay dikit biar ringan
-});
-
+    // 5. Render Dropdown (Pakai window.pelangganList)
     function renderDropdown(list) {
-    dropdown.innerHTML = "";
-
-    if (list.length === 0) {
-        dropdown.innerHTML = `<div class="p-2 text-slate-400">Tidak ditemukan</div>`;
-        return;
-    }
-
-    // 🔥 batasi cuma 20 biar ringan
-    list.slice(0, 20).forEach(p => {
+        dropdown.innerHTML = "";
+        if (list.length === 0) {
+            dropdown.innerHTML = `<div class="p-2 text-slate-400">Tidak ditemukan</div>`;
+            return;
+        }
+        list.slice(0, 20).forEach(p => {
             const item = document.createElement("div");
-            item.className = "p-2 hover:bg-blue-50 cursor-pointer";
+            item.className = "p-2 hover:bg-blue-50 cursor-pointer text-xs font-bold uppercase";
             item.innerText = p.nama;
-
             item.onclick = () => {
                 input.value = p.nama;
-                select.value = p.id; // 🔥 ini jaga flow lama
+                select.value = p.id;
                 dropdown.classList.add("hidden");
             };
-
             dropdown.appendChild(item);
         });
     }
 
+    // 6. Klik Luar untuk Tutup
     document.addEventListener("click", (e) => {
         if (!input.contains(e.target) && !dropdown.contains(e.target)) {
             dropdown.classList.add("hidden");
         }
     });
-
 });
 
 window.currentReportFilter = 'hari_ini';
@@ -1035,36 +1046,70 @@ window.renderRekomendasiKulakan = () => {
 };
 
 window.filterStokKritis = () => {
-    // 1. Ambil data yang stoknya cuma 0 sampai 5
+    window.isKritisMode = true; 
+    window.isFilterKritis = true; 
+    
+    // 🔥 Ambil data kritis dulu (0-5)
     const dataKritis = window.masterData.filter(item => (parseInt(item[1]) || 0) <= 5);
     
-    // 2. Render ke tabel stok
+    // 🔥 Kirim dataKritis ke fungsi render (Jangan kosong!)
     window.renderStokTable(dataKritis);
 
-    // 3. Ubah teks counter biar user gak bingung
-    const stokCounter = document.getElementById('stok-counter');
-    if (stokCounter) {
-        stokCounter.innerHTML = `
-            <div class="flex items-center gap-2">
-                <span class="text-rose-600">Menampilkan ${dataKritis.length} Barang Kritis</span>
-                <button onclick="window.refreshDataUI()" class="text-[8px] bg-slate-200 px-2 py-0.5 rounded text-slate-600 uppercase font-black">Reset</button>
+    const indicator = document.getElementById('kritis-indicator');
+    if (indicator) {
+        indicator.innerHTML = `
+            <div class="mt-3 flex items-center justify-between bg-rose-600 text-white px-4 py-2 rounded-xl shadow-lg border border-rose-500">
+                <span class="text-[10px] font-black uppercase tracking-wider">⚠️ Mode Kulakan Kritis</span>
+                <button onclick="window.resetFilterStok()" 
+                        class="bg-white/20 hover:bg-white text-white hover:text-rose-600 text-[9px] font-black px-3 py-1.5 rounded-lg transition-all active:scale-90">
+                    KEMBALI
+                </button>
             </div>
         `;
     }
+
+    // Pindah ke halaman stok
+    document.querySelectorAll('.page-content').forEach(p => p.classList.remove('page-active'));
+    document.getElementById('menu-stok').classList.add('page-active');
 };
 
-window.filterStokKritis = () => {
-    window.isKritisMode = true; // Aktifkan mode filter
-    
-    const dataKritis = window.masterData.filter(item => (parseInt(item[1]) || 0) <= 5);
-    window.renderStokTable(dataKritis);
+window.resetFilterStok = () => {
+    // 1. Matikan saklar mode kulakan & filter
+    window.isKritisMode = false;
+    window.isFilterKritis = false;
 
-    const stokCounter = document.getElementById('stok-counter');
-    if (stokCounter) {
-        stokCounter.innerHTML = `
-            <div class="flex items-center gap-2">
-                <span class="text-rose-600 font-bold">Mode Kulakan (${dataKritis.length} Item)</span>
-                <button onclick="window.resetFilterStok()" class="text-[9px] bg-slate-800 px-2 py-1 rounded text-white font-black shadow-sm">KEMBALI</button>
+    // 2. Bersihkan indikator badge merah/biru di atas
+    const indicator = document.getElementById('kritis-indicator');
+    if (indicator) {
+        indicator.innerHTML = '';
+    }
+
+    // 3. 🔥 RENDER ULANG: Kirim data master agar tombol +KULAK hilang
+    // Karena isKritisMode sudah false, tombol oranye otomatis gak bakal digambar
+    if (typeof window.renderStokTable === 'function') {
+        window.renderStokTable(window.masterData);
+    }
+    
+    // 4. (Opsional) Balikin scroll ke atas biar rapi
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.aktifkanModeBelanja = () => {
+    window.isKritisMode = true;
+    window.isFilterKritis = false;
+    
+    // 🔥 Kirim SEMUA data ke tabel
+    window.renderStokTable(window.masterData);
+
+    const indicator = document.getElementById('kritis-indicator');
+    if (indicator) {
+        indicator.innerHTML = `
+            <div class="mt-3 flex items-center justify-between bg-blue-600 text-white px-4 py-2 rounded-xl shadow-lg border border-blue-500">
+                <span class="text-[10px] font-black uppercase tracking-wider">🛒 Mode Belanja Aktif</span>
+                <button onclick="window.resetFilterStok()" 
+                        class="bg-white/20 hover:bg-white text-white hover:text-blue-600 text-[9px] font-black px-3 py-1.5 rounded-lg transition-all active:scale-90">
+                    SELESAI
+                </button>
             </div>
         `;
     }
@@ -1239,4 +1284,47 @@ window.previewHutangImage = (hutangId) => {
             alert("Gagal memproses gambar.");
         }
     };
+};
+
+window.simpanPelangganBaru = async () => {
+    if (!window.db) return alert("Database belum siap!");
+
+    const nama = document.getElementById('input-nama-pelanggan').value;
+    const hp = document.getElementById('input-hp-pelanggan').value;
+
+    if (!nama) return alert("Nama pelanggan wajib diisi!");
+
+    const id = "P-" + Date.now();
+
+    try {
+        // 1. Simpan ke SQLite Lokal
+        window.db.run("INSERT INTO pelanggan (id, nama, hp, total_hutang, sisa_hutang) VALUES (?,?,?,?,?)", 
+                      [id, nama, hp, 0, 0]);
+
+        // 🔥 2. RESET LIST PELANGGAN (KUNCI UTAMA)
+        // Dengan mengosongkan ini, dropdown dipaksa sinkron ulang saat di-klik nanti
+        window.pelangganList = []; 
+
+        // 3. Update UI Select agar option-nya bertambah
+        window.renderPelangganSelect();
+        
+        // 4. Otomatis pilih pelanggan yang baru dibuat di layar Kasir
+        const inputPlg = document.getElementById('input-pelanggan');
+        const selectPlg = document.getElementById('select-pelanggan');
+        if(inputPlg) inputPlg.value = nama;
+        if(selectPlg) selectPlg.value = id;
+
+        // 5. Bersihkan form & Tutup Modal
+        document.getElementById('input-nama-pelanggan').value = "";
+        document.getElementById('input-hp-pelanggan').value = "";
+        document.getElementById('modal-tambah-pelanggan').classList.add('hidden');
+
+        // 6. Sinkronisasi Cloud (biarkan jalan di background)
+        if (navigator.onLine) window.processOfflineQueue();
+
+        alert(`✅ Pelanggan "${nama}" berhasil disimpan!`);
+
+    } catch (err) {
+        console.error("Gagal simpan pelanggan:", err);
+    }
 };

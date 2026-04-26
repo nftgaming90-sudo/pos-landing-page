@@ -1,0 +1,72 @@
+/* ========================================= */
+/* 💻 PC LAYOUT (Desktop & Tablet Landscape) */
+/* ========================================= */
+@media (min-width: 769px) {
+    
+    /* 1. Reset Ruang Kosong dari HP */
+    main, .main-content, .page-content {
+        padding-bottom: 0 !important; /* Hapus padding ekstra navbar bawah dari HP */
+    }
+
+    /* 2. Navigasi Pindah ke Atas */
+    nav {
+        background: #1e3a8a !important;
+        height: 65px !important;
+        display: flex !important;
+        border: none !important;
+        position: relative !important;
+    }
+
+    .nav-btn {
+        color: #93c5fd !important;
+        background: transparent !important;
+        border-bottom: 4px solid transparent !important;
+        height: 100% !important;
+        border-radius: 0 !important;
+    }
+
+    .nav-active {
+        color: #ffffff !important;
+        border-bottom: 4px solid #ffffff !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* 3. Layout Flex Kiri-Kanan (Kasir & Stok) */
+    #menu-kasir, #menu-stok {
+        display: flex !important;
+        flex-direction: row !important;
+        height: 100% !important; /* Flexbox Body & Main yang handle, jauh lebih aman dari calc() */
+        gap: 16px !important;
+        padding: 16px !important;
+        overflow: hidden !important; /* Induk HARUS hidden agar tidak ada double scroll */
+        box-sizing: border-box;
+    }
+
+    /* 4. Aside Keranjang / Kulakan Tetap di Kanan */
+    #cart-section, #kulakan-section { 
+        position: relative !important;
+        transform: translateX(0) !important; /* Override animasi drawer sembunyi dari HP */
+        width: 380px !important; /* Lebar mantap untuk layar PC */
+        max-width: 380px !important;
+        height: 100% !important;
+        border-radius: 1rem !important;
+        flex-shrink: 0 !important; /* Biar gak gepeng kesenggol ukuran tabel */
+    }
+
+    /* 5. Kembalikan Padding Normal untuk Footer Cart/Kulakan di PC */
+    #kulakan-section > div:last-child, 
+    #cart-section > div:last-child {
+        padding: 16px !important; /* Hapus gap 75px (yang khusus buat navbar HP) */
+    }
+
+    .rounded-btn {
+        border-radius: 12px !important; 
+    }
+
+    /* 6. Biarkan Tabel Mengisi Ruang Secara Otomatis */
+    .overflow-x-auto {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        max-height: none !important; /* Reset agar Flex yang membatasi otomatis ujung bawahnya */
+    }
+}

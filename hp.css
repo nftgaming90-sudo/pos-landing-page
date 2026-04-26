@@ -1,0 +1,79 @@
+/* ========================================= */
+/* 📱 MOBILE (HP) */
+/* ========================================= */
+@media (max-width: 768px) {
+    .page-active {
+        display: flex !important;
+        flex-direction: column;
+        height: 100dvh !important; /* Pakai dvh agar presisi saat address bar HP muncul/hilang */
+        overflow: hidden !important; /* Induk tetap diam */
+    }
+
+    /* Kunci Aside HP (Keranjang & Kulakan) jadi Drawer Mulus */
+    #kulakan-section, #cart-section {
+        position: fixed !important; 
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100dvh !important; 
+        z-index: 900 !important; /* Muncul di atas Navbar (z-50) */
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transisi lebih mulus dan native */
+        border-radius: 0 !important;
+    }
+
+    #kulakan-section.active, #cart-section.active { 
+        transform: translateX(0); 
+    }
+    
+    /* Area Scroll Keranjang (Barang & Form Bayar) */
+    #cart-section > .overflow-y-auto {
+        padding-bottom: 20px !important; /* Ruang napas sebelum masuk footer bayar */
+    }
+
+    /* Footer Drawer (Tombol Bayar / Update Stok) */
+    #kulakan-section > div:last-child, 
+    #cart-section > div:last-child {
+        flex-shrink: 0 !important;
+        background: white !important;
+        /* Atas 16px, Kiri-Kanan 16px, Bawah 75px */
+        /* Memastikan tombol aman dari Navbar bawah dan "Home Bar" garis di iPhone */
+        padding: 16px 16px 75px 16px !important; 
+    }
+
+    .rounded-btn {
+        border-radius: 12px !important; 
+    }
+
+    /* Area Konten Utama */
+    main, .main-content, .page-content {
+        flex: 1 !important; /* Ambil sisa ruang yang ada */
+        overflow-y: auto !important; /* Aktifkan scroll vertikal */
+        overflow-x: hidden !important; /* Jangan kasih scroll kiri-kanan */
+        -webkit-overflow-scrolling: touch; /* Biar scroll-nya licin di iPhone */
+        padding-bottom: 100px !important; /* Kasih ruang ekstra biar gak ketutup navbar biru */
+    }
+
+    .overflow-x-auto {
+        overflow-x: auto !important; /* Biar tabel bisa geser kiri kanan kalau lebar */
+        overflow-y: visible !important; /* Biar scroll vertikalnya ikut induk (main) */
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Navigasi HP (Navbar Bawah) */
+    .nav-btn { 
+        color: #94a3b8 !important; 
+        border: none !important; 
+    }
+    
+    .nav-active { 
+        color: #ffffff !important; 
+        background: rgba(255,255,255,0.15) !important; 
+        border-radius: 12px; 
+    }
+
+    /* Tabel Mobile Kasir (Opsional jika diterapkan) */
+    #table-kasir td:nth-child(1) { width: 55% !important; }
+    #table-kasir td:nth-child(2) { width: 12% !important; }
+    #table-kasir td:nth-child(3) { width: 33% !important; }
+}
