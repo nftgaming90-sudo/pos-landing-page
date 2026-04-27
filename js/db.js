@@ -102,20 +102,31 @@ window.startAutoSync = async () => {
             console.log("☁️ Menarik data terbaru dari Cloud...");
 
             const tables = ['barang', 'pelanggan', 'hutang', 'transaksi', 'transaksi_detail', 'shift_kasir', 'supplier', 'cicilan', 'kategori'];
+
+            window.db.run("DELETE FROM supplier");
+            window.db.run("DELETE FROM pelanggan");
             
             for (const table of tables) {
                 const { data, error } = await supabase.from(table).select('*').eq('user_id', window.currentUid);
                 if (!error && data) {
                     data.forEach(item => {
                         if (table === 'supplier') {
-                            window.db.run("INSERT OR REPLACE INTO supplier (id, nama, kontak, alamat) VALUES (?,?,?,?)", 
-                            [item.id, item.nama, item.hp || item.kontak, item.alamat]);
-                        } else {
-                            const keys = Object.keys(item).filter(k => k !== 'user_id' && k !== 'created_at');
-                            const placeholders = keys.map(() => "?").join(",");
-                            const values = keys.map(k => item[k]);
-                            window.db.run(`INSERT OR REPLACE INTO ${table} (${keys.join(",")}) VALUES (${placeholders})`, values);
-                        }
+                        window.db.run("INSERT OR REPLACE INTO supplier (id, nama, kontak, alamat) VALUES (?,?,?,?)", 
+                        [item.id, item.nama, item.kontak || item.hp || '-', item.alamat || '-']);
+                    } 
+                    else if (table === 'pelanggan') {
+                        window.db.run("INSERT OR REPLACE INTO pelanggan (id, nama, hp, total_hutang, sisa_hutang) VALUES (?,?,?,?,?)", 
+                        [item.id, item.nama, item.hp || '-', item.total_hutang || 0, item.sisa_hutang || 0]);
+                    }
+                    else {
+                        // Untuk tabel lain, kita ambil kolom yang HANYA ada di SQLite lokal saja
+                        // Biar gak error kalau di Cloud ada kolom 'user_id' atau 'created_at'
+                        const keys = Object.keys(item).filter(k => k !== 'user_id' && k !== 'created_at');
+                        const placeholders = keys.map(() => "?").join(",");
+                        const values = keys.map(k => item[k]);
+                        
+                        window.db.run(`INSERT OR REPLACE INTO ${table} (${keys.join(",")}) VALUES (${placeholders})`, values);
+                    }
                     });
                 }
             }

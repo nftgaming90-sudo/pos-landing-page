@@ -74,6 +74,8 @@ const updateTime = () => {
 
     // 7. TRIGGER DATA PER HALAMAN
     if (pageId === 'stok') {
+        if (typeof window.renderSelectSupplier === 'function') window.renderSelectSupplier();
+
         if (window.isKritisMode) {
             window.filterStokKritis();
         } else {
@@ -107,6 +109,7 @@ window.tutupKulakan = () => {
 window.bukaHalamanKulakan = () => {
     document.getElementById('tabel-stok-utama').classList.add('hidden');
     document.getElementById('area-kulakan').classList.remove('hidden');
+    window.renderSelectSupplier();
     window.renderListPilihKulakan(); // <--- Panggil ini biar list muncul
 };
 
@@ -167,26 +170,27 @@ window.closeModal = () => document.getElementById('modal-barang').classList.add(
     document.getElementById('modal-barang').classList.remove('hidden');
 };
 
-    // --- FUNGSI RENDER (Pastikan ini yang terbaru) ---
-window.renderSelectSupplier = () => {
+    window.renderSelectSupplier = () => {
     const selectSup = document.getElementById('select-supplier');
-    if (!selectSup) return;
+    if (!selectSup || !window.db) return;
 
-    // Ambil data terbaru dari SQLite lokal
     const res = window.db.exec("SELECT id, nama FROM supplier ORDER BY nama ASC");
-    
     let html = '<option value="">-- Pilih Supplier --</option>';
     
     if (res.length > 0 && res[0].values) {
-        const rows = res[0].values;
-        rows.forEach(row => {
-            // row[0] = id, row[1] = nama
+        res[0].values.forEach(row => {
             html += `<option value="${row[0]}">${row[1]}</option>`;
         });
     }
-    
     selectSup.innerHTML = html;
-    console.log("🔄 Dropdown Supplier di-refresh dari SQLite");
+
+    // AKTIFKAN SMART DROPDOWN
+    window.initSmartDropdown({
+        selectId: 'select-supplier',
+        table: 'supplier', // ✨ Cukup kasih tahu nama tabelnya
+        placeholder: '🔍 Cari Supplier...',
+        onSyncSuccess: () => window.renderSelectSupplier() // Render ulang pasca perubahan
+    });
 };
 
 // Fungsi untuk menampilkan daftar barang yang bisa dipilih pas mau kulakan
@@ -260,6 +264,60 @@ if (window.cartKulakan.length > 0 && currentPage === 'menu-stok') {
     }
 };
 
+window.renderRiwayatKulakan = () => {
+    // Pastikan ID ini ada di modal riwayat Mas
+    const container = document.getElementById('riwayat-kulakan-body'); 
+    if (!container || !window.db) return;
+
+    // Ambil data riwayat dari SQLite lokal
+    const res = window.db.exec(`
+        SELECT p.id, p.tanggal, p.total, p.status, s.nama 
+        FROM pembelian p
+        LEFT JOIN supplier s ON p.supplier_id = s.id
+        ORDER BY p.tanggal DESC
+    `);
+
+    if (res.length > 0 && res[0].values.length > 0) {
+        container.innerHTML = res[0].values.map(row => {
+            const [id, tgl, total, status, supplier] = row;
+            
+            // Atur warna label status
+            const statusColor = status === 'DRAFT' 
+                ? 'bg-amber-100 text-amber-700 border-amber-200' 
+                : 'bg-emerald-100 text-emerald-700 border-emerald-200';
+
+            // Pastikan baris <tr> punya onclick="window.lihatDetailAtauEdit(...)"
+return `
+    <tr onclick="window.lihatDetailAtauEdit('${id}', '${status}')" 
+        class="cursor-pointer hover:bg-slate-50 border-b border-slate-50 transition-all active:bg-slate-100 group">
+        <td class="p-3">
+            <div class="flex flex-col gap-1">
+                <div class="flex items-center gap-2">
+                    <span class="text-[7px] font-black px-1.5 py-0.5 rounded border ${badgeColor} uppercase">
+                        ${status}
+                    </span>
+                    <span class="text-[9px] font-bold text-slate-400">#${id.slice(-6)}</span>
+                </div>
+                <p class="text-[11px] font-black text-slate-700 uppercase leading-tight">${supplierName || 'Umum'}</p>
+                <p class="text-[9px] text-slate-400 font-bold">${tglStr}</p>
+            </div>
+        </td>
+        <td class="p-3 text-right">
+            <p class="text-[11px] font-black text-slate-800">Rp ${total.toLocaleString('id-ID')}</p>
+            <div class="mt-1 flex justify-end">
+                <span class="text-[8px] font-black ${status === 'DRAFT' ? 'text-amber-600' : 'text-blue-600'} uppercase tracking-tighter">
+                    ${status === 'DRAFT' ? '✎ EDIT' : '👁 DETAIL'}
+                </span>
+            </div>
+        </td>
+    </tr>
+`;
+        }).join('');
+    } else {
+        container.innerHTML = `<div class="py-20 text-center opacity-20 text-[10px] font-black uppercase tracking-widest">Belum ada riwayat</div>`;
+    }
+};
+
 // Fungsi pembantu biar rapi
 window.hitungTotalKulakan = () => {
     const total = window.cartKulakan.reduce((sum, item) => sum + (item.qty * item.hargaBeli), 0);
@@ -283,10 +341,19 @@ window.renderPelangganSelect = () => {
     }
     select.innerHTML = options;
     
-    // 🔥 PENTING: Setelah <select> diupdate, langsung paksa sync ke list dropdown
-    if (typeof window.syncPelangganDariSelect === 'function') {
-        window.syncPelangganDariSelect();
-    }
+    window.initSmartDropdown({
+        selectId: 'select-pelanggan',
+        table: 'pelanggan', // Sesuai nama tabel di Supabase
+        placeholder: '🔍 Cari Pelanggan...',
+        onSyncSuccess: () => {
+            // Setelah tambah/hapus sukses di Cloud, render ulang selecnya
+            window.renderPelangganSelect(); 
+            // Pastikan list pelanggan untuk pencarian kasir juga update
+            if (typeof window.syncPelangganDariSelect === 'function') {
+                window.syncPelangganDariSelect();
+            }
+        }
+    });
     
     console.log("✅ Select & List Pelanggan Berhasil Disinkronkan");
 };
@@ -924,13 +991,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const options = document.querySelectorAll("#select-pelanggan option");
         options.forEach(opt => {
             if (opt.value !== "") {
-                window.pelangganList.push({
-                    id: opt.value,
-                    nama: opt.textContent
-                });
+                window.pelangganList.push({ id: opt.value, nama: opt.textContent });
             }
         });
-        console.log("🔄 List Pelanggan Berhasil Diperbarui");
     };
 
     // 2. Load Keranjang saat Refresh
@@ -942,59 +1005,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 3. Event Focus Input
-    input.addEventListener("focus", () => {
-        input.value = ""; 
-        select.value = ""; 
-
-        // 🔥 KUNCINYA: Jika list kosong (habis simpan baru atau baru refresh), tarik data
-        if (window.pelangganList.length === 0) {
-            window.syncPelangganDariSelect();
-        }
-
-        renderDropdown(window.pelangganList);
-        dropdown.classList.remove("hidden");
-    });
-
-    // 4. Filter Input (Masih pakai logic Mas, sudah oke)
-    let timeout;
-    input.addEventListener("input", () => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-            const keyword = input.value.toLowerCase();
-            const filtered = window.pelangganList.filter(p =>
-                p.nama.toLowerCase().includes(keyword)
-            );
-            renderDropdown(filtered);
-        }, 100);
-    });
-
-    // 5. Render Dropdown (Pakai window.pelangganList)
-    function renderDropdown(list) {
-        dropdown.innerHTML = "";
-        if (list.length === 0) {
-            dropdown.innerHTML = `<div class="p-2 text-slate-400">Tidak ditemukan</div>`;
-            return;
-        }
-        list.slice(0, 20).forEach(p => {
-            const item = document.createElement("div");
-            item.className = "p-2 hover:bg-blue-50 cursor-pointer text-xs font-bold uppercase";
-            item.innerText = p.nama;
-            item.onclick = () => {
-                input.value = p.nama;
-                select.value = p.id;
-                dropdown.classList.add("hidden");
-            };
-            dropdown.appendChild(item);
-        });
+    if (typeof window.renderSelectSupplier === 'function') {
+        window.renderSelectSupplier();
     }
-
-    // 6. Klik Luar untuk Tutup
-    document.addEventListener("click", (e) => {
-        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-            dropdown.classList.add("hidden");
-        }
-    });
 });
 
 window.currentReportFilter = 'hari_ini';
@@ -1328,3 +1341,256 @@ window.simpanPelangganBaru = async () => {
         console.error("Gagal simpan pelanggan:", err);
     }
 };
+
+window.initSmartDropdown = (config) => {
+    const selectAsli = document.getElementById(config.selectId);
+    if (!selectAsli) return;
+
+    // Sembunyikan select asli agar tidak double
+    selectAsli.classList.add('hidden');
+
+    const containerId = `smart-container-${config.selectId}`;
+    let container = document.getElementById(containerId);
+    
+    if (!container) {
+        container = document.createElement('div');
+        container.id = containerId;
+        container.className = "relative w-full mb-3";
+        selectAsli.parentNode.insertBefore(container, selectAsli);
+    }
+
+    const options = Array.from(selectAsli.options).filter(opt => opt.value !== "");
+
+    container.innerHTML = `
+        <div class="relative">
+            <input type="text" id="input-${config.selectId}" 
+                placeholder="${config.placeholder}"
+                class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-black outline-none focus:ring-2 focus:ring-orange-500 shadow-sm"
+                autocomplete="off" value="${selectAsli.options[selectAsli.selectedIndex]?.value ? selectAsli.options[selectAsli.selectedIndex].text : ''}">
+            <div id="list-${config.selectId}" 
+                class="hidden absolute z-[999] w-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-60 overflow-y-auto p-1">
+            </div>
+        </div>
+    `;
+
+    const input = container.querySelector('input');
+    const list = container.querySelector(`#list-${config.selectId}`);
+
+    const renderList = (filter = "") => {
+        const filtered = options.filter(opt => opt.text.toLowerCase().includes(filter.toLowerCase()));
+        
+        // 1. Buat Header Tambah Baru (Tanpa onclick dulu)
+        let html = `
+            <div id="btn-add-trigger-${config.selectId}" 
+                class="p-3 text-orange-600 font-black text-[10px] uppercase cursor-pointer hover:bg-orange-50 rounded-xl flex items-center gap-2 border-b border-slate-50 mb-1">
+                <span class="text-base">➕</span> TAMBAH BARU
+            </div>
+        `;
+
+        // 2. Buat List Item
+        filtered.forEach(opt => {
+            html += `
+                <div class="flex justify-between items-center p-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 cursor-pointer transition-all item-select" 
+                     data-val="${opt.value}" data-txt="${opt.text}">
+                    <div class="flex flex-col">
+                        <span class="text-xs font-bold text-slate-700 uppercase">${opt.text}</span>
+                    </div>
+                    <button class="btn-del-trigger w-8 h-8 flex items-center justify-center bg-rose-50 text-rose-500 rounded-full active:scale-90 transition-all" 
+                            data-id="${opt.value}" data-nama="${opt.text}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>`;
+        });
+
+        if (filtered.length === 0) {
+            html += `<div class="p-4 text-center text-slate-400 text-[10px] font-bold">Data tidak ditemukan</div>`;
+        }
+
+        list.innerHTML = html;
+
+        // 🔥 PASANG EVENT CLICK SECARA MANUAL (ANTI-TABRAKAN TANDA KUTIP)
+        const btnAdd = list.querySelector(`#btn-add-trigger-${config.selectId}`);
+    if (btnAdd) {
+        btnAdd.onclick = (e) => {
+            e.preventDefault(); // Stop aksi default
+            e.stopPropagation(); // Stop agar list tidak menutup duluan
+            
+            // Paksa tutup list dropdown biar modal kelihatan bersih
+            list.classList.add('hidden'); 
+            
+            console.log("Klik nambah: ", config.table); // Cek di console
+            window.triggerAdd(config.selectId, config.table, config.placeholder);
+        };
+    }
+
+        // Pasang event untuk pilih item
+        list.querySelectorAll('.item-select').forEach(el => {
+            el.onclick = () => window.selectItem(config.selectId, el.dataset.val, el.dataset.txt);
+        });
+
+        // Pasang event untuk hapus item
+        list.querySelectorAll('.btn-del-trigger').forEach(el => {
+            el.onclick = (e) => {
+                e.stopPropagation();
+                window.triggerDelete(config.selectId, config.table, el.dataset.id, el.dataset.nama);
+            };
+        });
+    };
+
+    input.onfocus = () => { renderList(input.value); input.value = ""; renderList(""); list.classList.remove('hidden'); };
+    input.oninput = (e) => renderList(e.target.value);
+
+    document.addEventListener('click', (e) => {
+        if (!container.contains(e.target)) list.classList.add('hidden');
+    });
+};
+
+// --- FUNGSI GLOBAL (DI LUAR INIT) ---
+
+window.selectItem = (sId, val, txt) => {
+    const sel = document.getElementById(sId);
+    if(sel) {
+        sel.value = val;
+        const inp = document.getElementById(`input-${sId}`);
+        if(inp) inp.value = txt;
+        const lst = document.getElementById(`list-${sId}`);
+        if(lst) lst.classList.add('hidden');
+        sel.dispatchEvent(new Event('change'));
+    }
+};
+
+window.triggerAdd = (sId, tableName, placeholder) => {
+    const modal = document.getElementById('modal-fast-add');
+    const inputNama = document.getElementById('fast-add-input-nama');
+    const inputHp = document.getElementById('fast-add-input-hp');
+    const hpContainer = document.getElementById('fast-add-hp-container');
+    const btn = document.getElementById('fast-add-btn');
+    const title = document.getElementById('fast-add-title');
+    
+    if(!modal) return;
+
+    // 1. Atur Judul
+    const cleanTitle = placeholder.replace('🔍 Cari ', '').replace('...', '').toUpperCase();
+    title.innerText = `TAMBAH ${cleanTitle}`;
+    
+    // 2. Sembunyikan HP jika nambah Kategori
+    if (tableName === 'kategori') {
+        hpContainer.classList.add('hidden');
+    } else {
+        hpContainer.classList.remove('hidden');
+    }
+    
+    inputNama.value = "";
+    inputHp.value = "";
+    modal.classList.remove('hidden');
+    setTimeout(() => inputNama.focus(), 250);
+
+    btn.onclick = async () => {
+        const nama = inputNama.value.trim();
+        const noHp = inputHp.value.trim();
+
+        if (!nama) return alert("Nama wajib diisi!");
+
+        btn.innerText = "MENYIMPAN...";
+        btn.disabled = true;
+
+        const idNew = (tableName === 'pelanggan' ? 'P-' : 'ID-') + Date.now();
+        
+        // 3. Siapkan data sesuai tabel
+        let dataSimpan = { id: idNew, nama: nama };
+        
+        // Kalau tabel butuh HP, masukkan ke object
+        if (tableName === 'pelanggan' || tableName === 'supplier') {
+            dataSimpan.hp = noHp || '-'; // default strip kalau kosong
+        }
+
+        window.universalCloudSync.save(tableName, dataSimpan, () => {
+            modal.classList.add('hidden');
+            btn.innerText = "Simpan Sekarang";
+            btn.disabled = false;
+            
+            // Refresh UI sesuai tabel
+            if (tableName === 'supplier') window.renderSelectSupplier?.();
+            if (tableName === 'pelanggan') window.renderPelangganSelect?.();
+            if (tableName === 'kategori') window.renderKategoriSelect?.();
+
+            window.selectItem(sId, idNew, nama);
+        });
+    };
+};
+
+window.triggerDelete = (sId, tableName, id, nama, hasCallback) => {
+    if (confirm(`Hapus "${nama}" secara permanen?`)) {
+        window.universalCloudSync.delete(tableName, id, () => {
+            if (tableName === 'supplier') window.renderSelectSupplier?.();
+            if (tableName === 'pelanggan') window.renderPelangganSelect?.();
+            if (tableName === 'kategori') window.renderKategoriSelect?.();
+        });
+    }
+};
+
+window.closeFastAdd = () => {
+    document.getElementById('modal-fast-add').classList.add('hidden');
+};
+
+window.universalCloudSync = {
+    // FUNGSI SIMPAN GLOBAL
+    save: async (tableName, dataLokal, callback) => {
+        const uid = window.currentUid;
+        
+        try {
+            // 1. Simpan ke SQLite Lokal (Wajib ada id dan nama)
+            const placeholders = Object.keys(dataLokal).map(() => "?").join(",");
+            const columns = Object.keys(dataLokal).join(",");
+            const values = Object.values(dataLokal);
+            
+            window.db.run(`INSERT INTO ${tableName} (${columns}) VALUES (${placeholders})`, values);
+            console.log(`✅ ${tableName} tersimpan di Lokal`);
+
+            // 2. Kirim ke Cloud (Supabase) jika online
+            if (navigator.onLine && window.supabase) {
+                const { error } = await window.supabase
+                    .from(tableName)
+                    .insert([{ ...dataLokal, user_id: uid }]);
+                
+                if (error) throw error;
+                console.log(`☁️ ${tableName} tersinkron ke Cloud`);
+            }
+            
+            if (callback) callback();
+        } catch (e) {
+            console.error("Sync Error:", e);
+        }
+    },
+
+    // FUNGSI HAPUS GLOBAL
+    delete: async (tableName, id, callback) => {
+        try {
+            // 1. Hapus Lokal
+            window.db.run(`DELETE FROM ${tableName} WHERE id = ?`, [id]);
+
+            // 2. Hapus Cloud
+            if (navigator.onLine && window.supabase) {
+                const { error } = await window.supabase
+                    .from(tableName)
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+            }
+            
+            if (callback) callback();
+        } catch (e) {
+            console.error("Delete Sync Error:", e);
+        }
+    }
+};
+
+// Tambahkan ini di baris paling akhir file ui.js Mas
+window.initSmartDropdown = window.initSmartDropdown;
+window.triggerAdd = window.triggerAdd;
+window.triggerDelete = window.triggerDelete;
+window.closeFastAdd = window.closeFastAdd;
+window.selectItem = window.selectItem;

@@ -189,8 +189,8 @@ window.showPaymentModal = () => {
         const tsStr = ts.toString(); // Buat kolom tanggal di DB
 
         // 1. IDENTIFIKASI PELANGGAN (Kunci agar tidak jadi "Umum")
-        const inputPlg = document.getElementById('input-pelanggan'); 
-        const pelangganNama = inputPlg ? inputPlg.value.trim() : "";
+        const inputPlg = document.getElementById('input-select-pelanggan'); 
+const pelangganNama = inputPlg ? inputPlg.value.trim() : "";
         let pelangganId = document.getElementById('select-pelanggan').value || null;
 
         // Jika user ngetik nama tapi gak klik dropdown, paksa cari ID-nya di DB lokal
@@ -315,8 +315,8 @@ window.showPaymentModal = () => {
             }
         }
 
-        document.getElementById('input-pelanggan').value = ""; 
-        document.getElementById('select-pelanggan').value = ""; 
+        if (inputPlg) inputPlg.value = ""; 
+document.getElementById('select-pelanggan').value = ""; 
         document.getElementById('modal-pembayaran').classList.add('hidden');
         
         window.renderCart();
@@ -607,6 +607,85 @@ window.editDraftKulakan = async (pembelianId) => {
         alert("Draft berhasil dimuat! Silakan sesuaikan data lalu klik 'Selesaikan'.");
     } else {
         alert("Data draft tidak ditemukan!");
+    }
+};
+
+window.lihatDetailAtauEdit = (id, status) => {
+    console.log("Membuka riwayat ID:", id, "Status:", status); // Cek di console
+    
+    if (status === 'DRAFT') {
+        // Kalau masih draft, kita lempar ke fungsi edit kulakan
+        if (typeof window.editDraftKulakan === 'function') {
+            window.editDraftKulakan(id);
+        } else {
+            alert("Fungsi editDraftKulakan belum dibuat, Mas!");
+        }
+    } else {
+        // Kalau sudah selesai, kita buka modal detail rincian barangnya
+        if (typeof window.bukaDetailKulakan === 'function') {
+            window.bukaDetailKulakan(id);
+        } else {
+            alert("Fungsi bukaDetailKulakan belum dibuat, Mas!");
+        }
+    }
+};
+
+window.bukaDetailKulakan = async (pembelianId) => {
+    const container = document.getElementById('list-detail-kulakan');
+    const modal = document.getElementById('modal-detail-kulakan');
+    
+    // Tampilkan loading sebentar
+    container.innerHTML = '<p class="text-center py-10 animate-pulse text-slate-400">Menarik data rincian...</p>';
+    modal.classList.remove('hidden');
+
+    try {
+        // 1. Cek Lokal dulu biar kencang
+        let detailItems = [];
+        const res = window.db.exec(`
+            SELECT b.nama, pd.qty, pd.harga_beli 
+            FROM pembelian_detail pd
+            JOIN barang b ON pd.barang_id = b.id
+            WHERE pd.pembelian_id = ?
+        `, [pembelianId]);
+
+        if (res.length > 0) {
+            detailItems = res[0].values;
+        } else if (navigator.onLine) {
+            // 2. Kalau di lokal nggak ada, tarik dari Cloud Supabase
+            const { data, error } = await supabase
+                .from('pembelian_detail')
+                .select('qty, harga_beli, barang(nama)')
+                .eq('pembelian_id', pembelianId);
+            
+            if (data) detailItems = data.map(d => [d.barang.nama, d.qty, d.harga_beli]);
+        }
+
+        // 3. Render ke tabel modal
+        if (detailItems.length > 0) {
+            let html = '';
+            let total = 0;
+            detailItems.forEach(row => {
+                const subtotal = row[1] * row[2];
+                total += subtotal;
+                html += `
+                    <div class="flex justify-between items-center border-b border-slate-50 py-3">
+                        <div>
+                            <p class="text-xs font-black text-slate-700 uppercase">${row[0]}</p>
+                            <p class="text-[10px] text-slate-400">${row[1]} x Rp ${row[2].toLocaleString('id-ID')}</p>
+                        </div>
+                        <p class="text-xs font-bold text-slate-600">Rp ${subtotal.toLocaleString('id-ID')}</p>
+                    </div>`;
+            });
+            container.innerHTML = html + `
+                <div class="mt-4 p-4 bg-slate-50 rounded-2xl flex justify-between items-center">
+                    <span class="text-[10px] font-black text-slate-400 uppercase">Total Nota</span>
+                    <span class="text-sm font-black text-blue-600">Rp ${total.toLocaleString('id-ID')}</span>
+                </div>`;
+        } else {
+            container.innerHTML = '<p class="text-center py-10 text-rose-500 text-xs">Data detail tidak ditemukan.</p>';
+        }
+    } catch (err) {
+        container.innerHTML = '<p class="text-center py-10 text-rose-500">Gagal memuat data.</p>';
     }
 };
 

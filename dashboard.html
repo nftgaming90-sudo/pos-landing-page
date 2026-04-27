@@ -216,13 +216,7 @@
             <!-- 🔥 SEARCH + DROPDOWN -->
             <div class="relative flex-1">
 
-                <input type="text" id="input-pelanggan"
-                    placeholder="Cari pelanggan..."
-                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[11px] font-bold outline-none focus:border-blue-500">
-
-                <div id="dropdown-pelanggan"
-                    class="absolute top-full left-0 right-0 bg-white border border-slate-200 rounded-lg mt-1 max-h-40 overflow-y-auto hidden z-50 shadow-lg text-[11px]">
-                </div>
+                
 
                 <!-- 🔥 SELECT LAMA (JANGAN DIHAPUS!) -->
                 <select id="select-pelanggan" style="display:none">
@@ -231,10 +225,7 @@
 
             </div>
 
-            <button onclick="document.getElementById('modal-tambah-pelanggan').classList.remove('hidden')" 
-                class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-sm hover:bg-blue-600 hover:text-white transition-all">
-                +
-            </button>
+            
 
         </div>
     </div>
@@ -336,7 +327,7 @@
                     <option value="S-UMUM">Supplier Umum</option>
                 </select>
             </div>
-            <button onclick="window.tambahSupplierBaru()" class="bg-orange-500 text-white h-[38px] px-4 rounded-xl shadow-sm">+</button>
+            
         </div>
     </div>
 
@@ -363,6 +354,47 @@
 </aside>
 
 </section>
+
+<div id="modal-detail-kulakan" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div class="p-6 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+            <div>
+                <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight">Rincian Kulakan</h3>
+                <p id="detail-kulakan-nota" class="text-[10px] font-bold text-blue-600 mt-0.5 tracking-widest"></p>
+            </div>
+            <button onclick="document.getElementById('modal-detail-kulakan').classList.add('hidden')" class="text-slate-400 hover:text-rose-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="p-0 max-h-[60vh] overflow-y-auto">
+            <table class="w-full">
+                <thead class="bg-slate-50 sticky top-0 border-b border-slate-100">
+                    <tr>
+                        <th class="p-3 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">Barang</th>
+                        <th class="p-3 text-center text-[9px] font-black text-slate-400 uppercase tracking-widest">Qty</th>
+                        <th class="p-3 text-right text-[9px] font-black text-slate-400 uppercase tracking-widest">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="detail-barang-kulakan" class="divide-y divide-slate-50">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="p-6 bg-slate-50 border-t border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-[10px] font-black text-slate-400 uppercase">Total Pengeluaran</span>
+                <span id="detail-kulakan-total" class="text-lg font-black text-slate-800"></span>
+            </div>
+            <button onclick="document.getElementById('modal-detail-kulakan').classList.add('hidden')" 
+                class="w-full py-3.5 bg-slate-800 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                Tutup Detail
+            </button>
+        </div>
+    </div>
+</div>
 
 <div id="floating-kulakan-btn" onclick="window.toggleKulakanDrawer()" 
     class="md:hidden fixed bottom-[75px] left-4 right-4 z-40 hidden bg-orange-600 text-white h-14 rounded-xl shadow-xl flex items-center justify-between px-4 border border-orange-500">
@@ -811,7 +843,59 @@
         </div>
     </div>
 </div>
+<div id="modal-detail-kulakan" class="fixed inset-0 z-[200] flex items-center justify-center hidden bg-slate-900/80 backdrop-blur-sm p-4 no-print">
+    <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh]">
+        <div class="p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
+            <div>
+                <h3 class="font-black text-[10px] uppercase tracking-widest text-slate-100">Rincian Barang Masuk</h3>
+                <p id="detail-kulakan-supplier" class="text-[9px] text-orange-400 font-black uppercase mt-0.5">Supplier: -</p>
+            </div>
+            <button onclick="document.getElementById('modal-detail-kulakan').classList.add('hidden')" class="text-2xl hover:text-rose-400">&times;</button>
+        </div>
+        
+        <div id="list-detail-kulakan" class="overflow-y-auto p-4 space-y-3 bg-white flex-1 custom-scrollbar text-[11px]">
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-100 shrink-0">
+            <div class="flex justify-between items-center mb-4 px-1">
+                <span class="text-[10px] font-black text-slate-400 uppercase">Total Nota</span>
+                <span id="detail-kulakan-total" class="text-sm font-black text-slate-800">Rp 0</span>
+            </div>
+            <button onclick="document.getElementById('modal-detail-kulakan').classList.add('hidden')" class="w-full py-3 bg-white border border-slate-300 text-slate-600 rounded-xl font-black text-xs uppercase shadow-sm">Tutup</button>
+        </div>
+    </div>
+</div>
     <div id="section-struk"></div>
+
+    <div id="modal-fast-add" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-xs rounded-3xl overflow-hidden shadow-2xl transform transition-all scale-95 animate-modal-in">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="fast-add-title" class="text-xs font-black text-slate-400 uppercase tracking-widest">TAMBAH DATA</h3>
+                <button onclick="window.closeFastAdd()" class="text-slate-300 hover:text-rose-500 text-xl">✕</button>
+            </div>
+            
+            <label class="text-[9px] font-black text-blue-500 uppercase mb-1 block tracking-widest">Nama Lengkap</label>
+            <input type="text" id="fast-add-input-nama" 
+                class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-500 transition-all mb-3"
+                placeholder="Ketik nama...">
+
+            <div id="fast-add-hp-container">
+                <label class="text-[9px] font-black text-emerald-500 uppercase mb-1 block tracking-widest">Nomor WhatsApp</label>
+                <input type="text" id="fast-add-input-hp" 
+                    class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500 transition-all mb-6"
+                    placeholder="0812...">
+            </div>
+
+            <button id="fast-add-btn" 
+                class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all">
+                Simpan Sekarang
+            </button>
+        </div>
+    </div>
+</div>
+
+
 
     <script type="module" src="js/app.js"></script>
     <script type="module" src="js/db.js"></script>

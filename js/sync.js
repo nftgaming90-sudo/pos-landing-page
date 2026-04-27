@@ -105,15 +105,42 @@ window.processOfflineQueue = async () => {
             if (!error) window.offlineQueue.barang = []; 
         }
 
-        // E. Kulakan (Pembelian)
-        if (window.offlineQueue.pembelian?.length > 0) {
-            await supabase.from('pembelian').upsert(window.offlineQueue.pembelian);
-            window.offlineQueue.pembelian = [];
+        // --- 2. E. Kulakan (Pembelian) ---
+if (window.offlineQueue.pembelian?.length > 0) {
+    const dataP = window.offlineQueue.pembelian.map(p => ({
+        id: String(p.id),
+        supplier_id: String(p.supplier_id),
+        total: Number(p.total) || 0,
+        tanggal: p.tanggal,
+        status: p.status,
+        user_id: uid // Pastikan UID masuk ke induk
+    }));
+    const { error } = await supabase.from('pembelian').upsert(dataP);
+    if (!error) window.offlineQueue.pembelian = [];
+}
+
+if (window.offlineQueue.pembelian_detail?.length > 0) {
+    const dataPD = window.offlineQueue.pembelian_detail.map(pd => ({
+        id: String(pd.id).trim(), // Paksa string & bersihkan spasi
+        pembelian_id: String(pd.pembelian_id).trim(),
+        barang_id: String(pd.barang_id).trim(),
+        qty: Math.round(Number(pd.qty)) || 0, // Paksa angka bulat
+        harga_beli: Math.round(Number(pd.harga_beli)) || 0, // Paksa angka bulat
+        user_id: uid 
+    }));
+
+    // Pakai try catch biar kalau satu baris error, Mas bisa lihat alasannya
+    try {
+        const { error } = await supabase.from('pembelian_detail').upsert(dataPD);
+        if (error) {
+            console.error("Detail Error Detail:", error.message, error.details);
+            throw error;
         }
-        if (window.offlineQueue.pembelian_detail?.length > 0) {
-            await supabase.from('pembelian_detail').upsert(window.offlineQueue.pembelian_detail);
-            window.offlineQueue.pembelian_detail = [];
-        }
+        window.offlineQueue.pembelian_detail = [];
+    } catch (err) {
+        console.error("Gagal Upsert Detail:", err);
+    }
+}
 
         // F. Shift
         if (window.offlineQueue.shift?.length > 0) {
@@ -329,10 +356,19 @@ window.checkProStatus = async (uid) => {
     };
 
 window.addEventListener('online', () => {
-        if(window.currentUid) window.checkProStatus(window.currentUid);
-        const shiftCount = (window.offlineQueue.shift || []).length;
-        const plgCount = (window.offlineQueue.pelanggan || []).length;
-        if (window.offlineQueue.barang.length > 0 || window.offlineQueue.transaksi.length > 0 || window.offlineQueue.hapus_barang.length > 0 || window.offlineQueue.hapus_transaksi.length > 0 || shiftCount > 0 || plgCount > 0) {
-            window.processOfflineQueue();
-        }
-    });
+    if(window.currentUid) window.checkProStatus(window.currentUid);
+
+    // 1. Definisikan semua pengecekan
+    const hasKulakan = (window.offlineQueue.pembelian?.length > 0 || window.offlineQueue.pembelian_detail?.length > 0);
+    const hasShift = (window.offlineQueue.shift?.length > 0);
+    const hasPelanggan = (window.offlineQueue.pelanggan?.length > 0);
+    const hasHutangAtauCicilan = (window.offlineQueue.hutang?.length > 0 || window.offlineQueue.cicilan?.length > 0);
+    const hasBarang = (window.offlineQueue.barang?.length > 0 || window.offlineQueue.hapus_barang?.length > 0);
+    const hasTransaksi = (window.offlineQueue.transaksi?.length > 0 || window.offlineQueue.hapus_transaksi?.length > 0);
+
+    // 2. Gabungkan semua syarat di dalam IF
+    if (hasBarang || hasTransaksi || hasKulakan || hasShift || hasPelanggan || hasHutangAtauCicilan) {
+        console.log("🌐 Internet On! Memulai sinkronisasi otomatis...");
+        window.processOfflineQueue();
+    }
+});

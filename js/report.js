@@ -1405,44 +1405,52 @@ window.bukaRiwayatShift = () => {
 window.bukaRiwayatKulakan = () => {
     if (!window.db) return;
     
-    // Ambil data dari tabel pembelian join dengan supplier (jika ada)
+    // 1. Perbaikan Query: Kita JOIN ke tabel supplier biar muncul NAMA, bukan ID
     const res = window.db.exec(`
-        SELECT p.id, p.tanggal, p.total, p.status, p.supplier_id 
+        SELECT p.id, p.tanggal, p.total, p.status, s.nama 
         FROM pembelian p 
+        LEFT JOIN supplier s ON p.supplier_id = s.id
         ORDER BY CAST(p.tanggal AS UNSIGNED) DESC
     `);
     
     const tbody = document.getElementById('riwayat-kulakan-body');
-    document.getElementById('modal-riwayat-kulakan').classList.remove('hidden');
+    const modal = document.getElementById('modal-riwayat-kulakan');
+    if(modal) modal.classList.remove('hidden');
 
-    if (res.length > 0) {
+    if (res.length > 0 && res[0].values.length > 0) {
         tbody.innerHTML = res[0].values.map(row => {
-            const [id, tgl, total, status, sId] = row;
+            const [id, tgl, total, status, namaSupplier] = row;
             const d = new Date(parseInt(tgl));
             const tglStr = d.toLocaleDateString('id-ID', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
             
-            const badgeColor = status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600';
+            const isDraft = status === 'DRAFT';
+            const badgeColor = isDraft ? 'bg-amber-100 text-amber-600 border-amber-200' : 'bg-emerald-100 text-emerald-600 border-emerald-200';
 
-            const tombolEdit = status === 'DRAFT' 
-    ? `<button onclick="window.editDraftKulakan('${id}')" class="mt-2 px-3 py-1 bg-blue-600 text-white text-[8px] font-black rounded-lg">EDIT DRAFT</button>` 
-    : '';
-
-return `
-    <tr class="hover:bg-slate-50">
-        <td class="p-3">
-            <p class="font-black text-slate-700">#${id.slice(-6)}</p>
-            <p class="text-[9px] text-slate-400">${tglStr}</p>
-            ${tombolEdit} 
-        </td>
-        <td class="p-3 text-right font-bold text-slate-600">Rp ${total.toLocaleString('id-ID')}</td>
-        <td class="p-3 text-center">
-            <span class="px-2 py-0.5 rounded-full text-[8px] font-black ${badgeColor}">${status}</span>
-        </td>
-    </tr>
-`;
+            // 2. Kita masukkan ONCLICK ke seluruh baris <tr> biar enak dikliknya
+            return `
+            <tr onclick="window.lihatDetailAtauEdit('${id}', '${status}')" 
+                class="hover:bg-slate-50 border-b border-slate-50 cursor-pointer transition-all active:bg-slate-100">
+                <td class="p-3">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="px-2 py-0.5 rounded border text-[7px] font-black uppercase tracking-tighter ${badgeColor}">
+                            ${status}
+                        </span>
+                        <p class="font-black text-slate-400 text-[9px]">#${id.slice(-6)}</p>
+                    </div>
+                    <p class="font-black text-slate-700 text-[11px] uppercase leading-tight">${namaSupplier || 'UMUM'}</p>
+                    <p class="text-[9px] text-slate-400 font-bold">${tglStr}</p>
+                </td>
+                <td class="p-3 text-right whitespace-nowrap">
+                    <p class="font-black text-slate-800 text-[11px]">Rp ${total.toLocaleString('id-ID')}</p>
+                    <p class="text-[8px] font-black text-blue-500 uppercase mt-1">
+                        ${isDraft ? '✎ EDIT DRAFT' : '👁 LIHAT DETAIL'}
+                    </p>
+                </td>
+            </tr>
+            `;
         }).join('');
     } else {
-        tbody.innerHTML = `<tr><td colspan="3" class="p-10 text-center text-slate-400 italic">Belum ada riwayat kulakan.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="2" class="p-20 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest opacity-30">Belum ada riwayat</td></tr>`;
     }
 };
 
