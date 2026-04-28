@@ -309,7 +309,9 @@
     </div>
 
     <!-- KANAN (KULAKAN) -->
-    <aside id="kulakan-section" class="w-full md:w-[350px] bg-white rounded-2xl md:shadow-sm flex flex-col border border-slate-200/70 h-[calc(100vh-100px)] overflow-hidden">
+    <aside id="kulakan-section" 
+    class="fixed inset-0 z-[999] transform translate-x-full transition-transform duration-300 bg-white 
+           md:relative md:translate-x-0 md:inset-auto md:z-auto md:w-[350px] md:h-full flex flex-col border border-slate-200/70 overflow-hidden">
     
     <div class="p-4 bg-orange-50 border-b border-orange-100 flex justify-between items-center shrink-0">
         <h2 class="font-black text-orange-800 flex items-center gap-2 text-[10px] uppercase tracking-widest">🛒 Daftar Kulakan</h2>
@@ -334,23 +336,28 @@
     <div id="kulakan-items" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30 hide-scrollbar">
         </div>
 
-    <div class="shrink-0">
-        <div class="p-4 bg-white flex justify-between items-center">
-            <span class="text-[9px] font-black text-slate-400 uppercase">Estimasi Total:</span>
-            <span id="total-nominal-kulakan" class="text-lg font-black text-orange-600">Rp 0</span>
-        </div>
-
-        <div class="p-4 bg-white gap-2 flex flex-col">
-    <button onclick="window.eksekusiKulakan('DRAFT')" 
-            class="rounded-btn w-full py-3 bg-slate-100 text-slate-600 font-bold text-xs active:scale-95 transition-all">
-        Simpan Jadi Draft
-    </button>
-    <button onclick="window.eksekusiKulakan('COMPLETED')" 
-            class="rounded-btn w-full py-4 bg-orange-600 text-white font-black shadow-lg shadow-orange-200 active:scale-95 transition-all">
-        Selesaikan & Update Stok
-    </button>
-</div>
+    <div class="p-4 bg-white border-t border-slate-200 space-y-3 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10 shrink-0 pb-safe md:pb-4">
+    <div class="flex justify-between items-center">
+        <p class="text-slate-400 font-black uppercase text-[9px] tracking-widest">Estimasi Total</p>
+        <p id="total-nominal-kulakan" class="text-2xl font-black text-orange-600 tracking-tighter">Rp 0</p>
     </div>
+
+    <div class="flex flex-col gap-2">
+        <button onclick="window.eksekusiKulakan('DRAFT')" 
+            class="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs active:scale-95 transition-all uppercase tracking-widest">
+            Simpan Jadi Draft
+        </button>
+        
+        <button onclick="window.eksekusiKulakan('COMPLETED')" 
+            class="w-full py-4 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-black text-sm shadow-lg active:scale-95 transition-all uppercase tracking-widest">
+            Selesaikan & Update Stok
+        </button>
+
+        <button onclick="window.toggleKulakanDrawer()" class="md:hidden w-full py-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+            Kembali
+        </button>
+    </div>
+</div>
 </aside>
 
 </section>

@@ -121,7 +121,7 @@ body {
     /* Footer Aside HP biar tombol gak tenggelam */
     #kulakan-section > div:last-child, 
     #cart-section > div:last-child {
-        padding: 16px 16px 85px 16px !important; 
+        padding: 16px 16px 25px 16px !important; 
     }
 }
 
