@@ -1,3 +1,4 @@
+window.cacheSupplier = JSON.parse(localStorage.getItem(`poskita_cache_sup_${window.currentUid}`)) || [];
 window.isKritisMode = false; // Defaultnya mode normal
 window.pelangganList = [];
 const updateTime = () => {
@@ -183,25 +184,46 @@ window.closeModal = () => document.getElementById('modal-barang').classList.add(
 
     window.renderSelectSupplier = () => {
     const selectSup = document.getElementById('select-supplier');
-    if (!selectSup || !window.db) return;
+    if (!selectSup) return;
 
-    const res = window.db.exec("SELECT id, nama FROM supplier ORDER BY nama ASC");
+    let data = window.cacheSupplier;
+
     let html = '<option value="">-- Pilih Supplier --</option>';
-    
-    if (res.length > 0 && res[0].values) {
-        res[0].values.forEach(row => {
-            html += `<option value="${row[0]}">${row[1]}</option>`;
-        });
+    let dataSupplier = [];
+
+    // TRICK 1: Ambil dari Cache LocalStorage dulu buat "Pemanasan"
+    const cached = localStorage.getItem(`cache_supplier_${window.currentUid}`);
+    if (cached) {
+        dataSupplier = JSON.parse(cached);
     }
+
+    // TRICK 2: Kalau Database sudah ready, ambil data asli & update cache
+    if (window.db) {
+        const res = window.db.exec("SELECT id, nama FROM supplier ORDER BY nama ASC");
+        if (res.length > 0 && res[0].values) {
+            dataSupplier = res[0].values.map(row => ({ id: row[0], nama: row[1] }));
+            window.cacheSupplier = data;
+            // Simpan ke cache biar kalau di-refresh datanya langsung ada
+            localStorage.setItem(`cache_supplier_${window.currentUid}`, JSON.stringify(dataSupplier));
+        }
+    }
+
+    // Gabung ke HTML
+    dataSupplier.forEach(s => {
+        html += `<option value="${s.id}">${s.nama}</option>`;
+    });
+    
     selectSup.innerHTML = html;
 
-    // AKTIFKAN SMART DROPDOWN
-    window.initSmartDropdown({
-        selectId: 'select-supplier',
-        table: 'supplier', // ✨ Cukup kasih tahu nama tabelnya
-        placeholder: '🔍 Cari Supplier...',
-        onSyncSuccess: () => window.renderSelectSupplier() // Render ulang pasca perubahan
-    });
+    // Aktifkan Smart Dropdown jika DB sudah siap
+    if (window.db) {
+        window.initSmartDropdown({
+            selectId: 'select-supplier',
+            table: 'supplier',
+            placeholder: '🔍 Cari Supplier...',
+            onSyncSuccess: () => window.renderSelectSupplier()
+        });
+    }
 };
 
 // Fungsi untuk menampilkan daftar barang yang bisa dipilih pas mau kulakan
@@ -276,11 +298,9 @@ if (window.cartKulakan.length > 0 && currentPage === 'menu-stok') {
 };
 
 window.renderRiwayatKulakan = () => {
-    // Pastikan ID ini ada di modal riwayat Mas
     const container = document.getElementById('riwayat-kulakan-body'); 
     if (!container || !window.db) return;
 
-    // Ambil data riwayat dari SQLite lokal
     const res = window.db.exec(`
         SELECT p.id, p.tanggal, p.total, p.status, s.nama 
         FROM pembelian p
@@ -292,37 +312,45 @@ window.renderRiwayatKulakan = () => {
         container.innerHTML = res[0].values.map(row => {
             const [id, tgl, total, status, supplier] = row;
             
-            // Atur warna label status
-            const statusColor = status === 'DRAFT' 
+            // 1. FIX: Samakan nama variabel warna (badgeColor)
+            const badgeColor = status === 'DRAFT' 
                 ? 'bg-amber-100 text-amber-700 border-amber-200' 
                 : 'bg-emerald-100 text-emerald-700 border-emerald-200';
 
-            // Pastikan baris <tr> punya onclick="window.lihatDetailAtauEdit(...)"
-return `
-    <tr onclick="window.lihatDetailAtauEdit('${id}', '${status}')" 
-        class="cursor-pointer hover:bg-slate-50 border-b border-slate-50 transition-all active:bg-slate-100 group">
-        <td class="p-3">
-            <div class="flex flex-col gap-1">
-                <div class="flex items-center gap-2">
-                    <span class="text-[7px] font-black px-1.5 py-0.5 rounded border ${badgeColor} uppercase">
-                        ${status}
-                    </span>
-                    <span class="text-[9px] font-bold text-slate-400">#${id.slice(-6)}</span>
-                </div>
-                <p class="text-[11px] font-black text-slate-700 uppercase leading-tight">${supplierName || 'Umum'}</p>
-                <p class="text-[9px] text-slate-400 font-bold">${tglStr}</p>
-            </div>
-        </td>
-        <td class="p-3 text-right">
-            <p class="text-[11px] font-black text-slate-800">Rp ${total.toLocaleString('id-ID')}</p>
-            <div class="mt-1 flex justify-end">
-                <span class="text-[8px] font-black ${status === 'DRAFT' ? 'text-amber-600' : 'text-blue-600'} uppercase tracking-tighter">
-                    ${status === 'DRAFT' ? '✎ EDIT' : '👁 DETAIL'}
-                </span>
-            </div>
-        </td>
-    </tr>
-`;
+            // 2. FIX: Format tanggal agar tidak undefined (tglStr)
+            const tglStr = new Date(parseInt(tgl)).toLocaleDateString('id-ID', {
+                day: 'numeric', 
+                month: 'short', 
+                year: 'numeric'
+            });
+
+            // 3. FIX: Pastikan nama supplier terambil (supplierName)
+            const supplierName = supplier || 'Umum';
+
+            return `
+            <tr onclick="window.lihatDetailAtauEdit('${id}', '${status}')" 
+                class="cursor-pointer hover:bg-slate-50 border-b border-slate-50 transition-all active:bg-slate-100 group">
+                <td class="p-3">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[7px] font-black px-1.5 py-0.5 rounded border ${badgeColor} uppercase">
+                                ${status}
+                            </span>
+                            <span class="text-[9px] font-bold text-slate-400">#${id.slice(-6)}</span>
+                        </div>
+                        <p class="text-[11px] font-black text-slate-700 uppercase leading-tight">${supplierName}</p>
+                        <p class="text-[9px] text-slate-400 font-bold">${tglStr}</p>
+                    </div>
+                </td>
+                <td class="p-3 text-right">
+                    <p class="text-[11px] font-black text-slate-800">Rp ${total.toLocaleString('id-ID')}</p>
+                    <div class="mt-1 flex justify-end">
+                        <span class="text-[8px] font-black ${status === 'DRAFT' ? 'text-amber-600' : 'text-blue-600'} uppercase tracking-tighter">
+                            ${status === 'DRAFT' ? '✎ EDIT' : '👁 DETAIL'}
+                        </span>
+                    </div>
+                </td>
+            </tr>`;
         }).join('');
     } else {
         container.innerHTML = `<div class="py-20 text-center opacity-20 text-[10px] font-black uppercase tracking-widest">Belum ada riwayat</div>`;
@@ -992,6 +1020,7 @@ if (inputStok) {
     });
 
 document.addEventListener("DOMContentLoaded", () => {
+    window.renderSelectSupplier();
     const input = document.getElementById("input-pelanggan");
     const dropdown = document.getElementById("dropdown-pelanggan");
     const select = document.getElementById("select-pelanggan");

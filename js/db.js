@@ -175,6 +175,8 @@ if (hutangData) {
             window.simpanDB();
         }
 
+        window.renderSelectSupplier();
+
         window.refreshDataUI();
         if (btn) btn.innerText = "SINKRON";
 
