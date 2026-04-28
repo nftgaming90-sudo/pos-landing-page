@@ -278,31 +278,27 @@ window.sinkronSupplierDariCloud = async () => {
     console.log("🔄 Memulai sinkronisasi supplier dari Supabase...");
     
     try {
-        // 1. Ambil data dari tabel 'supplier' di Supabase
         const { data, error } = await supabase
             .from('supplier')
             .select('*')
-            .eq('user_id', window.currentUid); // Filter berdasarkan user yang login
+            .eq('user_id', window.currentUid);
 
         if (error) throw error;
 
         if (data && data.length > 0) {
-            // 2. Masukkan ke SQLite lokal
             data.forEach(s => {
-                // Gunakan INSERT OR REPLACE agar tidak dobel jika ID sudah ada
+                // SINKRONISASI NAMA KOLOM:
+                // Kita ambil s.hp (dari cloud), jika kosong ambil s.kontak
+                const noHp = s.hp || s.kontak || ""; 
+
                 window.db.run(
-                    "INSERT OR REPLACE INTO supplier (id, nama, kontak, alamat) VALUES (?, ?, ?, ?)", 
-                    [s.id, s.nama, s.hp || s.kontak, s.alamat]
+                    "INSERT OR REPLACE INTO supplier (id, nama, hp, alamat) VALUES (?, ?, ?, ?)", 
+                    [s.id, s.nama, noHp, s.alamat]
                 );
             });
 
-            // 3. Simpan state DB agar permanen di memori HP
             if (typeof window.simpanDB === 'function') window.simpanDB();
-
-            // 4. Refresh tampilan dropdown supplier
-            if (typeof window.renderSelectSupplier === 'function') {
-                window.renderSelectSupplier();
-            }
+            if (typeof window.renderSelectSupplier === 'function') window.renderSelectSupplier();
             
             console.log(`✅ ${data.length} Supplier berhasil disinkronkan ke HP.`);
         }

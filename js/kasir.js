@@ -630,62 +630,45 @@ window.lihatDetailAtauEdit = (id, status) => {
     }
 };
 
-window.bukaDetailKulakan = async (pembelianId) => {
-    const container = document.getElementById('list-detail-kulakan');
-    const modal = document.getElementById('modal-detail-kulakan');
-    
-    // Tampilkan loading sebentar
-    container.innerHTML = '<p class="text-center py-10 animate-pulse text-slate-400">Menarik data rincian...</p>';
-    modal.classList.remove('hidden');
+window.bukaDetailKulakan = (pembelianId) => {
+    // 1. Tutup modal riwayat dulu biar gak numpuk di depan
+    const modalRiwayat = document.getElementById('modal-riwayat-kulakan');
+    if (modalRiwayat) modalRiwayat.classList.add('hidden');
 
-    try {
-        // 1. Cek Lokal dulu biar kencang
-        let detailItems = [];
-        const res = window.db.exec(`
-            SELECT b.nama, pd.qty, pd.harga_beli 
-            FROM pembelian_detail pd
-            JOIN barang b ON pd.barang_id = b.id
-            WHERE pd.pembelian_id = ?
-        `, [pembelianId]);
+    // 2. Ambil rincian barang dari database
+    const res = window.db.exec(`
+        SELECT b.nama, pd.qty, pd.harga_beli 
+        FROM pembelian_detail pd
+        JOIN barang b ON pd.barang_id = b.id
+        WHERE pd.pembelian_id = ?
+    `, [pembelianId]);
 
-        if (res.length > 0) {
-            detailItems = res[0].values;
-        } else if (navigator.onLine) {
-            // 2. Kalau di lokal nggak ada, tarik dari Cloud Supabase
-            const { data, error } = await supabase
-                .from('pembelian_detail')
-                .select('qty, harga_beli, barang(nama)')
-                .eq('pembelian_id', pembelianId);
-            
-            if (data) detailItems = data.map(d => [d.barang.nama, d.qty, d.harga_beli]);
-        }
+    const tbody = document.getElementById('detail-barang-kulakan');
+    const modalDetail = document.getElementById('modal-detail-kulakan');
 
-        // 3. Render ke tabel modal
-        if (detailItems.length > 0) {
-            let html = '';
-            let total = 0;
-            detailItems.forEach(row => {
-                const subtotal = row[1] * row[2];
-                total += subtotal;
-                html += `
-                    <div class="flex justify-between items-center border-b border-slate-50 py-3">
-                        <div>
-                            <p class="text-xs font-black text-slate-700 uppercase">${row[0]}</p>
-                            <p class="text-[10px] text-slate-400">${row[1]} x Rp ${row[2].toLocaleString('id-ID')}</p>
-                        </div>
-                        <p class="text-xs font-bold text-slate-600">Rp ${subtotal.toLocaleString('id-ID')}</p>
-                    </div>`;
-            });
-            container.innerHTML = html + `
-                <div class="mt-4 p-4 bg-slate-50 rounded-2xl flex justify-between items-center">
-                    <span class="text-[10px] font-black text-slate-400 uppercase">Total Nota</span>
-                    <span class="text-sm font-black text-blue-600">Rp ${total.toLocaleString('id-ID')}</span>
-                </div>`;
-        } else {
-            container.innerHTML = '<p class="text-center py-10 text-rose-500 text-xs">Data detail tidak ditemukan.</p>';
-        }
-    } catch (err) {
-        container.innerHTML = '<p class="text-center py-10 text-rose-500">Gagal memuat data.</p>';
+    if (res.length > 0 && res[0].values.length > 0) {
+        let total = 0;
+        tbody.innerHTML = res[0].values.map(row => {
+            const [nama, qty, harga] = row;
+            const subtotal = qty * harga;
+            total += subtotal;
+            return `
+                <tr class="border-b border-slate-50">
+                    <td class="p-3 text-[10px] font-bold text-slate-700 uppercase">${nama}</td>
+                    <td class="p-3 text-center text-[10px] font-black text-slate-600">${qty}</td>
+                    <td class="p-3 text-right text-[10px] font-black text-slate-800">Rp ${subtotal.toLocaleString('id-ID')}</td>
+                </tr>
+            `;
+        }).join('');
+
+        // Update Header & Total
+        document.getElementById('detail-kulakan-nota').innerText = "NOTA #" + pembelianId.slice(-6).toUpperCase();
+        document.getElementById('detail-kulakan-total').innerText = "Rp " + total.toLocaleString('id-ID');
+
+        // Munculkan modal detail
+        modalDetail.classList.remove('hidden');
+    } else {
+        alert("Waduh Mas, data barangnya nggak ketemu di database!");
     }
 };
 
@@ -838,7 +821,7 @@ window.bukaModalCicilan = (pId, hutangId, sisa, namaInfo) => {
         
         if(!n) return alert("Nama tidak boleh kosong!");
         
-        if (!id && !window.isPro && window.masterData.length >= FREE_ITEM_LIMIT) {
+        if (!id && !window.isPro && window.masterData.length >= window.FREE_ITEM_LIMIT) {
             window.closeModal();
             return window.showUpgradeModal(`Batas penyimpanan maksimal ${FREE_ITEM_LIMIT} item tercapai.`);
         }

@@ -34,6 +34,17 @@ const updateTime = () => {
     if (floatingCart) floatingCart.classList.add('hidden');
     if (floatingKulakan) floatingKulakan.classList.add('hidden');
 
+    if (pageId === 'kasir' && !window.kasirAktif) {
+        // Jika mau masuk kasir tapi belum aktif (belum isi modal)
+        alert("⚠️ Akses Ditolak! Anda harus Buka Kasir dan isi Modal dulu.");
+        
+        // Munculkan modal buka kasir secara otomatis
+        const modalBuka = document.getElementById('modal-buka-kasir');
+        if (modalBuka) modalBuka.classList.remove('hidden');
+        
+        return; // STOP! Jangan lanjut ke kode pindah halaman di bawah
+    }
+
     // 2. BERSIHKAN SEMUA HALAMAN
     document.querySelectorAll('.page-content').forEach(p => {
         p.style.setProperty('display', 'none', 'important');
@@ -131,8 +142,8 @@ window.toggleCart = () => {
 window.closeModal = () => document.getElementById('modal-barang').classList.add('hidden');
     
     window.openAddModal = () => {
-        if (!window.isPro && window.masterData.length >= FREE_ITEM_LIMIT) {
-            return window.showUpgradeModal(`Batas penyimpanan maksimal ${FREE_ITEM_LIMIT} item untuk pengguna FREE telah tercapai.`);
+        if (!window.isPro && window.masterData.length >= window.FREE_ITEM_LIMIT) {
+            return window.showUpgradeModal(`Batas penyimpanan maksimal ${window.FREE_ITEM_LIMIT} item untuk pengguna FREE telah tercapai.`);
         }
 
         window.renderKategoriSelect(); 
@@ -1488,36 +1499,40 @@ window.triggerAdd = (sId, tableName, placeholder) => {
     setTimeout(() => inputNama.focus(), 250);
 
     btn.onclick = async () => {
-        const nama = inputNama.value.trim();
-        const noHp = inputHp.value.trim();
+    const nama = inputNama.value.trim();
+    const noHp = inputHp.value.trim();
 
-        if (!nama) return alert("Nama wajib diisi!");
+    if (!nama) return alert("Nama wajib diisi!");
 
-        btn.innerText = "MENYIMPAN...";
-        btn.disabled = true;
+    btn.innerText = "MENYIMPAN...";
+    btn.disabled = true;
 
-        const idNew = (tableName === 'pelanggan' ? 'P-' : 'ID-') + Date.now();
+    const idNew = (tableName === 'pelanggan' ? 'P-' : 'ID-') + Date.now();
+    
+    // 1. Siapkan data dasar
+    let dataSimpan = { id: idNew, nama: nama };
+    
+    // 2. Sesuaikan nama kolom HP (Pastikan SQLite & Supabase sudah pakai nama 'hp')
+    if (tableName === 'pelanggan' || tableName === 'supplier') {
+        dataSimpan.hp = noHp || '-'; 
+    }
+
+    // 3. Panggil fungsi save global
+    window.universalCloudSync.save(tableName, dataSimpan, () => {
+        modal.classList.add('hidden');
+        btn.innerText = "Simpan Sekarang";
+        btn.disabled = false;
         
-        // 3. Siapkan data sesuai tabel
-        let dataSimpan = { id: idNew, nama: nama };
+        // Refresh UI agar data terbaru muncul di dropdown
+        if (tableName === 'supplier') window.renderSelectSupplier?.();
+        if (tableName === 'pelanggan') window.renderPelangganSelect?.();
+        if (tableName === 'kategori') window.renderKategoriSelect?.();
+
+        // Otomatis pilih item yang baru dibuat di dropdown
+        window.selectItem(sId, idNew, nama);
         
-        // Kalau tabel butuh HP, masukkan ke object
-        if (tableName === 'pelanggan' || tableName === 'supplier') {
-            dataSimpan.hp = noHp || '-'; // default strip kalau kosong
-        }
-
-        window.universalCloudSync.save(tableName, dataSimpan, () => {
-            modal.classList.add('hidden');
-            btn.innerText = "Simpan Sekarang";
-            btn.disabled = false;
-            
-            // Refresh UI sesuai tabel
-            if (tableName === 'supplier') window.renderSelectSupplier?.();
-            if (tableName === 'pelanggan') window.renderPelangganSelect?.();
-            if (tableName === 'kategori') window.renderKategoriSelect?.();
-
-            window.selectItem(sId, idNew, nama);
-        });
+        console.log(`✅ Berhasil menambah ${tableName}: ${nama}`);
+    });
     };
 };
 

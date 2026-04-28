@@ -71,13 +71,13 @@ window.startAutoSync = async () => {
                 CREATE TABLE IF NOT EXISTS hutang (id TEXT PRIMARY KEY, pelanggan_id TEXT, transaksi_id BIGINT, total NUMERIC, sisa NUMERIC, tanggal TEXT);
                 CREATE TABLE IF NOT EXISTS cicilan (id TEXT PRIMARY KEY, hutang_id TEXT, jumlah NUMERIC, tanggal TEXT);
                 CREATE TABLE IF NOT EXISTS kategori (id TEXT PRIMARY KEY, nama TEXT);
-                CREATE TABLE IF NOT EXISTS supplier (id TEXT PRIMARY KEY, nama TEXT, kontak TEXT, alamat TEXT); 
+                CREATE TABLE IF NOT EXISTS supplier (id TEXT PRIMARY KEY, nama TEXT, hp TEXT, alamat TEXT); 
                 CREATE TABLE IF NOT EXISTS pembelian (id TEXT PRIMARY KEY, supplier_id TEXT, total NUMERIC, tanggal TEXT, status TEXT);
                 CREATE TABLE IF NOT EXISTS pembelian_detail (id TEXT PRIMARY KEY, pembelian_id TEXT, barang_id TEXT, qty INTEGER, harga_beli NUMERIC);
             `);
 
             // Patch Kolom Supplier
-            try { window.db.run("ALTER TABLE supplier ADD COLUMN kontak TEXT DEFAULT '-'"); } catch (e) {}
+            try { window.db.run("ALTER TABLE supplier ADD COLUMN hp TEXT DEFAULT '-'"); } catch (e) {}
             try { window.db.run("ALTER TABLE supplier ADD COLUMN alamat TEXT DEFAULT '-'"); } catch (e) {}
         }
 
@@ -101,19 +101,27 @@ window.startAutoSync = async () => {
         if (navigator.onLine && window.currentUid) {
             console.log("☁️ Menarik data terbaru dari Cloud...");
 
-            const tables = ['barang', 'pelanggan', 'hutang', 'transaksi', 'transaksi_detail', 'shift_kasir', 'supplier', 'cicilan', 'kategori'];
+            const tables = ['barang', 'pelanggan', 'hutang', 'transaksi', 'transaksi_detail', 'shift_kasir', 'supplier', 'cicilan', 'kategori', 'pembelian', 'pembelian_detail'];
 
             window.db.run("DELETE FROM supplier");
             window.db.run("DELETE FROM pelanggan");
+            window.db.run("DELETE FROM pembelian");
+    window.db.run("DELETE FROM pembelian_detail");
             
             for (const table of tables) {
                 const { data, error } = await supabase.from(table).select('*').eq('user_id', window.currentUid);
                 if (!error && data) {
                     data.forEach(item => {
                         if (table === 'supplier') {
-                        window.db.run("INSERT OR REPLACE INTO supplier (id, nama, kontak, alamat) VALUES (?,?,?,?)", 
-                        [item.id, item.nama, item.kontak || item.hp || '-', item.alamat || '-']);
-                    } 
+    // GANTI 'kontak' menjadi 'hp' di sini
+    window.db.run("INSERT OR REPLACE INTO supplier (id, nama, hp, alamat) VALUES (?,?,?,?)", 
+    [
+        item.id, 
+        item.nama, 
+        item.hp || item.kontak || '-', // Cek hp dulu, kalau gak ada cek kontak
+        item.alamat || '-'
+    ]);
+}
                     else if (table === 'pelanggan') {
                         window.db.run("INSERT OR REPLACE INTO pelanggan (id, nama, hp, total_hutang, sisa_hutang) VALUES (?,?,?,?,?)", 
                         [item.id, item.nama, item.hp || '-', item.total_hutang || 0, item.sisa_hutang || 0]);
@@ -202,6 +210,7 @@ window.refreshDataUI = () => {
         window.renderPelangganSelect?.();
         window.renderCategoryTabs?.();
         window.renderKategoriSelect?.();
+        window.renderRiwayatKulakan?.();
         
         const stokCounter = document.getElementById('stok-counter');
         if (stokCounter) stokCounter.innerText = `${window.masterData.length} Item Barang`;
