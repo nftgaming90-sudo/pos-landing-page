@@ -374,8 +374,8 @@ window.tambahSupplierBaru = async () => {
     const alamat = prompt("Masukkan Alamat (Opsional):") || "-";
 
     try {
-        // 1. Simpan ke SQLite Lokal (PENTING: Pakai 'kontak' agar tidak error)
-        window.db.run("INSERT INTO supplier (id, nama, kontak, alamat) VALUES (?, ?, ?, ?)", 
+        // 1. Simpan ke SQLite Lokal (PENTING: Pakai 'hp' agar tidak error)
+        window.db.run("INSERT INTO supplier (id, nama, hp, alamat) VALUES (?, ?, ?, ?)", 
                      [sId, nama.trim(), hpInput, alamat]);
 
         // 2. Masukkan ke Antrean Sinkronisasi Cloud
@@ -550,61 +550,92 @@ window.eksekusiKulakan = async (statusBaru) => {
 window.editDraftKulakan = async (pembelianId) => {
     if (!window.db) return;
 
-    // 1. Ambil detail barang dari draft yang dipilih
+    // 1. Query SQL dengan JOIN untuk mendapatkan supplier_id dari tabel pembelian
+    // Pastikan kolom di tabel pembelian kamu namanya 'supplier_id'
     const res = window.db.exec(`
-        SELECT b.id, b.nama, pd.qty, pd.harga_beli 
+        SELECT b.id, b.nama, pd.qty, pd.harga_beli, p.supplier_id 
         FROM pembelian_detail pd
         JOIN barang b ON pd.barang_id = b.id
+        JOIN pembelian p ON pd.pembelian_id = p.id
         WHERE pd.pembelian_id = ?
     `, [pembelianId]);
 
     if (res.length > 0 && res[0].values.length > 0) {
         if (!confirm("Muat draft ini ke keranjang? Keranjang saat ini akan diganti.")) return;
 
-        // 2. Masukkan data ke window.cartKulakan
-        window.cartKulakan = res[0].values.map(row => ({
+        const rows = res[0].values;
+        
+        // Ambil supplier_id dari kolom ke-5 (index 4) hasil query
+        const draftSupplierId = rows[0][4]; 
+
+        // 2. Masukkan data barang ke variabel keranjang
+        window.cartKulakan = rows.map(row => ({
             id: row[0],
             nama: row[1],
             qty: row[2],
             hargaBeli: row[3]
         }));
 
-        // 3. Hapus draft lama di DB & Antrean Cloud agar tidak double
-        try {
-            // Hapus di SQLite Lokal
-            window.db.run("DELETE FROM pembelian WHERE id = ?", [pembelianId]);
-            window.db.run("DELETE FROM pembelian_detail WHERE id = ?", [pembelianId]);
+        // 3. ISI OTOMATIS DROPDOWN SUPPLIER (Berdasarkan ID di HTML kamu)
+        // 3. ISI DROPDOWN SUPPLIER
+const selectSup = document.getElementById('select-supplier');
+if (selectSup && draftSupplierId) {
+    // 1. Set nilai di select asli (buat keperluan simpan nanti)
+    selectSup.value = draftSupplierId;
 
-            // Hapus di Cloud Supabase jika sedang online
+    // 2. Trigger event 'change' manual
+    // Ini gunanya ngasih tau komponen UI lain kalau nilainya berubah
+    selectSup.dispatchEvent(new Event('change'));
+
+    // 3. FORCE UPDATE TAMPILAN (Kalau dropdown-nya pake teks yang kelihatan)
+    // Cek apakah ada elemen span atau div yang nampilin nama supplier terpilih
+    // Biasanya id-nya mirip: 'selected-supplier-name' atau semacamnya
+    const displayLabel = document.getElementById('supplier-display-label'); 
+    if (displayLabel) {
+        // Cari teks dari option yang terpilih
+        const selectedOption = selectSup.options[selectSup.selectedIndex];
+        displayLabel.innerText = selectedOption ? selectedOption.text : draftSupplierId;
+    }
+}
+
+        // 4. Hapus draft lama di DB agar tidak double saat disimpan ulang
+        try {
+            window.db.run("DELETE FROM pembelian WHERE id = ?", [pembelianId]);
+            window.db.run("DELETE FROM pembelian_detail WHERE pembelian_id = ?", [pembelianId]);
+
             if (navigator.onLine && window.supabase) {
                 await window.supabase.from('pembelian').delete().eq('id', pembelianId);
-                // Detail otomatis terhapus jika Mas pakai ON DELETE CASCADE di DB, 
-                // jika tidak, hapus manual:
                 await window.supabase.from('pembelian_detail').delete().eq('pembelian_id', pembelianId);
             }
 
-            // Bersihkan juga dari antrean offline (jika ada) supaya tidak terupload ulang
-            window.offlineQueue.pembelian = window.offlineQueue.pembelian.filter(p => p.id !== pembelianId);
-            window.offlineQueue.pembelian_detail = window.offlineQueue.pembelian_detail.filter(pd => pd.pembelian_id !== pembelianId);
-            
-            window.saveQueue();
+            if (window.offlineQueue) {
+                window.offlineQueue.pembelian = (window.offlineQueue.pembelian || []).filter(p => p.id !== pembelianId);
+                window.offlineQueue.pembelian_detail = (window.offlineQueue.pembelian_detail || []).filter(pd => pd.pembelian_id !== pembelianId);
+                window.saveQueue();
+            }
         } catch (err) {
             console.error("Gagal sinkronisasi hapus draft:", err);
         }
 
-        // 4. Update tampilan & tutup modal
+        // 5. UPDATE UI & BUKA HALAMAN CART KULAKAN
         window.renderCartKulakan();
         
+        // Tutup modal riwayat
         const modalRiwayat = document.getElementById('modal-riwayat-kulakan');
         if (modalRiwayat) modalRiwayat.classList.add('hidden');
         
-        // Pastikan drawer kulakan terbuka agar user langsung bisa edit
+        // PAKSA BUKA DRAWER KULAKAN (Full Screen Mobile)
         const drawer = document.getElementById('kulakan-section');
-        if (drawer && drawer.classList.contains('translate-x-full')) {
-            window.toggleKulakanDrawer();
+        if (drawer) {
+            // Hapus sembunyi, tambah aktif
+            drawer.classList.remove('translate-x-full');
+            drawer.classList.add('translate-x-0', 'active');
+            
+            // Beri feedback ke body agar tidak scroll background
+            document.body.classList.add('overflow-hidden');
         }
         
-        alert("Draft berhasil dimuat! Silakan sesuaikan data lalu klik 'Selesaikan'.");
+        alert("Draft dan Supplier berhasil dimuat!");
     } else {
         alert("Data draft tidak ditemukan!");
     }
