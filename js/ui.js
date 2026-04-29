@@ -424,30 +424,60 @@ window.renderHutang = (sortBy = 'baru') => {
                 const d = tgl_lama ? new Date(parseInt(tgl_lama)).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-';
                 
                 return `
-                <div class="w-full bg-white rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden mb-1">
-                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500"></div>
-                    <div class="p-4 pl-6 cursor-pointer hover:bg-slate-50 flex justify-between items-center" onclick="window.toggleDetailHutang('${id}')">
-                        <div class="flex-1 min-w-0 pr-2">
-                            <h3 class="font-black text-slate-800 text-sm uppercase flex items-center gap-2">
-                                <span class="truncate">${nama}</span> 
-                                <span id="icon-pelanggan-${id}" class="text-[9px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded transition-transform">▼</span>
-                            </h3>
-                            <p class="text-[10px] font-bold text-slate-400 mt-0.5 uppercase">📞 ${hp || '-'}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[8px] font-black uppercase text-slate-400 mb-0.5">Sisa Hutang</p>
-                            <p class="font-black text-rose-600 text-base">Rp ${sisa.toLocaleString('id-ID')}</p>
-                        </div>
-                    </div>
-                    <div id="detail-hutang-${id}" class="hidden bg-slate-50/50 border-t border-slate-100">
-                        <div id="isi-hutang-${id}" class="p-4 pt-2"></div>
-                    </div>
-                    <div class="flex justify-between items-center px-4 py-3 bg-slate-50/30 border-t border-slate-100 border-dashed">
-                        <span class="text-[9px] text-slate-400 font-bold">Terakhir: ${d}</span>
-                        <button onclick="window.bukaModalCicilan('${id}', 'ALL', ${sisa}, '${nama.replace(/'/g, "\\'")}')" 
-                                class="bg-rose-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-md active:scale-95">Bayar Semua</button>
-                    </div>
-                </div>`;
+<div class="w-full bg-white rounded-xl border border-slate-200 shadow-sm relative overflow-hidden mb-0">
+
+    <!-- HEADER -->
+    <div class="px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition"
+        onclick="window.toggleDetailHutang('${id}')">
+
+        <div class="flex-1 min-w-0 pr-2">
+
+            <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-1.5 leading-snug tracking-tight">
+    <span class="truncate">
+        ${nama}
+    </span> 
+    <span id="icon-pelanggan-${id}"
+        class="text-[10px] text-slate-400 flex items-center">
+        ▼
+    </span>
+</h3>
+
+            <p class="text-[11px] text-slate-400 mt-0.5">
+                📞 ${hp || '-'}
+            </p>
+
+        </div>
+
+        <div class="text-right">
+            <p class="text-[10px] text-slate-400 leading-none">Sisa</p>
+            <p class="text-lg md:text-xl font-bold text-rose-600 leading-tight">
+                Rp ${sisa.toLocaleString('id-ID')}
+            </p>
+        </div>
+
+    </div>
+
+    <!-- DETAIL -->
+    <div id="detail-hutang-${id}" class="hidden bg-slate-50/50 border-t border-slate-100">
+        <div id="isi-hutang-${id}" class="px-3 py-2"></div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="flex justify-between items-center px-3 py-2 bg-slate-50/40 border-t border-slate-100">
+
+        <span class="text-[11px] text-slate-400">
+            ${d}
+        </span>
+
+        <button onclick="window.bukaModalCicilan('${id}', 'ALL', ${sisa}, '${nama.replace(/'/g, "\\'")}')" 
+            class="bg-rose-500 hover:bg-rose-600 text-white px-3 py-1.5 rounded-lg text-[11px] font-semibold active:scale-95 transition">
+            Bayar
+        </button>
+
+    </div>
+
+</div>
+`;
             }).join('');
         } else {
             container.innerHTML = `<div class="py-16 text-center opacity-40"><div class="text-6xl mb-4">🎉</div><p class="text-xs font-black uppercase text-slate-500">Bebas Hutang!</p></div>`;
@@ -508,41 +538,68 @@ window.loadIsiDetailHutang = (pId) => {
 
     // PEMPERBAIKAN STRUKTUR DI SINI:
     htmlNota += `
-    <div class="bg-slate-50 rounded-2xl border border-slate-200 mb-3 overflow-hidden">
-        <div class="p-3 bg-white flex justify-between items-center cursor-pointer active:bg-slate-50" onclick="document.getElementById('items-${hId}').classList.toggle('hidden')">
-            <div>
-                <p class="text-[10px] font-black text-slate-700 tracking-wider">NOTA #${tId.toString().slice(-6)}</p>
-                <p class="text-[8px] text-slate-400 mt-0.5 font-bold">${hTgl}</p>
-            </div>
-            <div class="text-right">
-                <p class="text-[8px] font-bold text-slate-400 uppercase">Sisa Tagihan</p>
-                <p class="text-xs font-black text-rose-600">Rp ${hSisa.toLocaleString('id-ID')}</p>
-            </div>
-        </div>
-        
-        <div id="items-${hId}" class="hidden p-3 border-t border-slate-100 bg-slate-50/50">
-            <p class="text-[8px] font-black uppercase text-slate-400 mb-2 tracking-widest">Rincian Belanja:</p>
-            ${htmlItem}
+<div class="bg-white rounded-2xl border border-slate-200 mb-3 overflow-hidden">
+
+    <!-- HEADER -->
+    <div class="px-4 py-3 flex justify-between items-center cursor-pointer hover:bg-slate-50 active:bg-slate-100"
+        onclick="document.getElementById('items-${hId}').classList.toggle('hidden')">
+
+        <div>
+            <p class="text-sm font-semibold text-slate-800">
+                Nota #${tId.toString().slice(-6)}
+            </p>
+            <p class="text-xs text-slate-400 mt-0.5">
+                ${hTgl}
+            </p>
         </div>
 
-        
-<div class="p-3 pt-0 flex flex-col gap-2">
-    <div class="flex gap-2">
-        <button onclick="window.printStrukHutangPerNota('${hId}')" 
-            class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-black text-[9px] uppercase tracking-widest active:scale-95 shadow-sm">
-            🖨️ Print
-        </button>
-        <button onclick="window.previewHutangImage('${hId}')" 
-            class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest active:scale-95 shadow-sm">
-            📸 Gambar
-        </button>
+        <div class="text-right">
+            <p class="text-[10px] text-slate-400">
+                Sisa
+            </p>
+            <p class="text-base md:text-lg font-bold text-rose-600 leading-tight">
+                Rp ${hSisa.toLocaleString('id-ID')}
+            </p>
+        </div>
     </div>
-    <button onclick="window.bukaModalCicilan('${pId}', '${hId}', ${hSisa}, 'Nota #${tId.toString().slice(-6)}')" 
-        class="w-full py-3.5 bg-amber-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-md active:scale-95 transition-all">
-        💰 Bayar / Cicil Nota Ini
-    </button>
+
+    <!-- DETAIL -->
+    <div id="items-${hId}" class="hidden px-4 py-3 border-t border-slate-100 bg-slate-50/50">
+
+        <p class="text-xs text-slate-400 mb-2 uppercase tracking-wide">
+            Rincian Belanja
+        </p>
+
+        ${htmlItem}
+
+    </div>
+
+    <!-- ACTION -->
+    <div class="px-4 pb-4 pt-2 flex flex-col gap-2">
+
+        <div class="flex gap-2">
+
+            <button onclick="window.printStrukHutangPerNota('${hId}')" 
+                class="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold active:scale-95 transition">
+                🖨️ Print
+            </button>
+
+            <button onclick="window.previewHutangImage('${hId}')" 
+                class="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold active:scale-95 transition">
+                📸 Gambar
+            </button>
+
+        </div>
+
+        <button onclick="window.bukaModalCicilan('${pId}', '${hId}', ${hSisa}, 'Nota #${tId.toString().slice(-6)}')" 
+            class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-semibold active:scale-95 transition">
+            💰 Bayar / Cicil Nota Ini
+        </button>
+
+    </div>
+
 </div>
-    </div>`;
+`;
 });
         }
 

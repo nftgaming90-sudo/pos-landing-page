@@ -33,7 +33,7 @@ window.currentReportFilter = 'hari_ini';
 window.currentCustomDate = '';
 window.currentCategoryFilter = "Semua";
 
-const FREE_ITEM_LIMIT = 20; 
+window.FREE_ITEM_LIMIT = 20; 
 
 // Queue Offline
 window.offlineQueue = JSON.parse(localStorage.getItem('offlineQueue')) || {

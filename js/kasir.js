@@ -577,26 +577,10 @@ window.editDraftKulakan = async (pembelianId) => {
         }));
 
         // 3. ISI OTOMATIS DROPDOWN SUPPLIER (Berdasarkan ID di HTML kamu)
-        // 3. ISI DROPDOWN SUPPLIER
-const selectSup = document.getElementById('select-supplier');
-if (selectSup && draftSupplierId) {
-    // 1. Set nilai di select asli (buat keperluan simpan nanti)
-    selectSup.value = draftSupplierId;
-
-    // 2. Trigger event 'change' manual
-    // Ini gunanya ngasih tau komponen UI lain kalau nilainya berubah
-    selectSup.dispatchEvent(new Event('change'));
-
-    // 3. FORCE UPDATE TAMPILAN (Kalau dropdown-nya pake teks yang kelihatan)
-    // Cek apakah ada elemen span atau div yang nampilin nama supplier terpilih
-    // Biasanya id-nya mirip: 'selected-supplier-name' atau semacamnya
-    const displayLabel = document.getElementById('supplier-display-label'); 
-    if (displayLabel) {
-        // Cari teks dari option yang terpilih
-        const selectedOption = selectSup.options[selectSup.selectedIndex];
-        displayLabel.innerText = selectedOption ? selectedOption.text : draftSupplierId;
-    }
-}
+        const selectSup = document.getElementById('select-supplier');
+        if (selectSup && draftSupplierId) {
+            selectSup.value = draftSupplierId;
+        }
 
         // 4. Hapus draft lama di DB agar tidak double saat disimpan ulang
         try {

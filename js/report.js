@@ -1206,57 +1206,50 @@ window.bukaRiwayatShift = () => {
 
     window.submitBukaKasir = async () => {
     if (!window.db) {
-        alert("Database belum siap...");
+        alert("Aplikasi sedang menyiapkan database, mohon tunggu sebentar...");
         return;
     }
-    
-    // 1. Ambil modal dan pastikan jadi angka
-    const rawValue = document.getElementById('input-modal-kasir').value;
-    const numModal = parseInt(rawValue.replace(/\./g, '')) || 0;
-    
-    // 2. Gunakan String ID untuk keamanan
-    const ts = Date.now().toString(); 
+        const valModal = document.getElementById('input-modal-kasir').value.replace(/\./g, '');
+        const numModal = parseInt(valModal) || 0;
+        const ts = Date.now();
 
-    try {
-        // Simpan ke SQLite lokal
-        window.db.run("INSERT INTO shift_kasir (id, waktu_buka, waktu_tutup, modal_awal, omzet, laba) VALUES (?,?,?,?,?,?)", 
-            [ts, Number(ts), 0, numModal, 0, 0]);
+        window.db.run("INSERT INTO shift_kasir (id, waktu_buka, waktu_tutup, modal_awal, omzet, laba) VALUES (?,?,?,?,?,?)", [ts.toString(), ts, 0, numModal, 0, 0]);
         
         const shiftPayload = { 
-            id: ts, 
+            id: ts.toString(), 
             user_id: window.currentUid, 
-            waktu_buka: Number(ts), 
+            waktu_buka: ts, 
             waktu_tutup: 0, 
             modal_awal: numModal, 
             omzet: 0, 
             laba: 0 
         };
 
-        // Sinkronisasi Cloud
         if (navigator.onLine) {
-            await supabase.from('shift_kasir').upsert(shiftPayload);
+            try {
+                const { error } = await supabase.from('shift_kasir').upsert(shiftPayload);
+                if (error) throw error; 
+            } catch(e) {
+                window.offlineQueue.shift = window.offlineQueue.shift || [];
+                window.offlineQueue.shift.push(shiftPayload);
+                window.saveQueue();
+            }
         } else {
+            window.offlineQueue.shift = window.offlineQueue.shift || [];
             window.offlineQueue.shift.push(shiftPayload);
             window.saveQueue();
         }
 
-        // 3. Simpan State ke LocalStorage
         localStorage.setItem(`poskita_shift_${window.currentUid}`, JSON.stringify({
             aktif: true,
-            id: ts, // ID sebagai string
+            id: ts,
             modal: numModal
         }));
 
-        // 4. Update UI dan Pindah Halaman
         document.getElementById('modal-buka-kasir').classList.add('hidden');
         window.loadShiftState();
         window.switchPage('kasir'); 
-
-    } catch (e) {
-        console.error("Gagal Buka Kasir:", e);
-        alert("Terjadi kesalahan database: " + e.message);
-    }
-};
+    };
 
     window.konfirmasiTutupKasir = async () => {
         if(!confirm("Anda yakin ingin TUTUP KASIR?\n\nSemua transaksi shift ini akan direkap dan dikirimkan ke owner via WA.")) return;
