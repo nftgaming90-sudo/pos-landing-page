@@ -115,10 +115,16 @@ body {
         align-self: flex-start;
     }
 
-    /* matiin scroll global */
-    .page-content { 
-        overflow: hidden !important;
-    }
+    /* hanya kasir & stok yang dikunci */
+#menu-kasir.page-active,
+#menu-stok.page-active {
+    overflow: hidden !important;
+}
+
+/* halaman lain tetap bisa scroll */
+.page-content {
+    overflow-y: auto !important;
+}
 }
 
 /* ========================================= */
