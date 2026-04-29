@@ -59,9 +59,10 @@ body {
 }
 
 /* ========================================= */
-/* 💻 PC LAYOUT (FIXED ROW) */
+/* 💻 PC LAYOUT (FIXED ROW + STICKY CART) */
 /* ========================================= */
 @media (min-width: 769px) {
+
     nav {
         background: #1e3a8a !important;
         height: 65px !important;
@@ -82,25 +83,42 @@ body {
         background: rgba(255, 255, 255, 0.1) !important;
     }
 
-    /* Kunci agar Tabel & Aside Berjejer Kiri-Kanan */
+    /* Layout utama */
     #menu-kasir, #menu-stok {
+        display: flex !important;
         flex-direction: row !important;
         height: calc(100vh - 110px) !important;
         padding: 15px !important;
         gap: 15px !important;
+        overflow: hidden !important; /* 🔥 penting biar kiri aja yang scroll */
     }
 
+    /* KIRI (produk/tabel) → SCROLL */
+    #menu-kasir > div:first-child,
+    #menu-stok > div:first-child {
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+        overflow-y: auto; /* 🔥 ini yang bikin cuma kiri yang scroll */
+    }
+
+    /* CART → DIEM */
     #cart-section, #kulakan-section { 
-        position: relative !important;
+        position: sticky !important;
+        top: 0;
         width: 380px !important;
         height: 100% !important;
         flex-shrink: 0 !important;
         display: flex !important;
         border-radius: 1.5rem !important;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        align-self: flex-start;
     }
 
-    .page-content { overflow-y: auto !important; }
+    /* matiin scroll global */
+    .page-content { 
+        overflow: hidden !important;
+    }
 }
 
 /* ========================================= */
