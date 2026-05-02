@@ -990,6 +990,30 @@
     </div>
 </div>
 
+<button onclick="nuklirData()" style="position:fixed; top:0; left:0; z-index:9999; background:red; color:white; font-weight:bold; padding:10px; font-size:12px;">
+    RESET APLIKASI
+</button>
+
+<script>
+async function nuklirData() {
+    if (confirm("Data pending 48 akan dihapus dan login ulang. Lanjut?")) {
+        // 1. Bersihkan LocalStorage (Antrean pending ada di sini)
+        localStorage.clear();
+
+        // 2. Bersihkan Cache (File JS lama ada di sini)
+        const cacheKeys = await caches.keys();
+        await Promise.all(cacheKeys.map(key => caches.delete(key)));
+
+        // 3. Hapus Database Lokal (Biar narik data fresh dari Supabase)
+        const dbs = await window.indexedDB.databases();
+        dbs.forEach(db => window.indexedDB.deleteDatabase(db.name));
+
+        alert("Bersih! Aplikasi akan dimuat ulang.");
+        window.location.reload(true);
+    }
+}
+</script>
+
 
 
     <script type="module" src="js/app.js"></script>
