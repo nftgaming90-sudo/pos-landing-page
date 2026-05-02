@@ -1689,6 +1689,66 @@ window.universalCloudSync = {
     }
 };
 
+let homeClickCount = 0;
+let homeClickTimer;
+
+// Pasang ritual di tombol Home
+document.addEventListener('click', function (e) {
+    // Cari elemen nav-home atau anak-anaknya (icon/tulisan Home)
+    const homeBtn = e.target.closest('#nav-home');
+    
+    if (homeBtn) {
+        homeClickCount++;
+
+        // Reset hitungan kalau jeda antar klik lebih dari 2 detik
+        clearTimeout(homeClickTimer);
+        homeClickTimer = setTimeout(() => {
+            homeClickCount = 0;
+        }, 2000);
+
+        // Ritual: Klik 7 kali
+        if (homeClickCount === 7) {
+            homeClickCount = 0;
+            panggilMenuNuklir();
+        }
+    }
+});
+
+async function panggilMenuNuklir() {
+    const yakin = confirm("⚠️ AKTIFKAN MODE MAINTENANCE?\n\nSemua cache & database lokal akan dibersihkan. Anda harus login ulang.");
+    
+    if (yakin) {
+        const pin = prompt("Masukkan PIN Konfirmasi:");
+        if (pin === '99') {
+            console.log("Nuklir dimulai...");
+            
+            // 1. Hapus Database SQLite (IndexedDB)
+            if (window.indexedDB && window.indexedDB.databases) {
+                const dbs = await window.indexedDB.databases();
+                dbs.forEach(db => window.indexedDB.deleteDatabase(db.name));
+            }
+
+            // 2. Hapus Semua Cache Storage (File JS/HTML lama)
+            const cacheKeys = await caches.keys();
+            await Promise.all(cacheKeys.map(key => caches.delete(key)));
+
+            // 3. Unregister Service Worker
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (let registration of registrations) {
+                await registration.unregister();
+            }
+
+            // 4. Bersihkan LocalStorage (Token login & antrean pending)
+            localStorage.clear();
+
+            alert("Pembersihan selesai! PWA akan dimuat ulang dari server.");
+            window.location.reload(true);
+        } else {
+            alert("PIN salah!");
+        }
+    }
+}
+
 // Tambahkan ini di baris paling akhir file ui.js Mas
 window.initSmartDropdown = window.initSmartDropdown;
 window.triggerAdd = window.triggerAdd;
