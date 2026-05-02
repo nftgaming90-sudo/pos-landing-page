@@ -159,7 +159,7 @@
 </section>
 
         <section id="menu-kasir" class="page-content flex-col md:flex-row p-2 md:p-4 gap-3 md:gap-4">
-    <div class="w-full md:w-2/3 flex-1 flex flex-col gap-3">
+    <div class="flex-1 min-w-0 flex flex-col">
         <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(30,64,175,0.05)] border border-slate-200/70 flex flex-col flex-1">
             
             <div class="bg-emerald-50 border-b border-emerald-100 px-3 py-2 flex justify-between items-center shrink-0">
@@ -640,29 +640,60 @@
         </div>
     </div>
 
-    <div id="modal-cicilan" class="fixed inset-0 z-[200] flex items-center justify-center hidden bg-slate-900/80 backdrop-blur-sm p-4 no-print">
-    <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-xs overflow-hidden transform transition-transform">
-        <div class="p-5 bg-gradient-to-br from-amber-400 to-amber-500 text-white text-center">
-            <h3 class="font-black text-xs uppercase tracking-widest">Bayar / Cicil Hutang</h3>
-            <p id="nama-pelanggan-cicil" class="text-xs font-medium mt-1 truncate">-</p>
-        </div>
-        <div class="p-5 space-y-4">
-            <div class="flex justify-between items-center text-xs font-bold text-slate-500 bg-rose-50 px-3 py-2 rounded-lg border border-rose-100">
-                <span>Sisa Hutang:</span>
-                <span id="sisa-hutang-display" class="text-rose-600 font-black tracking-tight">Rp 0</span>
+    <div id="modal-cicilan" class="fixed inset-0 z-[200] flex items-center justify-center hidden bg-black/50 backdrop-blur-sm p-4 no-print">
+
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+
+        <!-- HEADER -->
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div>
+                <h3 class="text-xs font-semibold text-gray-800 tracking-wide">Bayar / Cicil Hutang</h3>
+                <p id="nama-pelanggan-cicil" class="text-[11px] text-gray-500 truncate mt-0.5">-</p>
             </div>
+            <button onclick="document.getElementById('modal-cicilan').classList.add('hidden')"
+                class="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="p-5 space-y-4">
+
+            <!-- SISA -->
+            <div class="flex items-center justify-between bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+                <span class="text-[11px] text-gray-500">Sisa Hutang</span>
+                <span id="sisa-hutang-display" class="text-red-600 font-semibold text-sm">Rp 0</span>
+            </div>
+
+            <!-- HIDDEN -->
             <input type="hidden" id="cicil-pelanggan-id">
             <input type="hidden" id="cicil-hutang-id">
             <input type="hidden" id="cicil-sisa-max">
-            <div class="space-y-1.5 pt-1">
-                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nominal Bayar (Rp)</label>
-                <input type="text" inputmode="numeric" id="input-bayar-cicilan" oninput="this.value = window.formatAngka(this.value)" class="w-full bg-white border border-amber-200 rounded-xl px-4 py-3 font-black text-xl text-amber-600 text-center outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 transition-all shadow-sm" placeholder="0">
+
+            <!-- INPUT -->
+            <div>
+                <label class="text-[10px] text-gray-400 uppercase tracking-wide">Nominal Bayar</label>
+                <input type="text"
+                    inputmode="numeric"
+                    id="input-bayar-cicilan"
+                    oninput="this.value = window.formatAngka(this.value)"
+                    class="mt-1 w-full border border-gray-200 rounded-xl px-4 py-3 text-lg font-semibold text-center text-gray-800 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                    placeholder="Rp 0">
             </div>
+
+            <!-- ACTION -->
             <div class="flex gap-2 pt-2">
-                <button onclick="document.getElementById('modal-cicilan').classList.add('hidden')" class="flex-1 py-3.5 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest transition-colors">Batal</button>
-                <button onclick="window.prosesCicilan()" class="flex-1 py-3.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md active:scale-95 transition-all">Proses</button>
+                <button onclick="document.getElementById('modal-cicilan').classList.add('hidden')"
+                    class="flex-1 py-3 rounded-xl bg-gray-100 text-gray-600 text-xs font-semibold">
+                    Batal
+                </button>
+
+                <button onclick="window.prosesCicilan()"
+                    class="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold active:scale-95 transition">
+                    Proses
+                </button>
             </div>
+
         </div>
+
     </div>
 </div>
 

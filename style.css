@@ -59,50 +59,116 @@ body {
 }
 
 /* ========================================= */
-/* 💻 PC LAYOUT (FIXED ROW + STICKY CART) */
+/* 💻 PC LAYOUT (SIDEBAR MINI + STICKY CART) */
 /* ========================================= */
 @media (min-width: 769px) {
 
-    nav {
-        background: #1e3a8a !important;
-        height: 65px !important;
-        position: relative !important;
-        display: flex !important;
+    /* 🔥 SAMAIN TINGGI HEADER */
+    body > div:first-child {
+        height: 60px !important;   /* 🔥 bisa 55–65 sesuai selera */
+        display: flex;
+        align-items: center;
     }
 
+    /* 🔥 SIDEBAR MINI */
+    nav {
+        padding-top: 10px; /* biar balance sama header */
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 80px; /* 🔥 kecil */
+        height: 100vh !important;
+        background: #1e3a8a !important;
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 10px 6px;
+        z-index: 100;
+    }
+
+    /* WRAPPER */
+    nav > div {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 10px;
+        width: 100%;
+    }
+
+    /* 🔥 BUTTON MENU */
     .nav-btn {
+        display: flex !important;
+        flex-direction: column !important; /* 🔥 icon atas, text bawah */
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px;
+
+        width: 100% !important;
+        height: auto !important;
+        padding: 10px 4px !important;
+
         color: #93c5fd !important;
-        border-bottom: 4px solid transparent !important;
-        height: 100% !important;
-        border-radius: 0 !important;
+        border-radius: 10px !important;
+        border-bottom: none !important;
+
+        transition: all 0.2s ease;
+    }
+
+    /* 🔥 ICON + TEXT */
+    .nav-btn > div {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 2px;
+    }
+
+    /* ICON */
+    .nav-btn span:first-child {
+        font-size: 18px;
+    }
+
+    /* TEXT */
+    .nav-btn span:last-child {
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .nav-btn:hover {
+        background: rgba(255,255,255,0.1);
     }
 
     .nav-active {
         color: #ffffff !important;
-        border-bottom: 4px solid #ffffff !important;
-        background: rgba(255, 255, 255, 0.1) !important;
+        background: rgba(255, 255, 255, 0.15) !important;
     }
 
-    /* Layout utama */
+    /* 🔥 GESER CONTENT */
+    body {
+        padding-left: 80px; /* 🔥 ikut kecil */
+    }
+
+    /* ========================================= */
+    /* 🔥 BAGIAN KAMU (AMAN) */
+    /* ========================================= */
+
     #menu-kasir, #menu-stok {
         display: flex !important;
         flex-direction: row !important;
-        height: calc(100vh - 110px) !important;
+        height: calc(100vh - 30px) !important;
         padding: 15px !important;
         gap: 15px !important;
-        overflow: hidden !important; /* 🔥 penting biar kiri aja yang scroll */
+        overflow: hidden !important;
     }
 
-    /* KIRI (produk/tabel) → SCROLL */
     #menu-kasir > div:first-child,
     #menu-stok > div:first-child {
         flex: 1;
         min-width: 0;
         height: 100%;
-        overflow-y: auto; /* 🔥 ini yang bikin cuma kiri yang scroll */
+        overflow-y: auto;
     }
 
-    /* CART → DIEM */
     #cart-section, #kulakan-section { 
         position: sticky !important;
         top: 0;
@@ -115,16 +181,14 @@ body {
         align-self: flex-start;
     }
 
-    /* hanya kasir & stok yang dikunci */
-#menu-kasir.page-active,
-#menu-stok.page-active {
-    overflow: hidden !important;
-}
+    #menu-kasir.page-active,
+    #menu-stok.page-active {
+        overflow: hidden !important;
+    }
 
-/* halaman lain tetap bisa scroll */
-.page-content {
-    overflow-y: auto !important;
-}
+    .page-content {
+        overflow-y: auto !important;
+    }
 }
 
 /* ========================================= */
