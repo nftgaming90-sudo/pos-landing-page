@@ -399,32 +399,47 @@ window.renderPelangganSelect = () => {
 
 window.renderHutang = (sortBy = 'baru') => {
     if (!window.db) return;
-    
-    // Query diperbaiki untuk memastikan sinkronisasi data sisa_hutang pelanggan
+
+    // 1. QUERY DIPERBAIKI: Kita hitung sisa asli dari tabel hutang (Subquery)
+    // Jadi p.sisa_hutang diabaikan, kita pakai 'sisa_asli' buat patokan nominal.
     let query = `
-        SELECT p.id, p.nama, p.hp, p.sisa_hutang, 
-               (SELECT MAX(CAST(tanggal AS UNSIGNED)) FROM hutang WHERE pelanggan_id = p.id AND sisa > 0) as tgl_lama
+        SELECT 
+            p.id, 
+            p.nama, 
+            p.hp, 
+            (SELECT SUM(sisa) FROM hutang WHERE pelanggan_id = p.id AND sisa > 0) as sisa_asli,
+            (SELECT MAX(CAST(tanggal AS UNSIGNED)) FROM hutang WHERE pelanggan_id = p.id AND sisa > 0) as tgl_lama
         FROM pelanggan p 
-        WHERE p.sisa_hutang > 0 
+        WHERE (SELECT SUM(sisa) FROM hutang WHERE pelanggan_id = p.id AND sisa > 0) > 0
     `;
 
-    if (sortBy === 'terbanyak') query += ` ORDER BY p.sisa_hutang DESC`;
+    // 2. LOGIC SORTING (Tetap pakai nominal sisa yang baru dihitung)
+    if (sortBy === 'terbanyak') query += ` ORDER BY sisa_asli DESC`;
     else if (sortBy === 'terlama') query += ` ORDER BY tgl_lama ASC`;
     else query += ` ORDER BY tgl_lama DESC`;
 
     try {
         const res = window.db.exec(query);
         const container = document.getElementById('list-hutang');
+        const headerTotal = document.getElementById('total-semua-hutang');
         let totalSemua = 0;
 
         if (res.length > 0 && res[0].values) {
             container.innerHTML = res[0].values.map(row => {
                 const [id, nama, hp, sisa, tgl_lama] = row;
-                totalSemua += sisa;
-                const d = tgl_lama ? new Date(parseInt(tgl_lama)).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-';
                 
+                // Tambahkan ke total global header
+                totalSemua += sisa;
+
+                const d = tgl_lama ? new Date(parseInt(tgl_lama)).toLocaleDateString('id-ID', {
+                    day: 'numeric', 
+                    month: 'short', 
+                    year: 'numeric'
+                }) : '-';
+
+                // Gunakan sisa yang sudah dihitung (sisa_asli) di HTML
                 return `
-<div class="w-full bg-white rounded-xl border border-slate-200 shadow-sm relative overflow-hidden mb-0">
+<div class="w-full bg-white rounded-xl border border-slate-200 shadow-sm relative overflow-hidden mb-3">
 
     <!-- HEADER -->
     <div class="px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition"
@@ -433,14 +448,14 @@ window.renderHutang = (sortBy = 'baru') => {
         <div class="flex-1 min-w-0 pr-2">
 
             <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-1.5 leading-snug tracking-tight">
-    <span class="truncate">
-        ${nama}
-    </span> 
-    <span id="icon-pelanggan-${id}"
-        class="text-[10px] text-slate-400 flex items-center">
-        ▼
-    </span>
-</h3>
+                <span class="truncate">
+                    ${nama}
+                </span> 
+                <span id="icon-pelanggan-${id}"
+                    class="text-[10px] text-slate-400 flex items-center transition-transform">
+                    ▼
+                </span>
+            </h3>
 
             <p class="text-[11px] text-slate-400 mt-0.5">
                 📞 ${hp || '-'}
@@ -466,7 +481,7 @@ window.renderHutang = (sortBy = 'baru') => {
     <div class="flex justify-between items-center px-3 py-2 bg-slate-50/40 border-t border-slate-100">
 
         <span class="text-[11px] text-slate-400">
-            ${d}
+            Terakhir: ${d}
         </span>
 
         <button onclick="window.bukaModalCicilan('${id}', 'ALL', ${sisa}, '${nama.replace(/'/g, "\\'")}')" 
@@ -480,10 +495,22 @@ window.renderHutang = (sortBy = 'baru') => {
 `;
             }).join('');
         } else {
-            container.innerHTML = `<div class="py-16 text-center opacity-40"><div class="text-6xl mb-4">🎉</div><p class="text-xs font-black uppercase text-slate-500">Bebas Hutang!</p></div>`;
+            container.innerHTML = `
+                <div class="py-16 text-center opacity-40">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <p class="text-xs font-black uppercase text-slate-500">Bebas Hutang!</p>
+                </div>`;
         }
-        document.getElementById('total-semua-hutang').innerText = `Total Piutang: Rp ${totalSemua.toLocaleString('id-ID')}`;
-    } catch (e) { console.error("Gagal load hutang:", e); }
+
+        // 3. UPDATE HEADER TOTAL (Agar sinkron dengan sisa asli)
+        if (headerTotal) {
+            headerTotal.innerText = `Total Piutang: Rp ${totalSemua.toLocaleString('id-ID')}`;
+        }
+
+    } catch (e) { 
+        console.error("Gagal load hutang:", e); 
+        document.getElementById('list-hutang').innerHTML = `<p class="text-center text-xs text-rose-500 p-10">Gagal memuat data hutang.</p>`;
+    }
 };
 
 window.toggleDetailHutang = (pId) => {
@@ -510,37 +537,41 @@ window.toggleDetailHutang = (pId) => {
     };
 
 window.loadIsiDetailHutang = (pId) => {
-        const container = document.getElementById(`isi-hutang-${pId}`);
-        if(!container || !window.db) return;
+    const container = document.getElementById(`isi-hutang-${pId}`);
+    if(!container || !window.db) return;
 
-        // 1. Ambil daftar nota belum lunas milik pelanggan ini
-        const qHutang = `SELECT h.id, h.transaksi_id, h.total, h.sisa, h.tanggal FROM hutang h WHERE h.pelanggan_id = '${pId}' AND h.sisa > 0 ORDER BY CAST(h.tanggal AS UNSIGNED) ASC`;
-        const resH = window.db.exec(qHutang);
+    // 1. Ambil daftar nota: h.total (Awal) dan h.sisa (Sekarang)
+    const qHutang = `SELECT h.id, h.transaksi_id, h.total, h.sisa, h.tanggal FROM hutang h WHERE h.pelanggan_id = '${pId}' AND h.sisa > 0 ORDER BY CAST(h.tanggal AS UNSIGNED) ASC`;
+    const resH = window.db.exec(qHutang);
 
-        let htmlNota = '';
-        if(resH.length > 0) {
-            resH[0].values.forEach(row => {
-    const [hId, tId, hTotal, hSisa, hTglMs] = row;
-    const hTgl = new Date(parseInt(hTglMs)).toLocaleString('id-ID', {dateStyle:'medium', timeStyle:'short'});
+    let htmlNota = '';
+    if(resH.length > 0) {
+        resH[0].values.forEach(row => {
+            const [hId, tId, hTotal, hSisa, hTglMs] = row;
+            const hTgl = new Date(parseInt(hTglMs)).toLocaleString('id-ID', {dateStyle:'medium', timeStyle:'short'});
 
-    // Ambil rincian item
-    const resDet = window.db.exec(`SELECT b.nama, td.qty, td.harga FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id WHERE td.transaksi_id = ${tId}`);
-    let htmlItem = '';
-    if(resDet.length > 0) {
-        resDet[0].values.forEach(item => {
-            htmlItem += `
-                <div class="flex justify-between text-[10px] text-slate-500 border-b border-dashed border-slate-200 py-2 last:border-0">
-                    <span class="truncate pr-2">${item[1]}x ${item[0] || '(Terhapus)'}</span>
-                    <span class="whitespace-nowrap font-bold">Rp ${(item[1]*item[2]).toLocaleString('id-ID')}</span>
-                </div>`;
-        });
-    }
+            // Ambil rincian item + Harga Satuan
+            const resDet = window.db.exec(`SELECT b.nama, td.qty, td.harga FROM transaksi_detail td LEFT JOIN barang b ON td.barang_id = b.id WHERE td.transaksi_id = ${tId}`);
+            let htmlItem = '';
+            if(resDet.length > 0) {
+                resDet[0].values.forEach(item => {
+                    const subtotalItem = item[1] * item[2];
+                    htmlItem += `
+                        <div class="flex justify-between text-[10px] text-slate-500 border-b border-dashed border-slate-200 py-2 last:border-0">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-slate-700 uppercase">${item[0] || '(Terhapus)'}</span>
+                                <span class="text-[9px] text-slate-400">${item[1]}x @ Rp ${item[2].toLocaleString('id-ID')}</span>
+                            </div>
+                            <span class="whitespace-nowrap font-black text-slate-700">Rp ${subtotalItem.toLocaleString('id-ID')}</span>
+                        </div>`;
+                });
+            }
 
-    // PEMPERBAIKAN STRUKTUR DI SINI:
-    htmlNota += `
-<div class="bg-white rounded-2xl border border-slate-200 mb-3 overflow-hidden">
+            // Injeksi Hutang Awal di Header Nota
+            htmlNota += `
+<div class="bg-white rounded-2xl border border-slate-200 mb-3 overflow-hidden shadow-sm">
 
-    <!-- HEADER -->
+    <!-- HEADER NOTA -->
     <div class="px-4 py-3 flex justify-between items-center cursor-pointer hover:bg-slate-50 active:bg-slate-100"
         onclick="document.getElementById('items-${hId}').classList.toggle('hidden')">
 
@@ -548,14 +579,18 @@ window.loadIsiDetailHutang = (pId) => {
             <p class="text-sm font-semibold text-slate-800">
                 Nota #${tId.toString().slice(-6)}
             </p>
-            <p class="text-xs text-slate-400 mt-0.5">
+            <p class="text-[10px] text-slate-400 mt-0.5">
                 ${hTgl}
+            </p>
+            <!-- Info Hutang Awal -->
+            <p class="text-[9px] font-bold text-slate-400 uppercase mt-1">
+                Hutang Awal: Rp ${hTotal.toLocaleString('id-ID')}
             </p>
         </div>
 
         <div class="text-right">
-            <p class="text-[10px] text-slate-400">
-                Sisa
+            <p class="text-[10px] text-slate-400 font-black uppercase">
+                Sisa Tagihan
             </p>
             <p class="text-base md:text-lg font-bold text-rose-600 leading-tight">
                 Rp ${hSisa.toLocaleString('id-ID')}
@@ -563,65 +598,51 @@ window.loadIsiDetailHutang = (pId) => {
         </div>
     </div>
 
-    <!-- DETAIL -->
+    <!-- DETAIL BARANG -->
     <div id="items-${hId}" class="hidden px-4 py-3 border-t border-slate-100 bg-slate-50/50">
-
-        <p class="text-xs text-slate-400 mb-2 uppercase tracking-wide">
-            Rincian Belanja
+        <p class="text-[9px] text-slate-400 mb-2 uppercase font-black tracking-widest">
+            Rincian Produk & Harga
         </p>
-
         ${htmlItem}
-
     </div>
 
     <!-- ACTION -->
     <div class="px-4 pb-4 pt-2 flex flex-col gap-2">
-
         <div class="flex gap-2">
-
             <button onclick="window.printStrukHutangPerNota('${hId}')" 
-                class="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold active:scale-95 transition">
+                class="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-black uppercase active:scale-95 transition">
                 🖨️ Print
             </button>
-
             <button onclick="window.previewHutangImage('${hId}')" 
-                class="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold active:scale-95 transition">
+                class="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-black uppercase active:scale-95 transition">
                 📸 Gambar
             </button>
-
         </div>
-
         <button onclick="window.bukaModalCicilan('${pId}', '${hId}', ${hSisa}, 'Nota #${tId.toString().slice(-6)}')" 
             class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-semibold active:scale-95 transition">
             💰 Bayar / Cicil Nota Ini
         </button>
-
     </div>
+</div>`;
+        });
+    }
 
-</div>
-`;
-});
-        }
-
-        
-        // 2. Ambil riwayat cicilan pelanggan ini
-// Gunakan LEFT JOIN agar kalau ada data yang miss, transaksi_id tetap bisa dicari
-const qCicil = `
-    SELECT c.jumlah, c.tanggal, t.id
-    FROM cicilan c
-    JOIN hutang h ON c.hutang_id = h.id
-    JOIN transaksi t ON h.transaksi_id = t.id
-    WHERE h.pelanggan_id = '${pId}'
-    ORDER BY CAST(c.tanggal AS UNSIGNED) DESC
-`;
-        const resC = window.db.exec(qCicil);
-        console.log("Data Cicilan Ketemu:", resC);
-        let htmlCicil = '';
-        
-        if(resC.length > 0) {
-            resC[0].values.forEach(row => {
-                const cTgl = new Date(parseInt(row[1])).toLocaleString('id-ID', {dateStyle:'medium', timeStyle:'short'});
-                htmlCicil += `
+    // 2. Ambil riwayat cicilan pelanggan ini
+    const qCicil = `
+        SELECT c.jumlah, c.tanggal, t.id
+        FROM cicilan c
+        JOIN hutang h ON c.hutang_id = h.id
+        JOIN transaksi t ON h.transaksi_id = t.id
+        WHERE h.pelanggan_id = '${pId}'
+        ORDER BY CAST(c.tanggal AS UNSIGNED) DESC
+    `;
+    const resC = window.db.exec(qCicil);
+    let htmlCicil = '';
+    
+    if(resC.length > 0) {
+        resC[0].values.forEach(row => {
+            const cTgl = new Date(parseInt(row[1])).toLocaleString('id-ID', {dateStyle:'medium', timeStyle:'short'});
+            htmlCicil += `
                 <div class="flex justify-between items-center py-2 border-b border-slate-200/60 last:border-0">
                     <div class="flex flex-col">
                         <span class="text-[10px] font-black text-emerald-600">+ Rp ${row[0].toLocaleString('id-ID')}</span>
@@ -629,25 +650,25 @@ const qCicil = `
                     </div>
                     <span class="text-[8px] font-bold text-slate-400 text-right w-20 leading-tight">${cTgl.replace(', ', '<br>')}</span>
                 </div>`;
-            });
-        } else {
-            htmlCicil = `<p class="text-[9px] italic text-slate-400 text-center py-3">Belum ada riwayat pembayaran/cicilan.</p>`;
-        }
+        });
+    } else {
+        htmlCicil = `<p class="text-[9px] italic text-slate-400 text-center py-3">Belum ada riwayat pembayaran/cicilan.</p>`;
+    }
 
-        // 3. Inject HTML ke layar
-        container.innerHTML = `
-            <div class="mt-2 border-t border-slate-200 pt-3">
-                <h4 class="text-[9px] font-black uppercase tracking-[0.1em] text-slate-400 mb-2">📑 Rincian Nota Belum Lunas</h4>
-                ${htmlNota}
+    // 3. Inject HTML ke layar
+    container.innerHTML = `
+        <div class="mt-2 border-t border-slate-200 pt-3">
+            <h4 class="text-[9px] font-black uppercase tracking-[0.1em] text-slate-400 mb-2">📑 Rincian Nota Belum Lunas</h4>
+            ${htmlNota}
+        </div>
+        <div class="mt-4 border-t border-slate-200 pt-3 bg-emerald-50/40 p-3 rounded-xl border border-emerald-100/50">
+            <h4 class="text-[9px] font-black uppercase tracking-[0.1em] text-emerald-700 mb-2 flex items-center gap-1.5"><span>🗓️</span> History Pembayaran</h4>
+            <div class="max-h-40 overflow-y-auto pr-1">
+                ${htmlCicil}
             </div>
-            <div class="mt-4 border-t border-slate-200 pt-3 bg-emerald-50/40 p-3 rounded-xl border border-emerald-100/50">
-                <h4 class="text-[9px] font-black uppercase tracking-[0.1em] text-emerald-700 mb-2 flex items-center gap-1.5"><span>🗓️</span> History Pembayaran</h4>
-                <div class="max-h-40 overflow-y-auto pr-1">
-                    ${htmlCicil}
-                </div>
-            </div>
-        `;
-    };
+        </div>
+    `;
+};
 
     window.renderTable = (dataArray) => {
         const tbody = document.getElementById('table-body');
