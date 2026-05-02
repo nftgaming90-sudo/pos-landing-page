@@ -166,6 +166,28 @@
                 <span class="text-blue-500 text-lg">›</span>
             </button>
 
+            <!-- CATATAN PESANAN (MENU BARU) -->
+            <button onclick="window.switchPage('catatan'); window.toggleMenuLainnya();"
+                class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-blue-50 transition-all active:scale-[0.97] border border-slate-100 hover:border-blue-200">
+
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl shadow-sm">
+                        📝
+                    </div>
+
+                    <div class="text-left">
+                        <p class="font-semibold text-slate-800 text-sm">
+                            Catatan
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Pesanan Pelanggan
+                        </p>
+                    </div>
+                </div>
+
+                <span class="text-blue-500 text-lg">›</span>
+            </button>
+
             <!-- SETTING (DISABLED) -->
             <button
                 class="opacity-40 flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 cursor-not-allowed">
@@ -273,23 +295,117 @@
             </div>
         </section>
 
-        <section id="menu-pelanggan" class="page-content flex-col p-3 md:p-5 overflow-y-auto bg-slate-100/50">
-    <div class="flex flex-col gap-4 w-full max-w-4xl mx-auto">
-        <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200 shrink-0">
+        <!-- HALAMAN CATATAN PESANAN -->
+<section id="menu-catatan" class="page-content hidden min-h-screen bg-slate-50 pb-24">
+    <!-- Header Halaman (Warna disamakan dengan header menu utama Mas) -->
+    <div class="bg-white px-5 pt-8 pb-6 shadow-sm border-b border-slate-100 mb-4">
+        <div class="flex items-center justify-between">
             <div>
-                <h2 class="font-black text-slate-700 uppercase tracking-widest text-xs md:text-sm">Buku Hutang Aktif</h2>
-                <p id="total-semua-hutang" class="text-[10px] md:text-xs font-bold text-slate-500 mt-0.5">Total: Rp 0</p>
+                <h2 class="text-2xl font-black text-slate-800 tracking-tight leading-none">CATATAN</h2>
+                <p class="text-blue-500 text-[10px] uppercase tracking-[0.2em] font-bold mt-2">Pesanan & Antrean</p>
             </div>
-            <select id="sort-hutang" onchange="window.renderHutang(this.value)" class="bg-slate-50 border border-slate-200 text-slate-700 text-[10px] md:text-xs rounded-xl focus:ring-blue-500 focus:border-blue-500 block px-3 py-2 outline-none font-bold shadow-sm">
-                <option value="baru">Update Terbaru</option>
-                <option value="terbanyak">Nominal Terbanyak</option>
-                <option value="terlama">Hutang Terlama</option>
+            <button onclick="document.getElementById('modal-tambah-catatan').classList.remove('hidden')" 
+                class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg shadow-blue-200 flex items-center justify-center transition-all active:scale-90">
+                <span class="text-xl">➕</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Container Daftar Catatan -->
+    <div class="px-5">
+        <div id="list-catatan" class="flex flex-col gap-4">
+            <!-- Data dari ui.js akan render kartu di sini -->
+            <!-- Kartu otomatis pakai style bg-white border-slate-100 ya Mas -->
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH CATATAN (Gaya Sheet/Modal Modern) -->
+    <div id="modal-tambah-catatan" class="fixed inset-0 z-[12000] flex items-end md:items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 md:p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-t-[2.5rem] md:rounded-[2rem] overflow-hidden shadow-2xl animate-slide-up">
+            <!-- Modal Header -->
+            <div class="px-6 py-6 border-b border-slate-50 flex justify-between items-center">
+                <h3 class="text-slate-800 font-bold uppercase tracking-wider">Buat Pesanan Baru</h3>
+                <button onclick="document.getElementById('modal-tambah-catatan').classList.add('hidden')" class="text-slate-400">✕</button>
+            </div>
+            
+            <div class="p-6 space-y-5">
+                <!-- Pilih Pelanggan -->
+                <div>
+                    <label class="block text-slate-400 text-[10px] font-bold uppercase mb-2 ml-1">Pelanggan</label>
+                    <select id="form-catatan-pelanggan" class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-slate-800 focus:bg-white focus:border-blue-400 outline-none transition-all appearance-none font-medium">
+                        <option value="">-- Pilih Pelanggan --</option>
+                    </select>
+                </div>
+
+                <!-- Tanggal Ambil -->
+                <div>
+                    <label class="block text-slate-400 text-[10px] font-bold uppercase mb-2 ml-1">Rencana Diambil/Antar</label>
+                    <input type="date" id="form-catatan-tgl" 
+                        class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-slate-800 focus:bg-white focus:border-blue-400 outline-none transition-all font-medium">
+                </div>
+
+                <!-- Detail Barang -->
+                <div>
+                    <label class="block text-slate-400 text-[10px] font-bold uppercase mb-2 ml-1">Rincian Pesanan</label>
+                    <textarea id="form-catatan-isi" rows="4" placeholder="Ketik barang yang dipesan..."
+                        class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-slate-800 focus:bg-white focus:border-blue-400 outline-none transition-all resize-none text-sm font-medium"></textarea>
+                </div>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <div class="p-6 grid grid-cols-2 gap-3 bg-slate-50/50">
+                <button onclick="document.getElementById('modal-tambah-catatan').classList.add('hidden')" 
+                    class="p-4 rounded-2xl bg-white border border-slate-200 text-slate-500 font-bold uppercase text-xs hover:bg-slate-100 transition-all">
+                    Batal
+                </button>
+                <button onclick="simpanCatatanBaru()" 
+                    class="p-4 rounded-2xl bg-blue-600 text-white font-bold uppercase text-xs shadow-lg shadow-blue-200 active:scale-95 transition-all">
+                    Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+        <section id="menu-pelanggan" class="page-content flex-col p-3 md:p-5 overflow-y-auto bg-gradient-to-br from-blue-50 via-slate-100 to-blue-100">
+    
+    <div class="flex flex-col gap-4 w-full max-w-4xl mx-auto">
+
+        <!-- HEADER -->
+        <div class="flex justify-between items-center 
+                    bg-gradient-to-r from-blue-500 to-indigo-500 
+                    p-4 rounded-2xl shadow-md shrink-0 text-white">
+
+            <div>
+                <h2 class="font-extrabold uppercase tracking-wide text-sm md:text-base">
+                    Buku Hutang Aktif
+                </h2>
+                <p id="total-semua-hutang" class="text-xs font-semibold opacity-90 mt-0.5">
+                    Total: Rp 0
+                </p>
+            </div>
+
+            <select id="sort-hutang" onchange="window.renderHutang(this.value)" 
+                class="bg-white/20 backdrop-blur border border-white/30 
+                       text-white text-xs md:text-sm rounded-xl 
+                       px-3 py-2 outline-none font-bold shadow-sm">
+
+                <option value="baru" class="text-slate-700">Update Terbaru</option>
+                <option value="terbanyak" class="text-slate-700">Nominal Terbanyak</option>
+                <option value="terlama" class="text-slate-700">Hutang Terlama</option>
             </select>
         </div>
-        
-        <div id="list-hutang" class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pb-20 items-start">
-            </div>
+
+        <!-- LIST -->
+        <div id="list-hutang" 
+     class="grid grid-cols-1 md:grid-cols-2 
+            gap-y-0.5 md:gap-y-0.5 
+            gap-x-3 md:gap-x-4 
+            pb-20 items-start">
+</div>
+
     </div>
+
 </section>
 
         <section id="menu-kasir" class="page-content flex-col md:flex-row p-2 md:p-4 gap-3 md:gap-4">

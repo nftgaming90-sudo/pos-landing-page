@@ -85,13 +85,19 @@ const updateTime = () => {
     }, 50);
 
     // 7. TRIGGER DATA PER HALAMAN
+    // 7. TRIGGER DATA PER HALAMAN
     if (pageId === 'stok') {
         if (typeof window.renderSelectSupplier === 'function') window.renderSelectSupplier();
+
+        // 🔥 Gunakan filter kategori yang sedang aktif juga di sini
+        const filtered = window.currentCategoryFilter === "Semua" 
+            ? window.masterData 
+            : window.masterData.filter(item => item[5] === window.currentCategoryFilter);
 
         if (window.isKritisMode) {
             window.filterStokKritis();
         } else {
-            window.renderStokTable(window.masterData);
+            window.renderStokTable(filtered); // <-- Pakai data yang sudah terfilter kategori
             setTimeout(() => { window.renderRekomendasiKulakan?.(); }, 150);
         }
     }
@@ -102,7 +108,44 @@ const updateTime = () => {
     }
     
     if(pageId === 'pelanggan') window.renderHutang();
+
+    // Cari bagian akhir fungsi switchPage, lalu sisipkan ini:
+if (pageId === 'catatan') {
+    window.loadCatatanPesanan();
+    // Tambahan: Isi dropdown pelanggan dari SQLite lokal Mas
+    const select = document.getElementById('form-catatan-pelanggan');
+    if (select && window.db) {
+        const res = window.db.exec("SELECT id, nama FROM pelanggan ORDER BY nama ASC");
+        let opts = '<option value="">-- Pilih Pelanggan --</option>';
+        if (res.length > 0) {
+            res[0].values.forEach(row => {
+                opts += `<option value="${row[0]}">${row[1]}</option>`;
+            });
+        }
+        select.innerHTML = opts;
+    }
+}
 };
+
+// Fungsi isi dropdown pelanggan di Catatan (Ambil dari SQLite lokal Mas)
+window.renderCatatanPelangganSelect = () => {
+    const select = document.getElementById('form-catatan-pelanggan');
+    if (!select || !window.db) return;
+
+    const res = window.db.exec("SELECT id, nama FROM pelanggan ORDER BY nama ASC");
+    let options = '<option value="">-- Pelanggan Umum --</option>';
+    
+    if (res.length > 0) {
+        res[0].values.forEach(row => {
+            options += `<option value="${row[0]}">${row[1]}</option>`;
+        });
+    }
+    select.innerHTML = options;
+};
+
+// Pastikan di switchPage Mas, panggil loadCatatanPesanan()
+// Mas tinggal cari bagian if(pageId === 'laporan') dst, tambahkan ini:
+
 
 window.toggleKulakanDrawer = () => {
     const el = document.getElementById('kulakan-section');
@@ -437,22 +480,46 @@ window.renderHutang = (sortBy = 'baru') => {
                     year: 'numeric'
                 }) : '-';
 
+                // tanggal hari ini
+const today = new Date();
+today.setHours(0,0,0,0);
+
+// tanggal pinjam
+const tglPinjam = new Date(d);
+tglPinjam.setHours(0,0,0,0);
+
+// jatuh tempo = +14 hari
+const jatuhTempo = new Date(tglPinjam);
+jatuhTempo.setDate(jatuhTempo.getDate() + 14);
+
+// cek status
+const isJatuhTempo = today > jatuhTempo;
+
+// optional: hitung sisa hari
+const diffTime = jatuhTempo - today;
+const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
                 // Gunakan sisa yang sudah dihitung (sisa_asli) di HTML
                 return `
-<div class="w-full bg-white rounded-xl border border-slate-200 shadow-sm relative overflow-hidden mb-3">
+<div onclick="window.toggleDetailHutang('${id}')"
+     class="w-full bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-3 cursor-pointer active:scale-[0.99] transition">
 
-    <!-- HEADER -->
-    <div class="px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition"
-        onclick="window.toggleDetailHutang('${id}')">
+    <!-- MAIN -->
+    <div class="p-3 flex items-center gap-3">
 
-        <div class="flex-1 min-w-0 pr-2">
+        <!-- AVATAR -->
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-400 
+                    flex items-center justify-center text-white text-lg shadow-sm shrink-0">
+            👤
+        </div>
 
-            <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-1.5 leading-snug tracking-tight">
-                <span class="truncate">
-                    ${nama}
-                </span> 
-                <span id="icon-pelanggan-${id}"
-                    class="text-[10px] text-slate-400 flex items-center transition-transform">
+        <!-- INFO -->
+        <div class="flex-1 min-w-0">
+
+            <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-1 truncate">
+                <span class="truncate">${nama}</span>
+                <span id="icon-pelanggan-${id}" 
+                      class="text-[10px] text-slate-400 transition-transform">
                     ▼
                 </span>
             </h3>
@@ -461,33 +528,60 @@ window.renderHutang = (sortBy = 'baru') => {
                 📞 ${hp || '-'}
             </p>
 
+            <div class="flex items-center gap-2 mt-1 flex-wrap">
+                <span class="text-[11px] text-slate-400">
+                    📅 ${d}
+                </span>
+
+                ${
+                    isJatuhTempo
+                    ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 font-semibold">
+                        ⏰ Jatuh Tempo
+                       </span>`
+                    : diffDays <= 2
+                    ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-600 font-semibold">
+                        ⚠️ Hampir Jatuh Tempo
+                       </span>`
+                    : `<span class="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-600 font-semibold">
+                        ✔ Lancar
+                       </span>`
+                }
+            </div>
+
         </div>
 
-        <div class="text-right">
-            <p class="text-[10px] text-slate-400 leading-none">Sisa</p>
-            <p class="text-lg md:text-xl font-bold text-rose-600 leading-tight">
+        <!-- KANAN -->
+        <div class="text-right shrink-0">
+
+            <p class="text-[10px] text-slate-400 leading-none mb-0.5">
+                Sisa
+            </p>
+
+            <p class="text-base md:text-lg font-bold text-slate-800 leading-tight">
                 Rp ${sisa.toLocaleString('id-ID')}
             </p>
+
+            <!-- ❗ STOP DI TOMBOL -->
+            <button 
+                onclick="event.stopPropagation(); window.bukaModalCicilan('${id}', 'ALL', ${sisa}, '${nama.replace(/'/g, "\\'")}')" 
+                class="mt-2 bg-gradient-to-r from-rose-500 to-pink-500 
+                       hover:from-rose-600 hover:to-pink-600 
+                       text-white px-3 py-1.5 rounded-lg text-[11px] font-semibold 
+                       shadow-sm active:scale-95 transition">
+
+                💳 Bayar
+            </button>
+
         </div>
 
     </div>
 
     <!-- DETAIL -->
-    <div id="detail-hutang-${id}" class="hidden bg-slate-50/50 border-t border-slate-100">
+    <div id="detail-hutang-${id}" 
+         onclick="event.stopPropagation()" 
+         class="hidden bg-slate-50 border-t border-slate-100">
+
         <div id="isi-hutang-${id}" class="px-3 py-2"></div>
-    </div>
-
-    <!-- FOOTER -->
-    <div class="flex justify-between items-center px-3 py-2 bg-slate-50/40 border-t border-slate-100">
-
-        <span class="text-[11px] text-slate-400">
-            Terakhir: ${d}
-        </span>
-
-        <button onclick="window.bukaModalCicilan('${id}', 'ALL', ${sisa}, '${nama.replace(/'/g, "\\'")}')" 
-            class="bg-rose-500 hover:bg-rose-600 text-white px-3 py-1.5 rounded-lg text-[11px] font-semibold active:scale-95 transition">
-            Bayar
-        </button>
 
     </div>
 
@@ -1890,6 +1984,107 @@ if (sheetContent) {
         currentY = 0;
     });
 }
+
+// --- FITUR CATATAN LABAGO ---
+
+// Fungsi Load Data Catatan
+async function loadCatatanPesanan() {
+    const container = document.getElementById('list-catatan');
+    if (!container) return;
+
+    container.innerHTML = '<div class="p-10 text-center text-slate-400 font-medium">Memuat catatan...</div>';
+
+    try {
+        const { data, error } = await supabase
+            .from('catatan_pesanan')
+            .select(`*, pelanggan (nama)`)
+            .order('tanggal_ambil', { ascending: true });
+
+        if (error) throw error;
+        if (data.length === 0) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-20 text-center">
+                    <span class="text-5xl mb-4">📭</span>
+                    <p class="text-slate-400 font-medium tracking-tight">Belum ada catatan pesanan.</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = data.map(item => {
+            const tglAmbil = new Date(item.tanggal_ambil).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+            const isUrgent = new Date(item.tanggal_ambil) <= new Date().setHours(0,0,0,0);
+            const statusClass = isUrgent ? 'bg-red-50 text-red-600 border-red-100' : 'bg-blue-50 text-blue-600 border-blue-100';
+            const dotClass = isUrgent ? 'bg-red-500' : 'bg-blue-500';
+
+            return `
+                <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm mb-2 mx-1">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full ${dotClass} animate-pulse"></div>
+                            <h4 class="font-bold text-slate-800 text-base">${item.pelanggan?.nama || 'Umum'}</h4>
+                        </div>
+                        <span class="text-[10px] font-black px-3 py-1 rounded-full ${statusClass} border uppercase tracking-wider">
+                            ${tglAmbil}
+                        </span>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl mb-4">
+                        <p class="text-sm text-slate-600 leading-relaxed font-medium">
+                            ${item.catatan_barang_custom || 'Tidak ada rincian.'}
+                        </p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="window.prosesKeKasir('${item.id}')" 
+                            class="flex-1 bg-slate-900 text-white text-[10px] font-bold py-3 rounded-xl uppercase tracking-widest active:scale-95 transition-all">
+                            Proses Kasir
+                        </button>
+                        <button onclick="window.hapusCatatan('${item.id}')" 
+                            class="w-12 bg-red-50 text-red-500 rounded-xl flex items-center justify-center active:scale-95 transition-all">
+                            🗑️
+                        </button>
+                    </div>
+                </div>`;
+        }).join('');
+    } catch (err) {
+        console.error("Error load catatan:", err);
+    }
+}
+
+// Fungsi Simpan Catatan
+async function simpanCatatanBaru() {
+    const idPelanggan = document.getElementById('form-catatan-pelanggan').value;
+    const tglAmbil = document.getElementById('form-catatan-tgl').value;
+    const isiCatatan = document.getElementById('form-catatan-isi').value;
+
+    if (!tglAmbil || !isiCatatan) return alert('Lengkapi data dulu ya Mas!');
+
+    const { error } = await supabase
+        .from('catatan_pesanan')
+        .insert([{
+            pelanggan_id: idPelanggan || null,
+            tanggal_ambil: tglAmbil,
+            catatan_barang_custom: isiCatatan
+        }]);
+
+    if (error) {
+        alert('Gagal simpan: ' + error.message);
+    } else {
+        document.getElementById('modal-tambah-catatan').classList.add('hidden');
+        document.getElementById('form-catatan-tgl').value = '';
+        document.getElementById('form-catatan-isi').value = '';
+        loadCatatanPesanan();
+    }
+}
+
+// Ekspos ke Window agar bisa dipanggil HTML
+window.loadCatatanPesanan = loadCatatanPesanan;
+window.simpanCatatanBaru = simpanCatatanBaru;
+
+// Fungsi Hapus Catatan
+window.hapusCatatan = async (id) => {
+    if(!confirm('Hapus catatan ini, Mas?')) return;
+    const { error } = await supabase.from('catatan_pesanan').delete().eq('id', id);
+    if(!error) loadCatatanPesanan();
+};
 
 // Tambahkan ini di baris paling akhir file ui.js Mas
 window.initSmartDropdown = window.initSmartDropdown;
