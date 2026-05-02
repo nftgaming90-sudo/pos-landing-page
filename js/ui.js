@@ -1770,6 +1770,127 @@ async function panggilMenuNuklir() {
     }
 }
 
+// --- LOGIC MENU LAINNYA & INTERACTIVE BOTTOM SHEET ---
+
+let startY = 0;
+let currentY = 0;
+let isDragging = false;
+
+window.toggleMenuLainnya = () => {
+    const modal = document.getElementById('modal-menu-lainnya');
+    const content = document.getElementById('sheet-content');
+    
+    if (!modal || !content) return;
+
+    // Cek apakah sedang sembunyi
+    const isHidden = modal.classList.contains('hidden-sheet');
+
+    if (isHidden) {
+        // MUNCULKAN
+        modal.classList.remove('hidden-sheet');
+        modal.classList.add('sheet-active');
+        
+        // 🔥 TAMBAHKAN BARIS INI MAS! (PENTING)
+        history.pushState({ modal: 'modalLainnya' }, '');
+
+        // Reset transform biar nongol
+        setTimeout(() => {
+            content.style.transform = "translateY(0)";
+        }, 10);
+    } else {
+        // SEMBUNYIKAN
+        content.style.transform = "translateY(100%)";
+        modal.classList.remove('sheet-active');
+
+        // Jika masih ada state modal di history, kita bersihkan (biar gak double back)
+        if (history.state && history.state.modal === 'modalLainnya') {
+            history.back();
+        }
+        
+        // Kasih waktu buat animasi meluncur dulu baru tutup total
+        setTimeout(() => {
+            modal.classList.add('hidden-sheet');
+        }, 300);
+    }
+};
+
+// --- LOGIC BACK BUTTON (Capture tombol back HP) ---
+window.addEventListener('popstate', (event) => {
+    const modal = document.getElementById('modal-menu-lainnya');
+    
+    // Kalau modal lagi kebuka dan user tekan back
+    if (modal && !modal.classList.contains('hidden-sheet')) {
+        // Kita tutup modalnya dengan animasi (tanpa manggil history.back lagi)
+        const content = document.getElementById('sheet-content');
+        content.style.transform = "translateY(100%)";
+        modal.classList.remove('sheet-active');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden-sheet');
+        }, 300);
+    }
+});
+
+window.pilihMenuLainnya = (pageId) => {
+    // 1. Tutup modal menu lainnya dengan animasi
+    window.toggleMenuLainnya();
+    
+    // 2. Cari tombol nav-lainnya buat dikasih highlight di navigasi bawah
+    const btnLainnya = document.getElementById('nav-lainnya');
+    
+    // 3. Pindah halaman menggunakan fungsi core app
+    if (window.switchPage) {
+        window.switchPage(pageId, btnLainnya);
+    }
+};
+
+// --- GESTURE ENGINE (Full Area Drag) ---
+const sheetContent = document.getElementById('sheet-content');
+
+if (sheetContent) {
+    sheetContent.addEventListener('touchstart', (e) => {
+        if (window.innerWidth > 768) return;
+        
+        // Mulai drag di mana saja di dalam area sheet
+        startY = e.touches[0].clientY;
+        isDragging = true;
+        
+        // Transisi dimatikan agar gerakan sheet ngikutin jari secara real-time
+        sheetContent.style.transition = "none"; 
+    }, { passive: false }); // Ubah jadi false agar bisa preventDefault kalau butuh
+
+    sheetContent.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        
+        const touchY = e.touches[0].clientY;
+        currentY = touchY - startY;
+
+        // Hanya gerakkan sheet jika ditarik ke bawah (currentY > 0)
+        if (currentY > 0) {
+            // Mencegah browser melakukan pull-to-refresh
+            if (e.cancelable) e.preventDefault(); 
+            sheetContent.style.transform = `translateY(${currentY}px)`;
+        }
+    }, { passive: false });
+
+    sheetContent.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        // Balikin animasi smooth-nya
+        sheetContent.style.transition = "transform 0.4s cubic-bezier(0.17, 0.84, 0.44, 1)";
+        
+        // Logic tutup: kalau ditarik lebih dari 120px (saya pendekin biar gak pegel)
+        if (currentY > 120) {
+            window.toggleMenuLainnya();
+        } else {
+            // Pantulkan balik ke atas (efek pegas)
+            sheetContent.style.transform = "translateY(0)";
+        }
+        currentY = 0;
+    });
+}
+
 // Tambahkan ini di baris paling akhir file ui.js Mas
 window.initSmartDropdown = window.initSmartDropdown;
 window.triggerAdd = window.triggerAdd;

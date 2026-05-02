@@ -277,5 +277,80 @@ body {
     }
     .animate-modal-in { animation: modal-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 
-.hide-scrollbar { scrollbar-width: none; }
+@keyframes slide-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+/* ========================================= */
+/* --- INTERACTIVE BOTTOM SHEET (LABAGO) --- */
+/* ========================================= */
+
+/* State awal: Sembunyi total */
+#modal-menu-lainnya.hidden-sheet {
+    visibility: hidden !important;
+    pointer-events: none !important; /* Ini biar tombol di bawahnya bisa diklik */
+    opacity: 0;
+}
+
+#modal-menu-lainnya.sheet-active {
+    visibility: visible !important;
+    pointer-events: auto !important; /* Ini biar isi modal bisa diklik pas buka */
+    opacity: 1;
+}
+
+/* Konten Menu yang bisa ditarik */
+.bottom-sheet-content {
+    /* will-change maksa GPU kerja biar tarikan di HP enteng gak patah-patah */
+    will-change: transform;
+    transition: transform 0.4s cubic-bezier(0.17, 0.84, 0.44, 1), opacity 0.3s ease;
+    touch-action: none; /* Kunci: Biar browser gak ambil alih tarikan jari */
+    user-select: none;  /* Biar teks gak ikut ke-block pas ditarik */
+}
+
+/* Logic HP: Muncul dari bawah */
+@media (max-width: 768px) {
+    #modal-menu-lainnya.hidden-sheet .bottom-sheet-content {
+        transform: translateY(100%);
+    }
+    #modal-menu-lainnya.sheet-active .bottom-sheet-content {
+        transform: translateY(0);
+    }
+}
+
+/* Logic PC: Muncul elegan di samping sidebar */
+@media (min-width: 769px) {
+    #modal-menu-lainnya.hidden-sheet .bottom-sheet-content {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    #modal-menu-lainnya.sheet-active .bottom-sheet-content {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Garis handle penarik di HP (Ciri khas App Modern) */
+.sheet-handle {
+    width: 40px;
+    height: 5px;
+    background: #e2e8f0;
+    border-radius: 10px;
+    margin: 5px auto 15px auto;
+    cursor: grab;
+}
+.sheet-handle:active { cursor: grabbing; }
+
+/* Animasi tambahan */
+.animate-slide-up {
+    animation: slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slide-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+/* Utility tambahan */
+.hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }

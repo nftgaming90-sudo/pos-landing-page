@@ -35,14 +35,13 @@
         </div>
     </div>
 
-    <nav class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 shadow-lg md:shadow-md shrink-0 no-print fixed bottom-0 left-0 right-0 md:relative md:top-0 z-50 px-1 md:px-3 h-[65px] md:h-auto border-t border-blue-700 md:border-none pb-safe flex items-center">
-
+    <!-- NAVIGASI UTAMA (Ganti bagian <nav> lama Mas dengan ini) -->
+<nav class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 shadow-lg md:shadow-md shrink-0 no-print fixed bottom-0 left-0 right-0 md:relative md:top-0 z-50 px-1 md:px-3 h-[65px] md:h-auto border-t border-blue-700 md:border-none pb-safe flex items-center">
     <div class="flex flex-1 items-center justify-around md:justify-start overflow-x-auto hide-scrollbar gap-1 md:gap-2 h-full">
 
         <!-- HOME -->
         <button onclick="window.switchPage('home', this)" id="nav-home"
             class="nav-btn grid place-items-center h-full flex-1 md:flex-none px-2 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-white border-b-[3px] border-white nav-active">
-            
             <div class="flex flex-col items-center justify-center gap-[2px]">
                 <span class="text-lg md:text-base leading-none">🏠</span>
                 <span class="leading-none">Home</span>
@@ -52,7 +51,6 @@
         <!-- KASIR -->
         <button onclick="window.switchPage('kasir', this)" id="nav-kasir"
             class="nav-btn grid place-items-center h-full flex-1 md:flex-none px-2 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white">
-            
             <div class="flex flex-col items-center justify-center gap-[2px]">
                 <span class="text-lg md:text-base leading-none">🏪</span>
                 <span class="leading-none">Kasir</span>
@@ -60,37 +58,173 @@
         </button>
 
         <!-- STOK -->
-        <button onclick="window.switchPage('stok', this)"
+        <button onclick="window.switchPage('stok', this)" id="nav-stok"
             class="nav-btn grid place-items-center h-full flex-1 md:flex-none px-2 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white">
-            
             <div class="flex flex-col items-center justify-center gap-[2px]">
                 <span class="text-lg md:text-base leading-none">📦</span>
                 <span class="leading-none">Stok</span>
             </div>
         </button>
 
-        <!-- PELANGGAN -->
-        <button onclick="window.switchPage('pelanggan', this)"
-            class="nav-btn grid place-items-center h-full flex-1 md:flex-none px-2 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white">
-            
-            <div class="flex flex-col items-center justify-center gap-[2px]">
-                <span class="text-lg md:text-base leading-none">👥</span>
-                <span class="leading-none">Hutang</span>
-            </div>
-        </button>
-
         <!-- LAPORAN -->
-        <button onclick="window.switchPage('laporan', this)"
+        <button onclick="window.switchPage('laporan', this)" id="nav-laporan"
             class="nav-btn grid place-items-center h-full flex-1 md:flex-none px-2 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white">
-            
             <div class="flex flex-col items-center justify-center gap-[2px]">
                 <span class="text-lg md:text-base leading-none">📊</span>
                 <span class="leading-none">Laporan</span>
             </div>
         </button>
 
+        <!-- MENU LAINNYA (GARIS 3) -->
+        <button onclick="window.toggleMenuLainnya()" id="nav-lainnya"
+            class="nav-btn grid place-items-center h-full flex-1 md:flex-none px-2 md:px-5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-blue-300 border-b-[3px] border-transparent hover:text-white">
+            <div class="flex flex-col items-center justify-center gap-[2px]">
+                <span class="text-lg md:text-base leading-none">☰</span>
+                <span class="leading-none">Lainnya</span>
+            </div>
+        </button>
+
     </div>
 </nav>
+
+
+<div id="modal-menu-lainnya" class="fixed inset-0 z-[11000] no-print hidden-sheet group">
+
+    <!-- BACKDROP -->
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 opacity-0 group-[.sheet-active]:opacity-100"
+        onclick="window.toggleMenuLainnya()"></div>
+
+    <!-- SHEET -->
+    <div id="sheet-content"
+        class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] px-5 pt-5 pb-6 shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.17,0.84,0.44,1)] translate-y-full
+        md:bottom-auto md:left-24 md:top-6 md:w-[420px] md:rounded-[2rem] md:translate-y-0 md:opacity-0 md:group-[.sheet-active]:opacity-100 md:group-[.sheet-active]:translate-y-0">
+
+        <!-- HANDLE -->
+        <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-5 md:hidden"></div>
+
+        <!-- HEADER -->
+        <div class="flex justify-between items-center mb-5">
+            <div>
+                <h3 class="text-lg font-bold text-slate-800 tracking-tight">
+                    Menu Utama
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">
+                    Akses cepat fitur
+                </p>
+            </div>
+
+            <button onclick="window.toggleMenuLainnya()"
+                class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-100 hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition">
+                ✕
+            </button>
+        </div>
+
+        <!-- MENU LIST -->
+        <div class="flex flex-col gap-3">
+
+            <!-- HUTANG -->
+            <button onclick="window.pilihMenuLainnya('pelanggan')"
+                class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-blue-50 transition-all active:scale-[0.97] border border-slate-100 hover:border-blue-200">
+
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl shadow-sm">
+                        💰
+                    </div>
+
+                    <div class="text-left">
+                        <p class="font-semibold text-slate-800 text-sm">
+                            Hutang
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Bon & Tagihan
+                        </p>
+                    </div>
+                </div>
+
+                <span class="text-blue-500 text-lg">›</span>
+            </button>
+
+            <!-- KULAKAN -->
+            <button onclick="window.bukaRiwayatKulakan(); window.toggleMenuLainnya();"
+                class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-blue-50 transition-all active:scale-[0.97] border border-slate-100 hover:border-blue-200">
+
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl shadow-sm">
+                        🚚
+                    </div>
+
+                    <div class="text-left">
+                        <p class="font-semibold text-slate-800 text-sm">
+                            Kulakan
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Riwayat Stok
+                        </p>
+                    </div>
+                </div>
+
+                <span class="text-blue-500 text-lg">›</span>
+            </button>
+
+            <!-- SETTING (DISABLED) -->
+            <button
+                class="opacity-40 flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 cursor-not-allowed">
+
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-slate-200 text-slate-400 rounded-xl flex items-center justify-center text-xl">
+                        ⚙️
+                    </div>
+
+                    <div class="text-left">
+                        <p class="font-semibold text-slate-400 text-sm">
+                            Setting
+                        </p>
+                        <p class="text-xs text-slate-300">
+                            Profil & Toko
+                        </p>
+                    </div>
+                </div>
+            </button>
+
+            <!-- LOGOUT -->
+            <button onclick="document.getElementById('btn-logout').click()"
+                class="flex items-center justify-between p-4 rounded-2xl bg-blue-50 hover:bg-blue-100 transition-all active:scale-[0.97] border border-blue-100">
+
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-600 text-white rounded-xl flex items-center justify-center text-xl shadow-sm">
+                        🚪
+                    </div>
+
+                    <div class="text-left">
+                        <p class="font-semibold text-blue-700 text-sm">
+                            Keluar
+                        </p>
+                        <p class="text-xs text-blue-400">
+                            Akhiri sesi
+                        </p>
+                    </div>
+                </div>
+
+                <span class="text-blue-500 text-lg">›</span>
+            </button>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
+            <p class="text-[10px] font-semibold text-slate-400">
+                LABAGO v3.0
+            </p>
+
+            <div class="flex gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-300"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+            </div>
+        </div>
+
+    </div>
+</div>
 
     <main class="flex-1 relative overflow-hidden no-print bg-slate-100/50">
         
