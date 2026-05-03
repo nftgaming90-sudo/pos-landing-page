@@ -1274,22 +1274,36 @@
 <!-- MODAL PREVIEW NOTA KULAKAN -->
 <div id="modal-preview-nota" class="fixed inset-0 z-[1000] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
     <div class="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
-        <div class="p-6 bg-orange-50 border-b border-orange-100 flex justify-between items-center">
+        <!-- Header: Cuma Judul & Angka Kecil (Gak kayak tombol lagi) -->
+        <div class="p-6 bg-orange-50 border-b border-orange-100 flex justify-between items-start">
             <div>
-                <h3 class="font-black text-orange-800 text-sm uppercase tracking-widest">Cek Nota Kulakan</h3>
-                <p class="text-[10px] text-orange-600 font-bold">Samakan dengan nota asli supplier</p>
+                <h3 class="font-black text-orange-800 text-sm uppercase tracking-widest leading-none">Cek Nota</h3>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-[10px] bg-orange-200/50 text-orange-900 px-2 py-0.5 rounded-md font-black">
+                        <span id="nota-checked-count">0</span> / <span id="nota-total-count">0</span>
+                    </span>
+                    <p id="label-status-cek" class="text-[9px] text-orange-600 font-black uppercase tracking-widest opacity-60">Proses...</p>
+                </div>
             </div>
-            <button onclick="document.getElementById('modal-preview-nota').classList.add('hidden')" class="text-orange-800 text-xl font-black">✕</button>
+            <button onclick="document.getElementById('modal-preview-nota').classList.add('hidden')" class="text-orange-800 text-xl font-black p-1">✕</button>
         </div>
         
-        <!-- List Barang format Nota -->
-        <div id="isi-preview-nota" class="flex-1 overflow-y-auto p-6 space-y-4 font-mono">
-            <!-- Data Masuk Sini -->
+        <!-- Search Bar -->
+        <div class="px-6 py-3 bg-white border-b border-slate-50">
+            <div class="relative">
+                <input type="text" id="search-item-nota" placeholder="Cari barang..." oninput="window.filterItemNota(this.value)"
+                    class="w-full pl-4 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[11px] font-bold outline-none focus:ring-2 focus:ring-orange-500/20">
+            </div>
         </div>
 
+        <div id="isi-preview-nota" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <!-- Isi di-render via JS -->
+        </div>
+
+        <!-- TOMBOL TUNGGAL (Hanya ini satu-satunya tombol aksi) -->
         <div class="p-6 bg-slate-50 border-t border-slate-100">
-            <button onclick="document.getElementById('modal-preview-nota').classList.add('hidden')" 
-                class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em]">
+            <button id="btn-selesai-cek-final" onclick="document.getElementById('modal-preview-nota').classList.add('hidden')" 
+                class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all active:scale-95">
                 Selesai Cek
             </button>
         </div>

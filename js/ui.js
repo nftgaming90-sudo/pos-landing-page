@@ -452,44 +452,143 @@ window.syncKulakan = (index, trigger) => {
 window.bukaPreviewNotaKulakan = () => {
     const modal = document.getElementById('modal-preview-nota');
     const container = document.getElementById('isi-preview-nota');
+    const searchInput = document.getElementById('search-item-nota');
+    
+    const totalCountEl = document.getElementById('nota-total-count');
+    const checkedCountEl = document.getElementById('nota-checked-count');
+    const labelStatus = document.getElementById('label-status-cek');
     
     if (window.cartKulakan.length === 0) {
         alert("Belum ada barang di keranjang, Mas.");
         return;
     }
 
+    if(searchInput) searchInput.value = ""; 
     modal.classList.remove('hidden');
+
+    if(totalCountEl) totalCountEl.innerText = window.cartKulakan.length;
     
-    // Render isi nota dengan Checkbox
-    container.innerHTML = window.cartKulakan.map((item, index) => {
-        const total = item.qty * item.hargaBeli;
-        return `
-        <label class="flex items-start gap-4 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-all cursor-pointer group">
-            <!-- Checkbox Custom -->
-            <div class="relative flex items-center mt-1">
-                <input type="checkbox" class="peer w-5 h-5 appearance-none border-2 border-slate-200 rounded-md checked:bg-orange-500 checked:border-orange-500 transition-all">
-                <span class="absolute text-white opacity-0 peer-checked:opacity-100 pointer-events-none left-1 top-0.5 text-xs">✓</span>
-            </div>
-            
-            <div class="flex-1 min-w-0">
-                <div class="flex justify-between items-start">
-                    <p class="text-[11px] font-black text-slate-800 uppercase truncate pr-2">${item.nama}</p>
-                    <p class="text-[11px] font-black text-slate-900 whitespace-nowrap">Rp ${window.formatAngka(total.toString())}</p>
-                </div>
-                <div class="flex justify-between text-[10px] text-slate-500 font-bold mt-1">
-                    <span>${item.qty} Pcs x @${window.formatAngka(item.hargaBeli.toString())}</span>
-                </div>
-            </div>
-        </label>
-        `;
-    }).join('') + `
-    <div class="mt-6 pt-4 border-t-2 border-dashed border-slate-200">
-        <div class="flex justify-between items-center text-slate-800">
-            <span class="text-[10px] font-black uppercase tracking-widest">Total Tagihan</span>
-            <span class="text-lg font-black text-orange-600">Rp ${document.getElementById('total-nominal-kulakan').innerText.replace('Rp ', '')}</span>
+    // Set awal agar tidak kedip
+    if(labelStatus) {
+        labelStatus.innerHTML = "PROSES CEK...";
+        labelStatus.className = "text-[9px] text-orange-600 font-black uppercase tracking-widest opacity-60";
+    }
+
+    container.innerHTML = `
+        <div class="flex items-center justify-between mb-4 px-1 bg-slate-50 p-2 rounded-xl border border-slate-100">
+            <label class="flex items-center gap-2 cursor-pointer w-full">
+                <input type="checkbox" id="toggle-hide-checked" 
+                    onchange="window.filterItemNota(document.getElementById('search-item-nota').value)" 
+                    class="w-4 h-4 rounded border-slate-300 accent-orange-500">
+                <span class="text-[9px] font-black text-slate-500 uppercase tracking-tighter">Sembunyikan yang sudah dicentang</span>
+            </label>
         </div>
-    </div>
+
+        <div id="wrapper-item-nota" class="space-y-2">
+            ${window.cartKulakan.map((item, index) => {
+                const total = item.qty * item.hargaBeli;
+                const hrgLama = item.hargaBeliLama || item.hargaBeli;
+                
+                // --- KUNCI: Cek status dari array master ---
+                const isChecked = item.isChecked ? 'checked' : '';
+
+                return `
+                <label data-nama="${item.nama.toLowerCase()}" class="item-nota-row flex items-start gap-3 p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all cursor-pointer group">
+                    <div class="relative flex items-center mt-1">
+                        <input type="checkbox" 
+                            ${isChecked} 
+                            onchange="window.handleCheckboxChange(this, ${index})" 
+                            class="peer checkbox-nota w-5 h-5 appearance-none border-2 border-slate-200 rounded-md checked:bg-orange-500 checked:border-orange-500 transition-all">
+                        <span class="absolute text-white opacity-0 peer-checked:opacity-100 pointer-events-none left-1 top-0.5 text-[10px] font-black">✓</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-start">
+                            <p class="text-[11px] font-black text-slate-800 uppercase truncate pr-2 leading-tight">${item.nama}</p>
+                            <p class="text-[11px] font-black text-slate-900 whitespace-nowrap">Rp ${window.formatAngka(total.toString())}</p>
+                        </div>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-[9px] text-slate-500 font-bold">${item.qty} Pcs x @${window.formatAngka(item.hargaBeli.toString())}</span>
+                            <span class="text-[8px] font-black text-slate-300 uppercase tracking-tighter italic">Lalu: ${window.formatAngka(hrgLama.toString())}</span>
+                        </div>
+                    </div>
+                </label>`;
+            }).join('')}
+        </div>
+
+        <div id="total-nota-sticky" class="mt-6 pt-4 border-t-2 border-dashed border-slate-200 transition-opacity duration-300">
+            <div class="flex justify-between items-center text-slate-800">
+                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Tagihan</span>
+                <span class="text-lg font-black text-orange-600">Rp ${document.getElementById('total-nominal-kulakan').innerText.replace('Rp ', '')}</span>
+            </div>
+        </div>
     `;
+
+    // Sinkronisasi angka counter & warna tombol saat pertama buka
+    window.handleCheckboxChange();
+};
+
+window.filterItemNota = (keyword) => {
+    const val = keyword.toLowerCase();
+    const isHideChecked = document.getElementById('toggle-hide-checked')?.checked;
+    const items = document.querySelectorAll('.item-nota-row');
+    const totalDiv = document.getElementById('total-nota-sticky');
+
+    items.forEach(item => {
+        const nama = item.getAttribute('data-nama');
+        const isChecked = item.querySelector('.checkbox-nota').checked;
+        const matchSearch = nama.includes(val);
+        const shouldShow = isHideChecked ? (matchSearch && !isChecked) : matchSearch;
+        item.style.display = shouldShow ? 'flex' : 'none';
+    });
+
+    if (totalDiv) totalDiv.style.opacity = (val.length > 0) ? "0.2" : "1";
+};
+
+// Fungsi pendukung saat checkbox diklik biar langsung hilang kalau mode Auto-Hide aktif
+// Tambahkan parameter 'index' di sini
+window.handleCheckboxChange = (el, index) => {
+    // 1. Simpan ke Data Master (Array Cart) jika dipicu klik
+    if (index !== undefined && window.cartKulakan[index]) {
+        window.cartKulakan[index].isChecked = el.checked;
+        // Simpan ke LocalStorage agar saat refresh centangan tetap ada
+        localStorage.setItem('labaGo_cart_temp', JSON.stringify(window.cartKulakan));
+    }
+
+    // 2. Jalankan Filter Auto-hide
+    const searchInput = document.getElementById('search-item-nota');
+    window.filterItemNota(searchInput ? searchInput.value : "");
+    
+    // 3. Hitung Progres dari Data Master
+    const all = window.cartKulakan.length;
+    const checked = window.cartKulakan.filter(item => item.isChecked).length;
+    
+    const countEl = document.getElementById('nota-checked-count');
+    const labelStatus = document.getElementById('label-status-cek');
+    const btnFinal = document.getElementById('btn-selesai-cek-final');
+
+    if(countEl) countEl.innerText = checked;
+
+    // 4. Update Visual Tombol & Header
+    if (checked === all && all > 0) {
+        if(labelStatus) {
+            labelStatus.innerText = "BERES!"; 
+            labelStatus.className = "text-[9px] text-emerald-600 font-black uppercase tracking-widest opacity-100";
+        }
+        if(btnFinal) {
+            btnFinal.className = "w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-100 transition-all active:scale-95";
+            btnFinal.innerText = "SEMUA BERES, TUTUP";
+        }
+        if(navigator.vibrate) navigator.vibrate([100, 50, 100]); 
+    } else {
+        if(labelStatus) {
+            labelStatus.innerText = "PROSES CEK...";
+            labelStatus.className = "text-[9px] text-orange-600 font-black uppercase tracking-widest opacity-60";
+        }
+        if(btnFinal) {
+            btnFinal.className = "w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all active:scale-95";
+            btnFinal.innerText = "SELESAI CEK";
+        }
+    }
 };
 
 window.renderRiwayatKulakan = () => {
@@ -557,7 +656,21 @@ window.hitungTotalKulakan = () => {
     const total = window.cartKulakan.reduce((sum, item) => sum + (item.qty * item.hargaBeli), 0);
     const el = document.getElementById('total-nominal-kulakan');
     if (el) el.innerText = "Rp " + window.formatAngka(total.toString());
+    localStorage.setItem('labaGo_cart_temp', JSON.stringify(window.cartKulakan));
 };
+
+// Cek apakah ada data belanjaan lama di memori
+const savedCart = localStorage.getItem('labaGo_cart_temp');
+
+if (savedCart) {
+    // Kalau ada, masukkan balik ke window.cartKulakan
+    window.cartKulakan = JSON.parse(savedCart);
+    // Langsung render biar muncul lagi di layar
+    window.renderCartKulakan(); 
+} else {
+    // Kalau gak ada, baru set jadi array kosong
+    window.cartKulakan = window.cartKulakan || [];
+}
 
 window.renderPelangganSelect = () => {
     if (!window.db) return;

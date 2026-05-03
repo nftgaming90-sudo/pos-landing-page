@@ -561,7 +561,12 @@ window.eksekusiKulakan = async (statusBaru) => {
             alert(`🚀 Kulakan Selesai!\nTotal: Rp ${grandTotal.toLocaleString('id-ID')}\nStok sudah bertambah.`);
         }
         
-        // 8. Bersihkan UI
+        // 8. Bersihkan UI & MEMORI TEMPORER
+        // --- TAMBAHKAN DI SINI ---
+        localStorage.removeItem('labaGo_cart_temp'); 
+        localStorage.removeItem('labaGo_checked_temp'); // Hapus juga centangan preview nota
+        // -------------------------
+
         window.cartKulakan = [];
         if (typeof window.refreshDataUI === 'function') window.refreshDataUI();
         if (typeof window.renderCartKulakan === 'function') window.renderCartKulakan();
@@ -569,6 +574,10 @@ window.eksekusiKulakan = async (statusBaru) => {
         if (window.innerWidth < 768 && typeof window.toggleKulakanDrawer === 'function') {
             window.toggleKulakanDrawer();
         }
+        
+        // Tutup modal preview nota jika sedang terbuka
+        const modalPreview = document.getElementById('modal-preview-nota');
+        if (modalPreview) modalPreview.classList.add('hidden');
 
     } catch (error) {
         console.error("Gagal eksekusi kulakan:", error);
@@ -602,8 +611,11 @@ window.editDraftKulakan = async (pembelianId) => {
             id: row[0],
             nama: row[1],
             qty: row[2],
-            hargaBeli: row[3]
+            hargaBeli: row[3],
+            isChecked: false
         }));
+
+        localStorage.setItem('labaGo_cart_temp', JSON.stringify(window.cartKulakan));
 
         // 3. ISI OTOMATIS DROPDOWN SUPPLIER (Berdasarkan ID di HTML kamu)
         const selectSup = document.getElementById('select-supplier');
