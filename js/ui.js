@@ -328,9 +328,9 @@ window.renderCartKulakan = () => {
                 <!-- Input Qty: Gaya Button Empuk -->
                 <div class="flex items-center gap-2 bg-slate-50 p-1 rounded-xl">
                     <button onclick="window.stepQtyKulakan(${index}, -1)" class="w-8 h-8 flex items-center justify-center bg-white rounded-lg shadow-sm text-slate-600 active:scale-90 font-black">─</button>
-                    <input type="number" id="qty-${index}" value="${item.qty}" 
-                        oninput="window.syncKulakan(${index}, 'qty')"
-                        class="flex-1 bg-transparent border-none text-center text-xs font-black p-0 outline-none text-slate-700">
+                    <input type="number" id="kulak-qty-${index}" value="${item.qty}" 
+    oninput="window.syncKulakan(${index}, 'qty')"
+    class="flex-1 bg-transparent border-none text-center text-xs font-black p-0 outline-none text-slate-700">
                     <button onclick="window.stepQtyKulakan(${index}, 1)" class="w-8 h-8 flex items-center justify-center bg-white rounded-lg shadow-sm text-blue-600 active:scale-90 font-black">＋</button>
                 </div>
 
@@ -375,26 +375,29 @@ window.renderCartKulakan = () => {
 // --- GESTURE & SYNC ENGINE ---
 
 window.stepQtyKulakan = (index, step, val) => {
-    const qtyInput = document.getElementById(`qty-${index}`);
-    if (!qtyInput) return;
+    const item = window.cartKulakan[index];
+    if (!item) return;
 
-    let currentQty = parseInt(qtyInput.value) || 0;
-    
     if (step === 'set') {
-        currentQty = val;
+        item.qty = val;
     } else {
-        currentQty += step;
+        item.qty = (item.qty || 0) + step;
     }
 
-    if (currentQty < 1) currentQty = 1;
-    qtyInput.value = currentQty;
-    
-    // Langsung picu sinkronisasi
+    if (item.qty < 1) item.qty = 1;
+
+    // TEMBAK ID BARU: kulak-qty-
+    const qtyInput = document.getElementById(`kulak-qty-${index}`);
+    if (qtyInput) {
+        qtyInput.value = item.qty;
+    }
+
     window.syncKulakan(index, 'qty');
 };
 
 window.syncKulakan = (index, trigger) => {
-    const qtyInput = document.getElementById(`qty-${index}`);
+    // Gunakan ID unik 'kulak-' agar tidak bentrok dengan halaman Kasir
+    const qtyInput = document.getElementById(`kulak-qty-${index}`);
     const satuanInput = document.getElementById(`satuan-${index}`);
     const totalInput = document.getElementById(`total-${index}`);
 
@@ -404,7 +407,6 @@ window.syncKulakan = (index, trigger) => {
     let satuan = parseInt(satuanInput.value.replace(/\./g, '')) || 0;
     let total = parseInt(totalInput.value.replace(/\./g, '')) || 0;
 
-    // 1. Hitung otomatis dua arah
     if (qty > 0) {
         if (trigger === 'total') {
             satuan = Math.round(total / qty);
@@ -412,40 +414,29 @@ window.syncKulakan = (index, trigger) => {
         } else {
             total = satuan * qty;
             totalInput.value = window.formatAngka(total.toString());
+            qtyInput.value = qty; 
         }
     }
 
-    // 2. AMBIL ITEM DARI ARRAY
     const item = window.cartKulakan[index];
+    if (!item) return;
     
-    // 3. LOGIKA TREN (Gunakan property yang konsisten)
-    // Kita pakai item.hargaBeliLama sebagai patokan harga dari DB
+    // Update data di memori
+    item.qty = qty;
+    item.hargaBeli = satuan;
+    
+    // Update Tren Visual
     const hrgLama = item.hargaBeliLama || 0;
     const trendEl = document.getElementById(`trend-${index}`);
-
-    if (trendEl) {
-        if (hrgLama > 0) {
-            const selisih = satuan - hrgLama;
-            const persen = Math.round((selisih / hrgLama) * 100);
-            
-            if (selisih > 0) {
-                trendEl.innerHTML = `<span class="text-rose-500 font-black">▲ ${persen}%</span>`;
-            } else if (selisih < 0) {
-                trendEl.innerHTML = `<span class="text-emerald-500 font-black">▼ ${Math.abs(persen)}%</span>`;
-            } else {
-                trendEl.innerHTML = `<span class="text-slate-300">STABIL</span>`;
-            }
-        } else {
-            // Kalau hrgLama masih 0, berarti data dari DB belum masuk ke array
-            trendEl.innerHTML = `<span class="text-blue-400 font-black italic text-[8px]">BARU</span>`;
-        }
+    if (trendEl && hrgLama > 0) {
+        const selisih = satuan - hrgLama;
+        const persen = Math.round((selisih / hrgLama) * 100);
+        if (selisih > 0) trendEl.innerHTML = `<span class="text-rose-500 font-black">▲ ${persen}%</span>`;
+        else if (selisih < 0) trendEl.innerHTML = `<span class="text-emerald-500 font-black">▼ ${Math.abs(persen)}%</span>`;
+        else trendEl.innerHTML = `<span class="text-slate-300">STABIL</span>`;
     }
 
-    // 4. UPDATE ARRAY (PENTING: Jangan hapus hargaBeliLama)
-    window.cartKulakan[index].qty = qty;
-    window.cartKulakan[index].hargaBeli = satuan;
-    // hargaBeliLama dibiarkan tetap sesuai aslinya untuk pembanding terus
-    
+    localStorage.setItem('labaGo_cart_temp', JSON.stringify(window.cartKulakan));
     window.hitungTotalKulakan();
 };
 
