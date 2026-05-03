@@ -299,45 +299,154 @@ window.renderCartKulakan = () => {
     if (window.cartKulakan.length === 0) {
         container.innerHTML = `<div class="py-20 text-center opacity-20 text-[10px] font-black uppercase">Belum ada barang dipilih</div>`;
         floatBtn?.classList.add('hidden');
-        if (document.getElementById('total-nominal-kulakan')) {
-            document.getElementById('total-nominal-kulakan').innerText = "Rp 0";
-        }
+        if (document.getElementById('total-nominal-kulakan')) document.getElementById('total-nominal-kulakan').innerText = "Rp 0";
     } else {
         const currentPage = document.querySelector('.page-active')?.id;
-
-if (window.cartKulakan.length > 0 && currentPage === 'menu-stok') {
-    floatBtn?.classList.remove('hidden');
-} else {
-    floatBtn?.classList.add('hidden');
-}
+        if (window.cartKulakan.length > 0 && currentPage === 'menu-stok') floatBtn?.classList.remove('hidden');
         if(mobCount) mobCount.innerText = `${window.cartKulakan.length} Items`;
         
-        container.innerHTML = window.cartKulakan.map((item, index) => `
-            <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col gap-2">
-                <div class="flex justify-between items-start">
-                    <span class="text-[10px] font-black text-slate-700 uppercase leading-tight">${item.nama}</span>
-                    <button onclick="window.cartKulakan.splice(${index}, 1); window.renderCartKulakan();" class="text-rose-500 text-xs">✕</button>
+        container.innerHTML = window.cartKulakan.map((item, index) => {
+            const totalItem = item.qty * item.hargaBeli;
+            
+            // --- LOGIKA CEK TREN HARGA ---
+            const hrgLama = item.hargaBeliLama || item.hargaBeli;
+            const selisih = item.hargaBeli - hrgLama;
+            const persen = hrgLama > 0 ? Math.round((selisih / hrgLama) * 100) : 0;
+            
+            let infoTren = `<span class="text-slate-300">STABIL</span>`;
+            if (selisih > 0) infoTren = `<span class="text-rose-500">▲ ${persen}%</span>`;
+            if (selisih < 0) infoTren = `<span class="text-emerald-500">▼ ${Math.abs(persen)}%</span>`;
+
+            return `
+            <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-2">
+                <!-- Header: Nama & Hapus -->
+                <div class="flex justify-between items-center px-1">
+                    <span class="text-[10px] font-black text-slate-700 uppercase truncate pr-2">${item.nama}</span>
+                    <button onclick="window.cartKulakan.splice(${index}, 1); window.renderCartKulakan();" class="text-rose-400 hover:text-rose-600 p-1">✕</button>
                 </div>
+
+                <!-- Input Qty: Gaya Button Empuk -->
+                <div class="flex items-center gap-2 bg-slate-50 p-1 rounded-xl">
+                    <button onclick="window.stepQtyKulakan(${index}, -1)" class="w-8 h-8 flex items-center justify-center bg-white rounded-lg shadow-sm text-slate-600 active:scale-90 font-black">─</button>
+                    <input type="number" id="qty-${index}" value="${item.qty}" 
+                        oninput="window.syncKulakan(${index}, 'qty')"
+                        class="flex-1 bg-transparent border-none text-center text-xs font-black p-0 outline-none text-slate-700">
+                    <button onclick="window.stepQtyKulakan(${index}, 1)" class="w-8 h-8 flex items-center justify-center bg-white rounded-lg shadow-sm text-blue-600 active:scale-90 font-black">＋</button>
+                </div>
+
+                <!-- Grid Harga: Simetris & Jelas -->
                 <div class="grid grid-cols-2 gap-2">
+                    <!-- Kolom Satuan -->
                     <div class="flex flex-col gap-1">
-                        <label class="text-[8px] font-black text-slate-400 uppercase">Qty Baru</label>
-                        <input type="number" value="${item.qty}" 
-                            onchange="window.cartKulakan[${index}].qty = parseInt(this.value)||1; window.hitungTotalKulakan();"
-                            class="w-full bg-slate-50 border-none rounded-lg p-2 text-[11px] font-black outline-none focus:ring-1 focus:ring-orange-500">
+                        <div class="flex justify-between items-center px-1 h-3">
+                            <label class="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Satuan</label>
+                            <div id="trend-${index}" class="flex items-center">${infoTren}</div>
+                        </div>
+                        <input type="text" id="satuan-${index}" value="${window.formatAngka(item.hargaBeli.toString())}" 
+                            oninput="this.value=window.formatAngka(this.value); window.syncKulakan(${index}, 'satuan')"
+                            class="bg-blue-50/80 border-none rounded-lg p-2 text-[10px] font-black text-blue-700 text-right outline-none ring-1 ring-blue-100/50">
+                        <!-- Harga Lalu: Dibuat lebih hitam (slate-600) agar jelas -->
+                        <p class="text-[7px] font-black text-slate-600 mt-0.5 ml-1 uppercase">Lalu: ${window.formatAngka(hrgLama.toString())}</p>
                     </div>
+
+                    <!-- Kolom Total Nota -->
                     <div class="flex flex-col gap-1">
-                        <label class="text-[8px] font-black text-slate-400 uppercase">Harga Modal (Rp)</label>
-                        <input type="text" value="${window.formatAngka(item.hargaBeli)}" 
-                            oninput="this.value=window.formatAngka(this.value); window.cartKulakan[${index}].hargaBeli=parseInt(this.value.replace(/\\./g,''))||0; window.hitungTotalKulakan();"
-                            class="w-full bg-slate-50 border-none rounded-lg p-2 text-[11px] font-black text-right outline-none focus:ring-1 focus:ring-orange-500">
+                        <div class="flex items-center px-1 h-3">
+                            <label class="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Total Nota</label>
+                        </div>
+                        <input type="text" id="total-${index}" value="${window.formatAngka(totalItem.toString())}" 
+                            oninput="this.value=window.formatAngka(this.value); window.syncKulakan(${index}, 'total')"
+                            class="bg-orange-50/80 border-none rounded-lg p-2 text-[10px] font-black text-orange-700 text-right outline-none ring-1 ring-orange-100/50">
+                        <p class="text-[7px] font-black text-orange-400 mt-0.5 text-right mr-1 uppercase">Sesuai Nota</p>
                     </div>
                 </div>
-            </div>
-        `).join('');
-        
-        // Langsung hitung total setiap kali render
+
+                <!-- Shortcut Buttons -->
+                <div class="flex gap-1.5 mt-0.5">
+                    <button onclick="window.stepQtyKulakan(${index}, 'set', 12)" class="flex-1 py-1.5 bg-slate-800 text-white rounded-lg text-[7px] font-black uppercase tracking-widest active:scale-95 transition-all">1 Lsn</button>
+                    <button onclick="window.stepQtyKulakan(${index}, 'set', 6)" class="flex-1 py-1.5 bg-white border border-slate-200 text-slate-500 rounded-lg text-[7px] font-black uppercase tracking-widest active:scale-95 transition-all">1/2 Lsn</button>
+                </div>
+            </div>`;
+        }).join('');
         window.hitungTotalKulakan();
     }
+};
+
+// --- GESTURE & SYNC ENGINE ---
+
+window.stepQtyKulakan = (index, step, val) => {
+    const qtyInput = document.getElementById(`qty-${index}`);
+    if (!qtyInput) return;
+
+    let currentQty = parseInt(qtyInput.value) || 0;
+    
+    if (step === 'set') {
+        currentQty = val;
+    } else {
+        currentQty += step;
+    }
+
+    if (currentQty < 1) currentQty = 1;
+    qtyInput.value = currentQty;
+    
+    // Langsung picu sinkronisasi
+    window.syncKulakan(index, 'qty');
+};
+
+window.syncKulakan = (index, trigger) => {
+    const qtyInput = document.getElementById(`qty-${index}`);
+    const satuanInput = document.getElementById(`satuan-${index}`);
+    const totalInput = document.getElementById(`total-${index}`);
+
+    if (!qtyInput || !satuanInput || !totalInput) return;
+
+    let qty = parseInt(qtyInput.value) || 0;
+    let satuan = parseInt(satuanInput.value.replace(/\./g, '')) || 0;
+    let total = parseInt(totalInput.value.replace(/\./g, '')) || 0;
+
+    // 1. Hitung otomatis dua arah
+    if (qty > 0) {
+        if (trigger === 'total') {
+            satuan = Math.round(total / qty);
+            satuanInput.value = window.formatAngka(satuan.toString());
+        } else {
+            total = satuan * qty;
+            totalInput.value = window.formatAngka(total.toString());
+        }
+    }
+
+    // 2. AMBIL ITEM DARI ARRAY
+    const item = window.cartKulakan[index];
+    
+    // 3. LOGIKA TREN (Gunakan property yang konsisten)
+    // Kita pakai item.hargaBeliLama sebagai patokan harga dari DB
+    const hrgLama = item.hargaBeliLama || 0;
+    const trendEl = document.getElementById(`trend-${index}`);
+
+    if (trendEl) {
+        if (hrgLama > 0) {
+            const selisih = satuan - hrgLama;
+            const persen = Math.round((selisih / hrgLama) * 100);
+            
+            if (selisih > 0) {
+                trendEl.innerHTML = `<span class="text-rose-500 font-black">▲ ${persen}%</span>`;
+            } else if (selisih < 0) {
+                trendEl.innerHTML = `<span class="text-emerald-500 font-black">▼ ${Math.abs(persen)}%</span>`;
+            } else {
+                trendEl.innerHTML = `<span class="text-slate-300">STABIL</span>`;
+            }
+        } else {
+            // Kalau hrgLama masih 0, berarti data dari DB belum masuk ke array
+            trendEl.innerHTML = `<span class="text-blue-400 font-black italic text-[8px]">BARU</span>`;
+        }
+    }
+
+    // 4. UPDATE ARRAY (PENTING: Jangan hapus hargaBeliLama)
+    window.cartKulakan[index].qty = qty;
+    window.cartKulakan[index].hargaBeli = satuan;
+    // hargaBeliLama dibiarkan tetap sesuai aslinya untuk pembanding terus
+    
+    window.hitungTotalKulakan();
 };
 
 window.renderRiwayatKulakan = () => {

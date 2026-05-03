@@ -425,12 +425,21 @@ window.tambahKeKulakan = (id) => {
     if (existing) {
         existing.qty++;
     } else {
-        window.cartKulakan.push({ id, nama: barang[0], qty: 1, hargaBeli: barang[3] || 0 });
+        // Ambil harga modal saat ini dari database
+        const hargaModalDB = parseInt(barang[3]) || 0;
+
+        window.cartKulakan.push({ 
+            id: id, 
+            nama: barang[0], 
+            qty: 1, 
+            hargaBeli: hargaModalDB,     // Ini harga yang akan kita otak-atik
+            hargaBeliLama: hargaModalDB  // Ini patokan harga asli dari DB (JANGAN DIUBAH)
+        });
     }
     
     window.renderCartKulakan();
     
-    // Getar dikit pas nambah (Opsional)
+    // Getar dikit pas nambah (Biar kerasa premium)
     if(navigator.vibrate) navigator.vibrate(50);
 };
 

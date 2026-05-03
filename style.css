@@ -354,3 +354,41 @@ body {
 /* Utility tambahan */
 .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* CARD CATATAN */
+#list-catatan > div {
+    background: white;
+    border-radius: 18px;
+    padding: 16px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* AKSEN KIRI (BIAR KAYA APP MAHAL) */
+#list-catatan > div::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, #2563eb, #4f46e5);
+}
+
+/* HOVER PC */
+@media (hover:hover) {
+    #list-catatan > div:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+}
+
+/* RESPONSIVE IMPROVE */
+@media (min-width: 768px) {
+    #list-catatan > div {
+        padding: 18px;
+    }
+}
