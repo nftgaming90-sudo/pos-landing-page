@@ -449,6 +449,49 @@ window.syncKulakan = (index, trigger) => {
     window.hitungTotalKulakan();
 };
 
+window.bukaPreviewNotaKulakan = () => {
+    const modal = document.getElementById('modal-preview-nota');
+    const container = document.getElementById('isi-preview-nota');
+    
+    if (window.cartKulakan.length === 0) {
+        alert("Belum ada barang di keranjang, Mas.");
+        return;
+    }
+
+    modal.classList.remove('hidden');
+    
+    // Render isi nota dengan Checkbox
+    container.innerHTML = window.cartKulakan.map((item, index) => {
+        const total = item.qty * item.hargaBeli;
+        return `
+        <label class="flex items-start gap-4 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-all cursor-pointer group">
+            <!-- Checkbox Custom -->
+            <div class="relative flex items-center mt-1">
+                <input type="checkbox" class="peer w-5 h-5 appearance-none border-2 border-slate-200 rounded-md checked:bg-orange-500 checked:border-orange-500 transition-all">
+                <span class="absolute text-white opacity-0 peer-checked:opacity-100 pointer-events-none left-1 top-0.5 text-xs">✓</span>
+            </div>
+            
+            <div class="flex-1 min-w-0">
+                <div class="flex justify-between items-start">
+                    <p class="text-[11px] font-black text-slate-800 uppercase truncate pr-2">${item.nama}</p>
+                    <p class="text-[11px] font-black text-slate-900 whitespace-nowrap">Rp ${window.formatAngka(total.toString())}</p>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500 font-bold mt-1">
+                    <span>${item.qty} Pcs x @${window.formatAngka(item.hargaBeli.toString())}</span>
+                </div>
+            </div>
+        </label>
+        `;
+    }).join('') + `
+    <div class="mt-6 pt-4 border-t-2 border-dashed border-slate-200">
+        <div class="flex justify-between items-center text-slate-800">
+            <span class="text-[10px] font-black uppercase tracking-widest">Total Tagihan</span>
+            <span class="text-lg font-black text-orange-600">Rp ${document.getElementById('total-nominal-kulakan').innerText.replace('Rp ', '')}</span>
+        </div>
+    </div>
+    `;
+};
+
 window.renderRiwayatKulakan = () => {
     const container = document.getElementById('riwayat-kulakan-body'); 
     if (!container || !window.db) return;

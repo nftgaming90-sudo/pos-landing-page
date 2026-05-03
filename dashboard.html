@@ -611,11 +611,17 @@
     <div id="kulakan-items" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30 hide-scrollbar">
         </div>
 
-    <div class="p-4 bg-white border-t border-slate-200 space-y-3 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10 shrink-0 pb-safe md:pb-4">
-    <div class="flex justify-between items-center">
+    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border border-slate-100">
+    <div>
         <p class="text-slate-400 font-black uppercase text-[9px] tracking-widest">Estimasi Total</p>
-        <p id="total-nominal-kulakan" class="text-2xl font-black text-orange-600 tracking-tighter">Rp 0</p>
+        <p id="total-nominal-kulakan" class="text-xl font-black text-orange-600 tracking-tighter">Rp 0</p>
     </div>
+    <!-- Tombol Mata (Preview Nota) -->
+    <button onclick="window.bukaPreviewNotaKulakan()" 
+        class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl shadow-sm active:scale-90 transition-all text-lg">
+        👁️
+    </button>
+</div>
 
     <div class="flex flex-col gap-2">
         <button onclick="window.eksekusiKulakan('DRAFT')" 
@@ -1261,6 +1267,31 @@
             <p class="text-[8px] text-slate-400 font-bold italic leading-tight">
                 *Menghapus kategori tidak menghapus barang.<br>Label kategori barang tersebut akan kembali ke 'Umum'.
             </p>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PREVIEW NOTA KULAKAN -->
+<div id="modal-preview-nota" class="fixed inset-0 z-[1000] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+        <div class="p-6 bg-orange-50 border-b border-orange-100 flex justify-between items-center">
+            <div>
+                <h3 class="font-black text-orange-800 text-sm uppercase tracking-widest">Cek Nota Kulakan</h3>
+                <p class="text-[10px] text-orange-600 font-bold">Samakan dengan nota asli supplier</p>
+            </div>
+            <button onclick="document.getElementById('modal-preview-nota').classList.add('hidden')" class="text-orange-800 text-xl font-black">✕</button>
+        </div>
+        
+        <!-- List Barang format Nota -->
+        <div id="isi-preview-nota" class="flex-1 overflow-y-auto p-6 space-y-4 font-mono">
+            <!-- Data Masuk Sini -->
+        </div>
+
+        <div class="p-6 bg-slate-50 border-t border-slate-100">
+            <button onclick="document.getElementById('modal-preview-nota').classList.add('hidden')" 
+                class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em]">
+                Selesai Cek
+            </button>
         </div>
     </div>
 </div>

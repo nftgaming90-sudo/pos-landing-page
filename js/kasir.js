@@ -421,26 +421,46 @@ window.tambahKeKulakan = (id) => {
     const barang = window.masterData.find(x => x[4] === id);
     if (!barang) return;
 
+    // --- LOGIC TAMBAHAN UNTUK HP ---
+    const isMobile = window.innerWidth <= 768;
+    const selectSup = document.getElementById('select-supplier');
+    const supplierBelumDipilih = selectSup && selectSup.value === "";
+
+    // Jika di HP dan belum pilih supplier, arahkan fokus ke supplier dulu
+    if (isMobile && supplierBelumDipilih) {
+        alert("Pilih Supplier dulu ya, biar tercatat di nota.");
+        window.toggleKulakanDrawer(); // Buka drawer kulakan otomatis
+        setTimeout(() => {
+            const inputSup = document.getElementById('input-select-supplier'); // ID dari smart dropdown
+            if(inputSup) inputSup.focus();
+        }, 500);
+        return; // Stop dulu, biar user pilih supplier
+    }
+
     const existing = window.cartKulakan.find(item => item.id === id);
     if (existing) {
         existing.qty++;
     } else {
-        // Ambil harga modal saat ini dari database
         const hargaModalDB = parseInt(barang[3]) || 0;
-
         window.cartKulakan.push({ 
             id: id, 
             nama: barang[0], 
             qty: 1, 
-            hargaBeli: hargaModalDB,     // Ini harga yang akan kita otak-atik
-            hargaBeliLama: hargaModalDB  // Ini patokan harga asli dari DB (JANGAN DIUBAH)
+            hargaBeli: hargaModalDB,     
+            hargaBeliLama: hargaModalDB  
         });
     }
     
     window.renderCartKulakan();
     
-    // Getar dikit pas nambah (Biar kerasa premium)
+    // Feedback visual/getar
     if(navigator.vibrate) navigator.vibrate(50);
+
+    // Kalau di HP, kasih notifikasi kecil kalau barang berhasil masuk
+    if (isMobile) {
+        // Bisa pakai toast atau sekedar log
+        console.log("Barang masuk keranjang kulakan");
+    }
 };
 
 window.eksekusiKulakan = async (statusBaru) => {
